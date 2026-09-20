@@ -63,7 +63,7 @@
 #define LED_OFF LATB &= ~(1 << 9)
 #define DELAY_750ms 251395                       //Provided C file uses fast FRC, use 108000/288000/720000 if on the FRCDIV(page 92))
 #define DELAY_2000ms 670390
-#define DELAY_5000ms 1675973
+#define DELAY_5000ms 1675966
 
 int main()
 {
@@ -78,7 +78,7 @@ int main()
 
 	while (1)
 	{
-		for(uint32_t i = 0; i<blink_delay;i++){
+		for(volatile uint32_t i = 0; i<blink_delay;i++){
 		}
 		switch(PB1|PB2|PB3) // Bit 16 <15.xx|..|3.xx|2.PB3|1.PB2|0.PB1|> Bit 0 Control Register layout
 		{
@@ -110,4 +110,3 @@ int main()
 	}
 	return 0;
 }
-
