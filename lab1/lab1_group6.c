@@ -55,59 +55,89 @@
 #include <p24F16KA101.h>
 #include "stdint.h"
 
-#define PB1 ((PORTB & 1 << 7) != 0)             //Pin 17 -> control bit[0]
-#define PB2 (((PORTB & 1 << 4) != 0) << 1)      //Pin 9  -> control bit[1]
-#define PB3 (((PORTA & 1 << 4) != 0) << 2)      //Pin 10 -> control bit[2]
-#define LED_TOGGLE LATB ^= 1 << 9
-#define LED_ON LATB |= 1 << 9
-#define LED_OFF LATB &= ~(1 << 9)
-#define DELAY_750ms 251395                       //Provided C file uses fast FRC, use 108000/288000/720000 if on the FRCDIV(page 92))
-#define DELAY_2000ms 670390
-#define DELAY_5000ms 1675973
+
+#define PB1 ((PORTB & 0x80) >> 7)      // Read RB7 and place its value in control bit 0
+#define PB2 ((PORTB & 0x10) >> 3)      // Read RB4 and place its value in control bit 1
+#define PB3 ((PORTA & 0x10) >> 2)      // Read RA4 and place its value in control bit 2
+
+#define OUTPUT_BITMASK 0x200            // Bitmask for LED output on RB9
+#define LED_TOGGLE LATB ^= OUTPUT_BITMASK // Toggle RB9 using XOR
+#define LED_ON LATB |= OUTPUT_BITMASK     // Set RB9 high
+#define LED_OFF LATB &= ~(OUTPUT_BITMASK) // Clear RB9 low
+
+//#define DELAY_750ms 251395
+//#define DELAY_2000ms 670390
+//#define DELAY_5000ms 1675973
+#define DELAY_1ms 501                 // Calibrated loop count for approximately 1 ms
 
 int main()
 {
-	AD1PCFG = 0xFFFF;
-	TRISB = 1 << 7 | 1 << 4; //RB4,7 = INPUT
-	TRISA = 1 << 4;			 //RA4 = INPUT
-	CNPU1 = 0x0;
-	CNPD1 = 1 << 0 | 1 << 1; //Enable PullDown on RB4,RA4
-	CNPU2 = 0x0;
-	CNPD2 = 1 << 7; 		 //Enable PullDown on RB7
-	uint32_t blink_delay = 0;
+	AD1PCFG = 0xFFFF;                   // Configure analog-capable pins as digital I/O
+	TRISB = 0x90;                       // Configure RB4 and RB7 as inputs; remaining PORTB pins as outputs
+	TRISA = 0x10;                       // Configure RA4 as input; remaining PORTA pins as outputs
 
-	while (1)
+	CNPU1 = CNPU2 = 0x0;                // Disable internal pull-up resistors
+	CNPD1 = 0x3;                        // Enable pull-down resistors for RB4 and RA4
+	CNPD2 = 0x80;                       // Enable pull-down resistor for RB7
+
+	uint16_t blink_delay = 0;           // Current LED delay in milliseconds
+
+	while (1)                           // Main superloop runs continuously
 	{
-		for(uint32_t i = 0; i<blink_delay;i++){
-		}
-		switch(PB1|PB2|PB3) // Bit 16 <15.xx|..|3.xx|2.PB3|1.PB2|0.PB1|> Bit 0 Control Register layout
+		#if 1
+		// Use 16-bit counters to avoid unnecessary 32-bit operations on the 16-bit PIC24
+		uint16_t ms_count = 0;
+
+		while (ms_count < blink_delay)  // Repeat 1 ms delay until selected blink time is reached
 		{
-		case 1:							//PB1
+			for (uint16_t i = 0; i < DELAY_1ms; i++)
+			{
+				// Empty loop used as a calibrated software delay
+			}
+			ms_count++;
+		}
+		#endif
+
+		#if 0
+		// Alternative delay using a single 32-bit counter
+		for (uint32_t i = 0; i < 335UL * blink_delay; i++)
+		{
+		}
+		#endif
+
+		// Combine the three button inputs into a 3-bit control value: PB3|PB2|PB1
+		switch (PB3|PB2|PB1)
+		{
+		case 1:                          // PB1 only: blink every 750 ms
 			LED_TOGGLE;
-			blink_delay = DELAY_750ms;
+			blink_delay = 750;
 			break;
-		case 2:							//PB2
+
+		case 2:                          // PB2 only: blink every 2000 ms
 			LED_TOGGLE;
-			blink_delay = DELAY_2000ms;
+			blink_delay = 2000;
 			break;
-		case 4:							//PB3
+
+		case 4:                          // PB3 only: blink every 5000 ms
 			LED_TOGGLE;
-			blink_delay = DELAY_5000ms;
+			blink_delay = 5000;
 			break;
-		case 3:
-		case 5:
-		case 6:
-		case 7:	//Multi PB
-			LED_ON;
-			blink_delay = 0;
+
+		case 3:                          // PB1 + PB2
+		case 5:                          // PB1 + PB3
+		case 6:                          // PB2 + PB3
+		case 7:                          // All three buttons
+			LED_ON;                      // Multiple buttons pressed: keep LED continuously on
+			blink_delay = 0;             // No delay required while LED is continuously on
 			break;
-		case 0:
-		default:					//No PB
-			LED_OFF;
-			blink_delay = 0;
+
+		case 0:                          // No buttons pressed
+		default:                        // Safe default for any unexpected control value
+			LED_OFF;                     // Keep LED off
+			blink_delay = 0;             // No delay required while LED is off
 			break;
 		}
 	}
-	return 0;
-}
 
+	return 0;                            // Never reached because the superloop runs forever
+}
