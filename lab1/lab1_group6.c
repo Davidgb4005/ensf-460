@@ -65,10 +65,13 @@
 #define LED_ON LATB |= OUTPUT_BITMASK     // Set RB9 high
 #define LED_OFF LATB &= ~(OUTPUT_BITMASK) // Clear RB9 low
 
-//#define DELAY_750ms 251395
-//#define DELAY_2000ms 670390
-//#define DELAY_5000ms 1675973
-#define DELAY_1ms 501                 // Calibrated loop count for approximately 1 ms
+#define DELAY_1ms 144                 // Calibrated loop count for approximately 1 ms
+
+/**
+ * Uses a busy-wait loop based on an assumed clock speed of 8 MHz to generate a
+ * millisecond-resolution delay.
+ */
+void delay_ms(uint32_t ms);
 
 int main()
 {
@@ -84,27 +87,6 @@ int main()
 
 	while (1)                           // Main superloop runs continuously
 	{
-		#if 1
-		// Use 16-bit counters to avoid unnecessary 32-bit operations on the 16-bit PIC24
-		uint16_t ms_count = 0;
-
-		while (ms_count < blink_delay)  // Repeat 1 ms delay until selected blink time is reached
-		{
-			for (uint16_t i = 0; i < DELAY_1ms; i++)
-			{
-				// Empty loop used as a calibrated software delay
-			}
-			ms_count++;
-		}
-		#endif
-
-		#if 0
-		// Alternative delay using a single 32-bit counter
-		for (uint32_t i = 0; i < 335UL * blink_delay; i++)
-		{
-		}
-		#endif
-
 		// Combine the three button inputs into a 3-bit control value: PB3|PB2|PB1
 		switch (PB3|PB2|PB1)
 		{
@@ -137,7 +119,13 @@ int main()
 			blink_delay = 0;             // No delay required while LED is off
 			break;
 		}
+
+    delay_ms(blink_delay);
 	}
 
 	return 0;                            // Never reached because the superloop runs forever
+}
+
+void delay_ms(uint32_t ms) {
+  for (volatile uint32_t i = 0; i < ms * DELAY_1ms; i++) (void)0;
 }
