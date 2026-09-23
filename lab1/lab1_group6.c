@@ -68,10 +68,10 @@
 #define DELAY_1ms 144                 // Calibrated loop count for approximately 1 ms
 
 /**
- * Uses a busy-wait loop based on an assumed clock speed of 8 MHz to generate a
+ * Uses a busy-wait loop based on an assumed clock speed of 4 MHz to generate a
  * millisecond-resolution delay.
  */
-void delay_ms(uint32_t ms);
+void delay_ms(uint16_t ms);
 
 int main()
 {
@@ -126,6 +126,9 @@ int main()
 	return 0;                            // Never reached because the superloop runs forever
 }
 
-void delay_ms(uint32_t ms) {
-  for (volatile uint32_t i = 0; i < ms * DELAY_1ms; i++) (void)0;
+void delay_ms(uint16_t ms) {
+  for (uint16_t i = 0; i < ms; i++) {
+    // Delay 1 millisecond
+    for (volatile uint16_t j = 0; j < DELAY_1ms; j++) (void)0;
+  } 
 }
