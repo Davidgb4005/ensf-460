@@ -65,7 +65,7 @@
 #define LED_ON LATB |= OUTPUT_BITMASK     // Set RB9 high
 #define LED_OFF LATB &= ~(OUTPUT_BITMASK) // Clear RB9 low
 
-#define DELAY_1ms 144                 // Calibrated loop count for approximately 1 ms
+#define DELAY_1ms 501                 // Calibrated loop count for approximately 1 ms
 
 /**
  * Uses a busy-wait loop based on an assumed clock speed of 4 MHz to generate a
