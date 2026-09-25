@@ -3,18 +3,20 @@
 #show: codly-init.with()
 #codly(languages: codly-languages)
 
-#set page( paper: "a4", numbering: "1 of 1", footer: context [ _ENSF 480,
+#set page( paper: "a4", numbering: "1 of 1", footer: context [ _ENSF 460,
   Shulich School of Engineering_ #h(1fr) #counter(page).display("1/1", both:
     true) ])
 
 #set heading(numbering: "1.1")
 
+#set text(font: "IBM Plex Sans")
+
 #align(center)[
   #text(size: 14pt)[
     \ \ \ \ \ 
     *Names:* Dave Burgoin, Moyo Ogunjobi, Jacob Plourde \
-    *Course Name:* Embedded Software and Hardware Systems \
-    *Course Code:* ENSF 460 \
+    *Group \#*: 6
+    *Course:* ENSF 460 - Embedded Software and Hardware Systems \
     *Assignment Number:* Assignment 1 Driver Project \
     *Date Submitted:* #datetime.today().display("[month repr:long] [day], [year]")
   ]
@@ -29,7 +31,7 @@ function and before entering the `while(1)` super loop. This initialization
 configures the required pins as either inputs for the three push buttons or an
 output for the LED.
 
-```c
+```C
 int main()
 {
   AD1PCFG = 0xFFFF;    // Configure analog-capable pins as digital I/O
@@ -51,26 +53,67 @@ appropriate PORTx register, applies a bit mask to isolate the required input
 bit, and performs a Boolean comparison using `!= 0`.
 
 The resulting Boolean values are shifted into their corresponding bit positions
-to form the control value used by the switch statement. The switch statement
-then determines the required LED state and selects the appropriate delay value
-based on the current combination of push-button inputs.
+to form the control value used by the switch statement, shown in @pb. The switch
+statement then determines the required LED state and selects the appropriate
+delay value based on the current combination of push-button inputs.
+Functionally, this switch statement is a complete state machine, in which on of
+the states is always active on each iteration of the super loop, and each state
+can directly switch into any other state.
 
-#table(
-  columns: 4,
-  table.header([*PB3*], [*PB2*], [*PB1*], [*\<Switch Control Value>*]),
-  [0], [0], [0], [0],
-  [0], [0], [1], [1],
-  [0], [1], [0], [2],
-  [0], [1], [1], [3],
-  [1], [0], [0], [4],
-  [1], [0], [1], [5],
-  [1], [1], [0], [6],
-  [1], [1], [1], [7],
-)
+#figure(
+  table(
+    columns: 4,
+    table.header([*PB3*], [*PB2*], [*PB1*], [*Switch Control Value*]),
+    [0], [0], [0], [0],
+    [0], [0], [1], [1],
+    [0], [1], [0], [2],
+    [0], [1], [1], [3],
+    [1], [0], [0], [4],
+    [1], [0], [1], [5],
+    [1], [1], [0], [6],
+    [1], [1], [1], [7],
+  ),
+  caption: [Push-Button State Bitmasks]
+) <pb>
+
+```C
+// Combine the three button inputs into a 3-bit control value: PB3|PB2|PB1
+switch (PB3|PB2|PB1)
+{
+case 1:                        // PB1 only: blink every 750 ms
+  LED_TOGGLE;
+  blink_delay = 750;
+  break;
+
+case 2:                        // PB2 only: blink every 2000 ms
+  LED_TOGGLE;
+  blink_delay = 2000;
+  break;
+
+case 4:                        // PB3 only: blink every 5000 ms
+  LED_TOGGLE;
+  blink_delay = 5000;
+  break;
+
+case 3:                        // PB1 + PB2
+case 5:                        // PB1 + PB3
+case 6:                        // PB2 + PB3
+case 7:                        // All three buttons
+  LED_ON;                      // Multiple buttons pressed: keep LED continuously on
+  blink_delay = 0;             // No delay required while LED is continuously on
+  break;
+
+case 0:                        // No buttons pressed
+default:                       // Safe default for any unexpected control value
+  LED_OFF;                     // Keep LED off
+  blink_delay = 0;             // No delay required while LED is off
+  break;
+}
+```
 
 = Datatype Choices
 
-In general, integer variables are declared as `uint16_t` because the
+In general, integer variables are declared as `uint16_t` or `int16_t` because the
 PIC24F16KA101 is a 16-bit microcontroller, and so it has hardware native support
 for 16-bit integers. Using fixed-width integer types also makes the intended
 size of each variable explicit.
@@ -80,23 +123,21 @@ The datatype used to count `for` loop iterations in our `delay_ms()` function is
 only be able to delay for less than 500 ms. A 5-second delay, for example,
 requires a value of approximately 1,675,973, which is far out of the `uint16_t`
 range. Therefore, we use a doubly-nested `for` loop, with the inner one counting
-a single millisecond, and the outer one counting number of milliseconds.
+a single millisecond, and the outer one counting the number of milliseconds.
 Alternatively, a `uint32_t` can be used, but it does not have native hardware
-support, so it will be much less efficient. The ASM shows that for a `uint32_t`
-based `for` loop is 37 instructions for `i<1`, where as a nested unint16 only
-takes 24 for `i,k<1`
+support, so it will be much less efficient. The ASM shows that a `uint32_t`
+based `for` loop is 37 instructions, whereas a nested `uint16_t` loop only
+takes 24 instructions, with a much more efficient execution.
 
-```c
-void delay_16() {
-  uint16_t ms_count = 0;
-  while(ms_count<1){
-    for(volatile uint16_t i = 0; i < 1; i++) (void)0;
-  ms_count++;
-  }
+```C
+void delay_16(uint16_t ms) {
+  for (uint16_t i = 0; i < ms; i++) {
+    for (volatile uint16_t j = 0; j < DELAY_1ms; j++) (void)0;
+  } 
 }
 
-void delay_32() {	
-  for(volatile uint32_t i = 0; i<1;i++) (void)0;
+void delay_32(uint32_t ms) {	
+  for(volatile uint32_t i = 0; i < ms * DELAY_1ms; i++) (void)0;
 }
 ```
 
