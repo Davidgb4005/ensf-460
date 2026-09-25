@@ -121,7 +121,7 @@ size of each variable explicit.
 The datatype used to count `for` loop iterations in our `delay_ms()` function is
 `uint16_t`, However, the maximum value for `uint16_t` is 65,535, which would
 only be able to delay for less than 150ms. A 5-second delay, for example,
-requires a value of approximately 1,675,973, which is far out of the `uint16_t`
+requires a value of approximately 2,500,000, which is far out of the `uint16_t`
 range. Therefore, we use a doubly-nested `for` loop, with the inner one counting
 a single millisecond, and the outer one counting the number of milliseconds.
 Alternatively, a `uint32_t` can be used, but it does not have native hardware
