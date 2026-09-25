@@ -15,7 +15,7 @@
   #text(size: 14pt)[
     \ \ \ \ \ 
     *Names:* Dave Burgoin, Moyo Ogunjobi, Jacob Plourde \
-    *Group \#*: 6
+    *Group \#*: 6 \
     *Course:* ENSF 460 - Embedded Software and Hardware Systems \
     *Assignment Number:* Assignment 1 Driver Project \
     *Date Submitted:* #datetime.today().display("[month repr:long] [day], [year]")
@@ -120,7 +120,7 @@ size of each variable explicit.
 
 The datatype used to count `for` loop iterations in our `delay_ms()` function is
 `uint16_t`, However, the maximum value for `uint16_t` is 65,535, which would
-only be able to delay for less than 500 ms. A 5-second delay, for example,
+only be able to delay for less than 150ms. A 5-second delay, for example,
 requires a value of approximately 1,675,973, which is far out of the `uint16_t`
 range. Therefore, we use a doubly-nested `for` loop, with the inner one counting
 a single millisecond, and the outer one counting the number of milliseconds.
@@ -130,6 +130,8 @@ based `for` loop is 37 instructions, whereas a nested `uint16_t` loop only
 takes 24 instructions, with a much more efficient execution.
 
 ```C
+#define DELAY_1ms 501
+
 void delay_16(uint16_t ms) {
   for (uint16_t i = 0; i < ms; i++) {
     for (volatile uint16_t j = 0; j < DELAY_1ms; j++) (void)0;
