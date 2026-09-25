@@ -10,7 +10,7 @@
 #define SIXFOUR    2
 #define TWOFIVESIX 3
 
-#define PRESCALER EIGHT
+#define PRESCALER ONE 
 #if PRESCALER == 0
     #define PRESCALER_COE 0.25
 #elif PRESCALER == 1
@@ -26,8 +26,8 @@
 
 
 
-static volatile uint16_t timer1_periods;
-static uint16_t timer1_period = TIMER_PERIOD_MAX;
+static volatile uint16_t timer2_periods;
+static uint16_t timer2_period = TIMER_PERIOD_MAX;
 
 uint16_t TON_timer(timer_delay * delay_struct){
     if(delay_struct->IN && !delay_struct->reset){
@@ -37,6 +37,19 @@ uint16_t TON_timer(timer_delay * delay_struct){
     }
     else{
         delay_struct->ET = millis(); 
+        delay_struct->Q = 0;
+        delay_struct->reset = 0;
+    }
+    return delay_struct->Q;
+}
+uint16_t TON_timer_micro(timer_delay * delay_struct){
+    if(delay_struct->IN && !delay_struct->reset){
+        if(micros() - delay_struct->ET > delay_struct->PT){
+            delay_struct->Q = 1;
+        }
+    }
+    else{
+        delay_struct->ET = micros(); 
         delay_struct->Q = 0;
         delay_struct->reset = 0;
     }
@@ -56,48 +69,47 @@ uint16_t TOF_timer(timer_delay * delay_struct){
 }
 
 
-static uint32_t timer1_ticks_snapshot(void)
+static uint32_t timer2_ticks_snapshot(void)
 {
     uint16_t periods;
     uint16_t count;
-    uint8_t t1ie;
-    t1ie = IEC0bits.T1IE;
-    IEC0bits.T1IE = 0;
-    periods = timer1_periods;
-    count = TMR1;
-    if (IFS0bits.T1IF != 0u) {
+    uint8_t t2ie;
+    t2ie = IEC0bits.T2IE;
+    IEC0bits.T2IE = 0;
+    periods = timer2_periods;
+    count = TMR2;
+    if (IFS0bits.T2IF != 0u) {
         periods++;
-        count = TMR1;
+        count = TMR2;
     }
-    IEC0bits.T1IE = t1ie;
-    return ((uint32_t)periods * ((uint16_t)timer1_period + 1u)) + count;
+    IEC0bits.T2IE = t2ie;
+    return ((uint32_t)periods * ((uint16_t)timer2_period + 1u)) + count;
 }
 
-void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
+void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 {
-    timer1_periods++;
-    IFS0bits.T1IF = 0;
+    timer2_periods++;
+    IFS0bits.T2IF = 0;
 }
 
-void timer1Init(void)
+void timer2Init(void)
 {
 
-    PMD1bits.T1MD = 0;
+    PMD1bits.T2MD = 0;
 
-    T1CONbits.TON = 0;
-    T1CONbits.TCS = 0;
-    T1CONbits.TSYNC = 0;
-    T1CONbits.TGATE = 0;
-    T1CONbits.TCKPS = PRESCALER;
+    T2CONbits.TON = 0;
+    T2CONbits.TCS = 0;
+    T2CONbits.TGATE = 0;
+    T2CONbits.TCKPS = PRESCALER;
 
-    timer1_periods = 0;
-    timer1_period = TIMER_PERIOD_MAX;
+    timer2_periods = 0;
+    timer2_period = TIMER_PERIOD_MAX;
 
-    TMR1 = 0;
-    PR1 = timer1_period;
-    IFS0bits.T1IF = 0;
-    IEC0bits.T1IE = 1;
-    T1CONbits.TON = 1;
+    TMR2 = 0;
+    PR2 = timer2_period;
+    IFS0bits.T2IF = 0;
+    IEC0bits.T2IE = 1;
+    T2CONbits.TON = 1;
 }
 
 uint32_t millis(void)
@@ -107,7 +119,7 @@ uint32_t millis(void)
 
 uint32_t micros(void)
 {
-    return timer1_ticks_snapshot()*PRESCALER_COE;
+    return timer2_ticks_snapshot()*PRESCALER_COE;
 }
 
 

@@ -12,8 +12,9 @@ typedef struct{
 }timer_delay;
 
 
-void timer1Init(void);
+void timer2Init(void);
 uint16_t TON_timer(timer_delay * delay_struct);
+uint16_t TON_timer_micros(timer_delay * delay_struct);
 uint16_t TOF_timer(timer_delay * delay_struct);
 uint32_t millis(void);
 uint32_t micros(void);

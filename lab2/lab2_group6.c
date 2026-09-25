@@ -21,7 +21,7 @@
 
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
-#pragma config OSCIOFNC = ON            // CLKO Enable Configuration bit (CLKO output disabled; pin functions as port I/O)
+#pragma config OSCIOFNC = OFF           // CLKO Enable Configuration bit (CLKO output disabled; pin functions as port I/O)
 #pragma config POSCFREQ = HS            // Primary Oscillator Frequency Range Configuration bits (Primary oscillator/external clock input frequency greater than 8 MHz)
 #pragma config SOSCSEL = SOSCHP         // SOSC Power Selection Configuration bits (Secondary oscillator configured for high-power operation)
 #pragma config FCKSM = CSECMD           // Clock Switching and Monitor Selection (Clock switching is enabled, Fail-Safe Clock Monitor is disabled)
@@ -61,21 +61,23 @@
 #define PB3 ((PORTA & 0x10) >> 2)      // Read RA4 and place its value in control bit 2
 
 #define OUTPUT_BITMASK 0x200            // Bitmask for LED output on RB9
-#define LED_TOGGLE LATB ^= OUTPUT_BITMASK // Toggle RB9 using XOR
+#define LED_TOGGLE_1 LATB ^= OUTPUT_BITMASK // Toggle RB9 using XOR
+#define LED_TOGGLE_2 LATA ^= 1<<6 // Toggle RB9 using XOR
 #define LED_ON LATB |= OUTPUT_BITMASK     // Set RB9 high
 #define LED_OFF LATB &= ~(OUTPUT_BITMASK) // Clear RB9 low
 #define LED_OFF LATB &= ~(OUTPUT_BITMASK) // Clear RB9 low
 
 #define DELAY_1ms 501                 // Calibrated loop count for approximately 1 ms
-
 /**
  * Uses a busy-wait loop based on an assumed clock speed of 4 MHz to generate a
  * millisecond-resolution delay.
  */
 timer_delay timer_1;
+timer_delay timer_2;
+timer_delay timer_3;
 int main()
 {
-	timer1Init();
+	timer2Init();
 	AD1PCFG = 0xFFFF;                   // Configure analog-capable pins as digital I/O
 	TRISB = 0x90;                       // Configure RB4 and RB7 as inputs; remaining PORTB pins as outputs
 	TRISA = 0x10;                       // Configure RA4 as input; remaining PORTA pins as outputs
@@ -83,34 +85,38 @@ int main()
 	CNPU1 = CNPU2 = 0x0;                // Disable internal pull-up resistors
 	CNPD1 = 0x3;                        // Enable pull-down resistors for RB4 and RA4
 	CNPD2 = 0x80;                       // Enable pull-down resistor for RB7
-	timer_1.PT = 2000;
+	timer_2.PT = 500;
+	timer_2.IN = 1;
 	timer_1.IN = 1;
+	uint16_t toggle_on = 0;
 	while (1)                           // Main superloop runs continuously
 	{
-		#if 0
 		// Combine the three button inputs into a 3-bit control value: PB3|PB2|PB1
 		switch (PB3|PB2|PB1)
 		{
 		case 1:  
-			timer_1.PT = 750;
-			if (!timer_1.IN){
+			timer_1.PT = 250;
+			if (!toggle_on){
 				LED_ON;
+				toggle_on = 1;
 			}
 			timer_1.IN = 1;
 			break;
 
 		case 2:                          // PB2 only: blink every 2000 ms
-			timer_1.PT = 2000;
-			if (!timer_1.IN){
+			timer_1.PT = 1000;
+			if (!toggle_on){
 				LED_ON;
+				toggle_on = 1;
 			}
 			timer_1.IN = 1;
 			break;
 
 		case 4:                          // PB3 only: blink every 5000 ms
-			timer_1.PT = 5000;
-			if (!timer_1.IN){
+			timer_1.PT = 6000;
+			if (!toggle_on){
 				LED_ON;
+				toggle_on = 1;
 			}
 			timer_1.IN = 1;
 			break;
@@ -119,24 +125,25 @@ int main()
 		case 5:                          // PB1 + PB3
 		case 6:                          // PB2 + PB3
 		case 7:                          // All three buttons
-			LED_ON;               // Multiple buttons pressed: keep LED continuously on
-			timer_1.IN = 0;
+			timer_1.IN = 1;
+			timer_1.PT = 1;
+			toggle_on = 0;
 			break;
 		case 0:                          // No buttons pressed
 		default:                        // Safe default for any unexpected control value
 			LED_OFF;
 			timer_1.IN = 0;
+			toggle_on = 0;
 			break;
 		}
-		if(timer_1.Q){
-			LED_TOGGLE;
-			timer_1.reset=1;
-		}
-		#endif
-		//TON_timer(&timer_1);
+
 		if(TON_timer(&timer_1)){
-			LED_TOGGLE;
+			LED_TOGGLE_1;
 			timer_1.reset = 1;
+		}
+		if(TON_timer(&timer_2)){
+			LED_TOGGLE_2;
+			timer_2.reset = 1;
 		}
 
 

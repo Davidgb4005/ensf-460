@@ -127,8 +127,9 @@ int main()
 }
 
 void delay_ms(uint16_t ms) {
-  for (uint16_t i = 0; i < ms; i++) {
-    // Delay 1 millisecond
-    for (volatile uint16_t j = 0; j < DELAY_1ms; j++) (void)0;
-  } 
-}
+  for (uint32_t i = 0; i < ms; i++) {
+}}
+
+void delay_ms_volatile(uint16_t ms) {
+  for (volatile uint32_t i = 0; i < ms; i++) {
+}}
