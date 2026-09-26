@@ -17,7 +17,9 @@ void delay_ms(uint16_t delay){
         }
         enable = 1;
         led_1_delay = (delay-1);
-        Idle();
+        while(timer_1_period - led_1_period < led_1_delay){
+            Idle();
+        }
 }
 
 
