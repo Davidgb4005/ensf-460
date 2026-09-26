@@ -57,8 +57,12 @@
 
 int main()
 {
+	#if 0
 	OSCCONbits.NOSC = 0b111;
 	CLKDIVbits.RCDIV = 0b001;
+	#endif
+	OSCCONbits.NOSC = 0b110;
+	CLKDIVbits.RCDIV = 0b101;
 	timer2Init();
 	IOinit();
 	while (1)                           // Main superloop runs continuously
