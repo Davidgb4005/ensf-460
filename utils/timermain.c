@@ -16,7 +16,9 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
+#pragma config FNOSC = FRC              // Oscillator Select (Fast RC oscillator (FRC))
 #pragma config IESO = OFF               // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
+
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
 #pragma config OSCIOFNC = OFF           // CLKO Enable Configuration bit (CLKO output disabled; pin functions as port I/O)
@@ -53,17 +55,98 @@
 #include <p24F16KA101.h>
 #include "stdint.h"
 #include "timer.h"
-#include "IOs.h"
 
+#define PB1 ((PORTB & 0x80) >> 7)      // Read RB7 and place its value in control bit 0
+#define PB2 ((PORTB & 0x10) >> 3)      // Read RB4 and place its value in control bit 1
+#define PB3 ((PORTA & 0x10) >> 2)      // Read RA4 and place its value in control bit 2
+
+#define OUTPUT_BITMASK 0x200            // Bitmask for LED output on RB9
+#define LED_TOGGLE_1 LATB ^= OUTPUT_BITMASK // Toggle RB9 using XOR
+#define LED_TOGGLE_2 LATA ^= 1<<6 // Toggle RB9 using XOR
+#define LED_ON LATB |= OUTPUT_BITMASK     // Set RB9 high
+#define LED_OFF LATB &= ~(OUTPUT_BITMASK) // Clear RB9 low
+#define LED_OFF LATB &= ~(OUTPUT_BITMASK) // Clear RB9 low
+
+#define DELAY_1ms 501                 // Calibrated loop count for approximately 1 ms
+/**
+ * Uses a busy-wait loop based on an assumed clock speed of 4 MHz to generate a
+ * millisecond-resolution delay.
+ */
+timer_delay timer_1;
+timer_delay timer_2;
+timer_delay timer_3;
 int main()
 {
-	OSCCONbits.NOSC = 0b111;
-	CLKDIVbits.RCDIV = 0b001;
 	timer2Init();
-	IOinit();
+	AD1PCFG = 0xFFFF;                   // Configure analog-capable pins as digital I/O
+	TRISB = 0x90;                       // Configure RB4 and RB7 as inputs; remaining PORTB pins as outputs
+	TRISA = 0x10;                       // Configure RA4 as input; remaining PORTA pins as outputs
+
+	CNPU1 = CNPU2 = 0x0;                // Disable internal pull-up resistors
+	CNPD1 = 0x3;                        // Enable pull-down resistors for RB4 and RA4
+	CNPD2 = 0x80;                       // Enable pull-down resistor for RB7
+	timer_2.PT = 500;
+	timer_2.IN = 1;
+	timer_1.IN = 1;
+	uint16_t toggle_on = 0;
+    uint16_t prev_control_bit = 0;
 	while (1)                           // Main superloop runs continuously
 	{
-		IOcheck();
+		// Combine the three button inputs into a 3-bit control value: PB3|PB2|PB1
+        switch (PB3|PB2|PB1)
+        {
+        case 1:  
+            timer_1.PT = 250;
+            if (!toggle_on){
+                LED_ON;
+                toggle_on = 1;
+            }
+            break;
+
+        case 2:                          // PB2 only: blink every 2000 ms
+            timer_1.PT = 1000;
+            if (!toggle_on){
+                LED_ON;
+                toggle_on = 1;
+            }
+            break;
+
+        case 4:                          // PB3 only: blink every 5000 ms
+            timer_1.PT = 6000;
+            if (!toggle_on){
+                LED_ON;
+                toggle_on = 1;
+            }
+            break;
+
+        case 3:                          // PB1 + PB2
+        case 5:                          // PB1 + PB3
+        case 6:                          // PB2 + PB3
+        case 7:                          // All three buttons
+            timer_1.PT = 0;
+            toggle_on = 0;
+            break;
+        case 0:                          // No buttons pressed
+        default:                        // Safe default for any unexpected control value
+            LED_OFF;
+            toggle_on = 0;
+            break;
+        }
+
+        TON_timer(&timer_1);
+        timer_1.IN = 1;
+		if(timer_1.Q){
+			LED_TOGGLE_1;
+			timer_1.IN = 0;
+		}
+        TON_timer(&timer_2);
+        timer_2.IN = 1;
+		if(timer_2.Q){
+			LED_TOGGLE_2;
+			timer_2.IN = 0;
+		}
+
+
 	}
 
 	return 0;                            // Never reached because the superloop runs forever
