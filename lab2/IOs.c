@@ -14,6 +14,7 @@ void IOinit(){
 
 void IOcheck(){
     uint16_t control_bit = PB3|PB2|PB1;
+
     switch (control_bit)
     {
     case 1:
@@ -33,7 +34,6 @@ void IOcheck(){
         break;
     case 0:                          // No buttons pressed
     default:                        // Safe default for any unexpected control value
-        delay_ms(0);
         LED_OFF_2;
         break;
     }

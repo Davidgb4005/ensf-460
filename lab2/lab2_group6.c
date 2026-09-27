@@ -57,13 +57,15 @@
 
 int main()
 {
-	#if 0
-	OSCCONbits.NOSC = 0b111;
-	CLKDIVbits.RCDIV = 0b001;
-	#endif
-	OSCCONbits.NOSC = 0b110;
-	CLKDIVbits.RCDIV = 0b101;
+    CLKDIVbits.RCDIV = 0b001;  
+    __builtin_write_OSCCONH(0b110); 
+    __builtin_write_OSCCONL(OSCCON | 0x01); 
+    while (OSCCONbits.OSWEN);       
+
+
 	timer2Init();
+	timer3Init();
+
 	IOinit();
 	while (1)                           // Main superloop runs continuously
 	{

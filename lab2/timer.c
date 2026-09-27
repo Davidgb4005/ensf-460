@@ -4,39 +4,36 @@
 
 
 
-uint32_t led_1_period = 0;
-uint32_t led_2_period = 0;
-uint16_t led_1_delay = 0;
-uint32_t timer_1_period = 0;
-uint16_t enable = 0;
 
+volatile uint16_t isr_flag = 0;
 
-
-#if 1 //
 void delay_ms(uint16_t delay){
-        if(delay == 0){
-            enable = 0;
-            led_1_period = timer_1_period;
-            return;
-        }
-        enable = 1;
-        led_1_delay = (delay-1);
+    if (delay > 500){
+        T2CONbits.TCKPS = 2;
+        PR2 = delay*2;}
+    else{
+        T2CONbits.TCKPS = 0;
+        PR2 = delay*125;}
+    TMR2 = 0;
+    IEC0bits.T2IE = 1;
+    isr_flag = 0;
+    while(!isr_flag){
         Idle();
-}
+    }
 
+}
 
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 {
-    timer_1_period++;
-    if(enable && timer_1_period - led_1_period > led_1_delay){
-        LED_TOGGLE_2;
-        led_1_period = timer_1_period;
-    }
-    if(timer_1_period - led_2_period > 500){
-        LED_TOGGLE_1;
-        led_2_period = timer_1_period;
-    }
+    LED_TOGGLE_2;
+    IEC0bits.T2IE = 0;
     IFS0bits.T2IF = 0;
+    isr_flag = 1;
+}
+void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void)
+{
+    LED_TOGGLE_1;
+    IFS0bits.T3IF = 0;
 }
 
 
@@ -49,54 +46,22 @@ void timer2Init(void)
     T2CONbits.TGATE = 0;
     T2CONbits.TCKPS = 0;
     TMR2 = 0;
-    PR2 = 125;
+    PR2 = 6000;
     IFS0bits.T2IF = 0;
-    IEC0bits.T2IE = 1;
     T2CONbits.TON = 1;
 }
-#endif 
-#if 0 //8mhz setup
-void delay_ms(uint16_t delay){
-        if(delay == 0){
-            enable = 0;
-            return;
-        }
-        enable = 1;
-        led_1_delay = (delay-1);
-        while(timer_1_period - led_1_period < led_1_delay){
-            Idle();
-        }
-}
-
-
-void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
-{
-    timer_1_period++;
-    if(enable && timer_1_period - led_1_period > led_1_delay){
-        LED_TOGGLE_2;
-        led_1_period = timer_1_period;
-    }
-    if(timer_1_period - led_2_period > 500){
-        LED_TOGGLE_1;
-        led_2_period = timer_1_period;
-    }
-    IFS0bits.T2IF = 0;
-}
-
-
-void timer2Init(void)
+void timer3Init(void)
 {
 
-    PMD1bits.T2MD = 0;
-    T2CONbits.TON = 0;
-    T2CONbits.TCS = 0;
-    T2CONbits.TGATE = 0;
-    T2CONbits.TCKPS = 0;
-    TMR2 = 0;
-    PR2 = 2000;
-    IFS0bits.T2IF = 0;
-    IEC0bits.T2IE = 1;
-    T2CONbits.TON = 1;
+    PMD1bits.T3MD = 0;
+    T3CONbits.TON = 0;
+    T3CONbits.TCS = 0;
+    T3CONbits.TGATE = 0;
+    T3CONbits.TCKPS = 0;
+    TMR3 = 0;
+    PR3 = 62500;
+    IFS0bits.T3IF = 0;
+    IEC0bits.T3IE = 1;
+    T3CONbits.TON = 1;
 }
 
-#endif

@@ -15,8 +15,8 @@ void timer2Init(void);
 uint16_t TON_timer(timer_delay * delay_struct);
 uint16_t TON_timer_micros(timer_delay * delay_struct);
 uint16_t TOF_timer(timer_delay * delay_struct);
-uint32_t millis(void);
 uint32_t micros(void);
-
-
+uint32_t micros10(void);
+uint16_t mircos_syscycle_update();
+uint16_t TON_syscycle_timer(timer_delay * delay_struct);
 #endif

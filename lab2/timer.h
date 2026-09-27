@@ -6,7 +6,7 @@
 
 
 void timer2Init(void);
-void timer1Init(void);
+void timer3Init(void);
 void delay_ms(uint16_t delay);
 
 

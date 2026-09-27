@@ -10,7 +10,7 @@
 #define SIXFOUR    2
 #define TWOFIVESIX 3
 
-#define PRESCALER SIXFOUR 
+#define PRESCALER ONE 
 #if PRESCALER == 0
     #define PRESCALER_COE 0.25
 #elif PRESCALER == 1
@@ -22,7 +22,7 @@
 #else
     #error "Invalid prescaler"
 #endif
-#define TIMER_PERIOD_MAX 0xfffeu
+#define TIMER_PERIOD_MAX 0x3feu
 
 
 
@@ -31,12 +31,29 @@ static uint16_t timer2_period = TIMER_PERIOD_MAX;
 
 uint16_t TON_timer(timer_delay * delay_struct){
     if(delay_struct->IN){
-        if(millis() - delay_struct->ET > delay_struct->PT){
+        if(micros10() - delay_struct->ET >= delay_struct->PT){
             delay_struct->Q = 1;
         }
     }
     else{
-        delay_struct->ET = millis(); 
+        delay_struct->ET = micros10(); 
+        delay_struct->Q = 0;
+    }
+    return delay_struct->Q;
+}
+volatile uint32_t systime_micros=0;
+uint16_t mircos_syscycle_update(){
+    systime_micros = micros10();
+}
+
+uint16_t TON_syscycle_timer(timer_delay * delay_struct){
+    if(delay_struct->IN){
+        if(systime_micros - delay_struct->ET >= delay_struct->PT){
+            delay_struct->Q = 1;
+        }
+    }
+    else{
+        delay_struct->ET = micros10(); 
         delay_struct->Q = 0;
     }
     return delay_struct->Q;
@@ -45,10 +62,10 @@ uint16_t TON_timer(timer_delay * delay_struct){
 uint16_t TOF_timer(timer_delay * delay_struct){
     if(delay_struct->IN){
         delay_struct->Q = 1;
-        delay_struct->ET = millis(); 
+        delay_struct->ET = micros(); 
     }
     else{
-        if(millis() - delay_struct->ET > delay_struct->PT){
+        if(micros() - delay_struct->ET >= delay_struct->PT){
             delay_struct->Q = 0;
         }
     }
@@ -70,7 +87,7 @@ static uint32_t timer2_ticks_snapshot(void)
         count = TMR2;
     }
     IEC0bits.T2IE = t2ie;
-    return ((uint32_t)periods * 0xffff) + count;
+    return ((uint32_t)periods << 10) + count;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
@@ -99,15 +116,15 @@ void timer2Init(void)
     T2CONbits.TON = 1;
 }
 
-uint32_t millis(void)
-{
-    return micros() / 1000u;
-}
 
 uint32_t micros(void)
 {
     return timer2_ticks_snapshot()*PRESCALER_COE;
 }
 
+uint32_t micros10(void)
+{
+    return timer2_ticks_snapshot()*4;
+}
 
 
