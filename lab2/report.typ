@@ -107,8 +107,9 @@ iterating a `for` loop, as it was done in driver project 1. This implementation
 of `delay_ms()` will call `Idle()` after it has configured its timer with the
 appropriate prescaler and period values, and the microcontroller will free this
 idle state when the timer interrupt triggers. Because we have two separate
-timers to control each of the LEDs, this idle continuously be called whenever it
-is awoken until the correct ISR is called and sets the `isr_flag` flag:
+timers to control each of the LEDs, this `Idle()` is continuously be called
+whenever it is awoken until the correct ISR is called and sets the `isr_flag`
+flag:
 
 ```C
 while(!isr_flag){
