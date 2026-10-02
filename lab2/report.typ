@@ -94,7 +94,7 @@ void IOcheck(){
 ```
 
 = Timer Logic
-The timer counts upward at a rate determined by the system clock and the selected prescaler. 
+The timer counts upward at a rate determined by the system clock(250Khz for an fcy of 125Khz) and the selected prescaler(1:1 or 1:64). 
 The code calculates a PR2 value for the requested delay, resets Timer2, 
 and then waits in Idle mode until the timer reaches PR2 and generates an interrupt.
 
