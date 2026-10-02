@@ -6,6 +6,8 @@
 static volatile uint16_t timer2_flag = 0;
 
 void delay_ms(uint16_t ms) {
+  T2CONbits.TON = 0;
+
   if (ms > 500){
     T2CONbits.TCKPS = 2;
     PR2 = ms * 2;
@@ -18,6 +20,8 @@ void delay_ms(uint16_t ms) {
   TMR2 = 0;
   IEC0bits.T2IE = 1;
   timer2_flag = 0;
+
+  T2CONbits.TON = 1;
 
   while(!timer2_flag){
     Idle();

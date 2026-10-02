@@ -8,6 +8,7 @@
 volatile uint16_t isr_flag = 0;
 
 void delay_ms(uint16_t delay){
+    T2CONbits.TON = 0;
     if (delay > 500){
         T2CONbits.TCKPS = 2;
         PR2 = delay*2;}
@@ -17,6 +18,7 @@ void delay_ms(uint16_t delay){
     TMR2 = 0;
     IEC0bits.T2IE = 1;
     isr_flag = 0;
+    T2CONbits.TON = 1;
     while(!isr_flag){
         Idle();
     }
