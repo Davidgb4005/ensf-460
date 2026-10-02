@@ -94,10 +94,9 @@ void IOcheck(){
 ```
 
 = Timer Logic
-
-== Prescaler Choices
-
-= Power-Saving Features
+The timer counts upward at a rate determined by the system clock and the selected prescaler. 
+The code calculates a PR2 value for the requested delay, resets Timer2, 
+and then waits in Idle mode until the timer reaches PR2 and generates an interrupt.
 
 == `Idle()` During `delay_ms()`
 
@@ -119,3 +118,29 @@ while(!isr_flag){
 
 This means that during a delay, the CPU will be idle for a significant majority
 of the time, thereby saving power.
+
+Part 1:
+Timer2 was operated with a 1:1 prescaler. With a 500 kHz oscillator, 
+the timer clock is 250 kHz, so the timer increments every 4 microseconds. 
+Since PR2 is a 16-bit register, its maximum value is 65,535.
+The maximum delay is approximately:
+1 / 250000 × 65536 = 0.262 seconds
+So a 0.5 second delay cannot be achieved with the 1:1 prescaler because 
+it would require a PR2 value of 125,000, which is too large for a 16-bit register. 
+A larger prescaler must be used.
+
+Question 2:
+Interrupts and Idle mode were used during the blinking delays.
+This allowed the CPU to enter Idle mode while waiting for the timer interrupt 
+instead of continuously running in a busy loop. During normal operation outside 
+of the blinking delay, the processor was not placed into a power-saving mode.
+
+Question 3:
+Yes, it is possible to give delay_ms() a value that is too large. The maximum
+delay is limited by the 16-bit PR2 register and the largest timer prescaler.
+With a 1:64 prescaler and a timer clock of 125 kHz:
+64 / 125000 × 65536 = 33.55 seconds
+Therefore, the largest delay that can be handled directly is about 33.55 seconds. 
+Anything larger would have to be split into multiple timer periods.
+if the input to delay_ms is less than 500 we use the 1:1 prescaler to get enough 
+resoultion for the high frequency cycles
