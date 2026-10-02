@@ -25,14 +25,14 @@ void delay_ms(uint16_t delay){
 
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 {
-    LED_TOGGLE_2;
+    LED_TOGGLE_1;
     IEC0bits.T2IE = 0;
     IFS0bits.T2IF = 0;
     isr_flag = 1;
 }
 void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void)
 {
-    LED_TOGGLE_1;
+    LED_TOGGLE_2;
     IFS0bits.T3IF = 0;
 }
 
