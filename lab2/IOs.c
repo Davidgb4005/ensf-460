@@ -34,7 +34,7 @@ void IOcheck(){
         break;
     case 0:                          // No buttons pressed
     default:                        // Safe default for any unexpected control value
-        LED_OFF_2;
+        LED_OFF_1;
         break;
     }
 }
