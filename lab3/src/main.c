@@ -61,15 +61,18 @@
 
 
 int main(void) {
-  newClk(8);
-  
+  //CLKDIVbits.RCDIV = 0b001;  
+  //__builtin_write_OSCCONH(0b110); 
+  //__builtin_write_OSCCONL(OSCCON | 0x01); 
+  //while (OSCCONbits.OSWEN) (void)0;
+
   IOinit();
 
   timer2_init();
 
   while(1) {
     Idle();
-    IOcheck();    
+    IOcheck();
   }
 
   return 0;

@@ -14,16 +14,6 @@ static volatile rx_buffer_s u2_buf;
 int uart_init(uint8_t channel, uint32_t baud_rate) {
   int ret = 0;
 
-  if (OSCCONbits.COSC == 0b110) {
-    U2BRG = 12;	// gives a baud rate of 4807.7 Baud with 500kHz clock; Set Baud to 4800 on realterm
-  }
-  else if (OSCCONbits.COSC == 0b101) {
-    U2BRG = 12;	// gives a baud rate of 300 Baud with 32kHz clock; set Baud to 300 on realterm
-  }
-  else if (OSCCONbits.COSC == 0b000) {
-    U2BRG=103;	// gives a baud rate of 9600 with 8MHz clock; set Baud to 9600 on real term
-  }
-
   uint32_t freq;
   switch (OSCCONbits.COSC) {
     case 0b110:         // 500 kHz
