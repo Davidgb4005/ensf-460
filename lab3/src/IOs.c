@@ -72,7 +72,7 @@ void IOcheck(void) {
         printf("PB3 is pressed\n");
       }
       _LATB9 = ~_LATB9;
-      delay_ms(6000);
+      delay_ms(3000);
       break;
 
     // More than one button is pressed
