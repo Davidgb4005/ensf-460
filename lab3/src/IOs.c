@@ -43,9 +43,7 @@ void IOcheck(void) {
   static uint8_t pb_bitmask_old = 0b000;
   // We create a bitmask composed of each push button state to simplify state
   // changing logic
-  uint8_t pb_bitmask = (pb3_flag << 2) | 
-                       (pb2_flag << 1) | 
-                       (pb1_flag);
+
 
   switch (pb_bitmask) {
     // Only PB1 is pressed
@@ -79,35 +77,51 @@ void IOcheck(void) {
     case 0b011:
     case 0b101:
     case 0b110:
+    #if 0
       _LATB9 = 1;
+
       uint8_t first = pb1_flag ? 1 : 2;
       uint8_t second = pb3_flag ? 3 : 2;
       if (pb_bitmask_old != ((1 << (first - 1)) | ((1 << (second - 1))))) {
         printf("PB%d and PB%d are pressed\n", first, second);
       }
       break;
-
+    #endif
+      pb_bitmask = 0b110;
+      _LATB9 = 1;
+      if (pb_bitmask_old != pb_bitmask) {
+        printf("PB%d and PB%d are pressed\n", first, second);
+      }
+      break;
     // All buttons pressed
     case 0b111:
       _LATB9 = 1;
-      if (pb_bitmask_old != 0b111) {
-        printf("All PBs pressed\n");
-      }
+      printf("All PBs pressed\n");
       break;
 
     // No buttons are pressed
     default:
     case 0b000:
       _LATB9 = 0;
+      printf("Nothing pressed\n");
       break; 
   }
 
   pb_bitmask_old = pb_bitmask;
+  while(pb_bitmask == pb_bitmask_old){
+    Idle();
+  }
 }
 
 void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void){
   _CNIF = 0;
 
+  uint8_t pb_bitmask = (_RA4 << 2) | 
+                       (_RB4 << 1) | 
+                       (_RB7);
+
+
+  #if 0
   if (_RB7 == 1) {
     pb1_flag = 1;
   }
@@ -115,7 +129,7 @@ void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void){
     pb1_flag = 0;
   }
 
-  if (_RB4 == 1) {
+  if (_RB4 == pb2_flag) {
     pb2_flag = 1;
   }
   else {
@@ -128,4 +142,5 @@ void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void){
   else {
     pb3_flag = 0;
   }
+  #endif
 }
