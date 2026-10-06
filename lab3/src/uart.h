@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <drivers/io.h>
 
 
 int uart_init(uint8_t channel, uint32_t baud_rate);

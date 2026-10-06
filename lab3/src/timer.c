@@ -4,36 +4,18 @@
 
 
 static volatile uint16_t timer2_flag = 0;
-
 static volatile uint16_t s_ticks;
+extern uint16_t cn_flag;
+
 
 void delay_ms(uint16_t ms) {
-  //T2CONbits.TON = 0;
-
-  //if (ms > 500){
-  //  T2CONbits.TCKPS = 2;
-  //  PR2 = ms * 2;
-  //}
-
-  //else {
-  //  T2CONbits.TCKPS = 0;
-  //  PR2 = ms * 125;
-  //}
-  //TMR2 = 0;
-  //IEC0bits.T2IE = 1;
-  //timer2_flag = 0;
-
-  //T2CONbits.TON = 1;
-
-  //while(!timer2_flag){
-  //  Idle();
-  //}
 
   uint16_t start = s_ticks;
   while((uint16_t)(s_ticks - start) < ms) {
     Idle();
   };
 }
+
 
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void) {
   //LED_TOGGLE_1;

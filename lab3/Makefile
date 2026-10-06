@@ -1,6 +1,6 @@
 PLATFORM 	 := 24f16ka101
-FLASH_TOOL := SNAP
+FLASH_TOOL := PICKIT5
 
--include $(PICSDK_ROOT)/Makefile
+-include /home/dave/ensf-460/Makefile
 
 SOURCES += $(wildcard src/*.c)
