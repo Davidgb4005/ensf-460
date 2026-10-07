@@ -21,7 +21,7 @@ void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void) {
   //LED_TOGGLE_1;
   //IEC0bits.T2IE = 0;
   IFS0bits.T2IF = 0;
-  timer2_flag = 1;
+  //timer2_flag = 1;
   s_ticks++;
 }
 
