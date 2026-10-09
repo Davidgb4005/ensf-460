@@ -28,3 +28,84 @@ repeatedly trigger the ISR. Releasing it, changing another enabled
 button, or contact bounce can trigger another CN interrupt.
 
 
+
+
+
+Flow Chart Explanation
+(For ISR details, see the Asynchronous Flow Chart Explanation.)
+
+The program begins at the entry point of main(), where the I/O and timer initialization functions are called. These functions are reused from Labs 1 and 2 and are explained in the previous lab reports.
+
+The program then enters its main superloop, which contains the power-saving Idle() call and the IOCheck() function (defined in IOs.h). When Idle() is executed, the CPU suspends instruction execution while the peripherals continue operating. An interrupt from either Timer2 or the Change Notification (CN) module wakes the CPU, causing the corresponding ISR to execute. Once the ISR completes, execution resumes at the instruction immediately following Idle(), which allows the program to continue into IOCheck().
+
+1. Push Button Debouncing and State Detection
+
+The program compares the current push-button bit field (a volatile variable updated directly by the CN ISR) against the previously accepted push-button state.
+
+If the values differ, the program enters a debounce loop and takes a snapshot of the current push-button bit field. It then waits 150 ms before comparing the snapshot against the current bit field.
+
+If the values match, the button state is considered stable. The program prints the corresponding message to the terminal using the bit field value as an index into the messages array, which contains constant pointers to predefined strings.
+
+### PUT UART HERE###
+
+The previously accepted state is then updated to prevent repeated messages when the push-button state remains unchanged.
+
+2. LED Control
+
+After the debounce check, the program enters a switch statement that controls the LED based on the current push-button bit field.
+
+State 0 (No PB pressed): The LED is turned OFF and remains OFF until the push-button state changes.
+State 1 (PB1 pressed): The LED toggles between ON and OFF, followed by a call to delay_ms(250) where 250 is the amount of time in ms to block.
+State 2 (PB2 pressed): The LED toggles between ON and OFF, followed by a call to delay_ms(1000) where 1000 is the amount of time in ms to block.
+State 4 (PB3 pressed): The LED toggles between ON and OFF, followed by a call to delay_ms(3000) where 3000 is the amount of time in ms to block.
+States 3, 5, 6, and 7 (Multiple PBs pressed): The LED is turned ON and remains ON while multiple push buttons are pressed.
+
+For states 1, 2, and 4, each LED toggle inverts its current output state (ON becomes OFF and vice versa). The delay_ms(x) function provides a delay of x milliseconds before the next toggle can occur.
+
+3. Return to Main Superloop
+
+Once the switch statement has been evaluated, IOCheck() returns control to main(). The processor executes Idle() again and remains idle until another interrupt occurs.
+
+Since Timer2 generates an interrupt every 1 ms, the CPU normally wakes and executes IOCheck() approximately every 1 ms when no blocking delays are active. A CN interrupt can also wake the CPU between Timer2 interrupts. If the program is executing a delay when an interrupt occurs, it resumes the interrupted operation rather than immediately restarting the superloop.
+
+
+Asynchronous Flow Chart Explanation
+
+The program uses two primary interrupt sources: Timer2 and Change Notification (CN). Both interrupts can wake the processor from Idle mode. When an interrupt occurs, the CPU executes the appropriate ISR and then returns to the interrupted location using RETFIE. If the CPU was idle, execution resumes immediately after the Idle() instruction.
+
+1. Timer2 Interrupt Service Routine
+
+The Timer2 ISR executes every 1 ms and increments a global system tick counter (systick).
+
+This counter provides the time reference for the delay_ms() function. Rather than using a software busy-wait loop, the function compares the elapsed time against a requested delay using the following logic:
+
+(systick - previous_systick) >= delay
+
+Once the elapsed time reaches the requested delay, the function returns and program execution continues.
+
+2. Change Notification Interrupt Service Routine
+
+The CN ISR monitors the push buttons connected to RA4, RB4, and RB7.
+
+Change Notification interrupts are triggered by changes on the enabled inputs, allowing the program to detect both rising and falling edges.
+
+When a CN interrupt occurs, the ISR reads PORTA and PORTB and applies the required bit masks and shifts to construct a three-bit push-button control field.
+
+Each bit represents one push button:
+
+Bit 0: PB1 (RB7)
+Bit 1: PB2 (RB4)
+Bit 2: PB3 (RA4)
+
+The resulting bit field is stored in a global volatile variable, allowing IOCheck() to evaluate the current push-button state after the ISR completes.
+
+The ISR then clears the CN interrupt flag and returns control to the interrupted program.
+
+
+
+
+
+
+
+
+
