@@ -1,0 +1,30 @@
+ENSF 460 - Lab 3 Report Questions
+
+1. What baud rate is used, and how do you know?
+
+The terminal baud rate is 4800 baud. calls
+newClk(500), setting FOSC to 500,000 Hz, so FCY = FOSC / 2 =
+250,000 Hz. In UART2.c, U2MODE = 0x0008 sets BRGH = 1, and
+InitUART2() selects U2BRG = 12 for this clock.
+
+Baud = FCY / [4 x (U2BRG + 1)]
+     = 250,000 / [4 x (12 + 1)]
+     = 4807.69 baud, approximately 4800 baud.
+
+2. Why does "PB3 event" appear twice for each button click?
+
+A click includes a press and a release. Each changes the input
+level and triggers the CN interrupt. The ISR sets PB3_event = 1,
+and the main loop prints the message and clears the event flag.
+The original ISR does not identify which button changed, so any
+enabled button can produce the same message. Normally this gives
+one message for the press and another for the release.
+
+3. Does the CN ISR keep executing while a button is held?
+
+No. CN interrupts respond to changes in the input level. Holding
+a button steadily does not create further changes, so it does not
+repeatedly trigger the ISR. Releasing it, changing another enabled
+button, or contact bounce can trigger another CN interrupt.
+
+
