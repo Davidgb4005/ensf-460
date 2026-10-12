@@ -170,45 +170,37 @@ class StopWatch:
                         else:
                             match buttons:
                                 case 0b001:
-                                    next_counter = self._repeat_adjust(
-                                        start_time,
-                                        counter,
-                                        self.config.preset.short_second_step_s,
-                                        self.config.preset.long_second_step_s,
-                                    )
-                                    if next_counter is not None:
-                                        counter = next_counter
+                                    if time.monotonic() - start_time >= self.config.timing.increment_delay_s:
                                         start_time = time.monotonic()
+                                        counter += 1
+                                        if counter > self.config.timing.fast_increment_count:
+                                            self.preset_timer = self.preset_timer + self.config.preset.long_second_step_s
+                                        else:
+                                            self.preset_timer = self.preset_timer + self.config.preset.short_second_step_s
                                 case 0b010:
-                                    next_counter = self._repeat_adjust(
-                                        start_time,
-                                        counter,
-                                        self.config.preset.short_minute_step_s,
-                                        self.config.preset.long_minute_step_s,
-                                    )
-                                    if next_counter is not None:
-                                        counter = next_counter
+                                    if time.monotonic() - start_time >= self.config.timing.increment_delay_s:
                                         start_time = time.monotonic()
+                                        counter += 1
+                                        if counter > self.config.timing.fast_increment_count:
+                                            self.preset_timer = self.preset_timer + self.config.preset.long_minute_step_s
+                                        else:
+                                            self.preset_timer = self.preset_timer + self.config.preset.short_minute_step_s
                                 case 0b101:
-                                    next_counter = self._repeat_adjust(
-                                        start_time,
-                                        counter,
-                                        -self.config.preset.short_second_step_s,
-                                        -self.config.preset.long_second_step_s,
-                                    )
-                                    if next_counter is not None:
-                                        counter = next_counter
+                                    if time.monotonic() - start_time >= self.config.timing.increment_delay_s:
                                         start_time = time.monotonic()
+                                        counter += 1
+                                        if counter > self.config.timing.fast_increment_count:
+                                            self.preset_timer = self.preset_timer - self.config.preset.long_second_step_s
+                                        else:
+                                            self.preset_timer = self.preset_timer - self.config.preset.short_second_step_s
                                 case 0b110:
-                                    next_counter = self._repeat_adjust(
-                                        start_time,
-                                        counter,
-                                        -self.config.preset.short_minute_step_s,
-                                        -self.config.preset.long_minute_step_s,
-                                    )
-                                    if next_counter is not None:
-                                        counter = next_counter
+                                    if time.monotonic() - start_time >= self.config.timing.increment_delay_s:
                                         start_time = time.monotonic()
+                                        counter += 1
+                                        if counter > self.config.timing.fast_increment_count:
+                                            self.preset_timer = self.preset_timer - self.config.preset.long_minute_step_s
+                                        else:
+                                            self.preset_timer = self.preset_timer - self.config.preset.short_minute_step_s
                                 case 0b011:
                                     double_press = 1
                                     if time.monotonic() - start_time >= self.config.timing.reset_delay_s:
@@ -231,9 +223,13 @@ class StopWatch:
                         self.led_1.pause_blink()
                         if request_to_exit == 1 and (buttons & 4) == 0:
                             request_state = TimerState.TIMER_RUN
+
                         if self.pb_3.last_edge == EdgeType.RISING_EDGE:
                             request_to_exit = 1
-                        if time.monotonic() - start_time >= self.config.timing.clear_delay_s and request_to_exit == 0:
+                        if not(buttons & 4):
+                            start_time = time.monotonic()
+                            
+                        if time.monotonic() - start_time >= self.config.timing.clear_delay_s:
                             request_state = TimerState.TIMER_IDLE
                             self.elapsed_timer = 0
 
@@ -250,18 +246,6 @@ class StopWatch:
                 prev_buttons = buttons
 
         threading.Thread(target=main_thread, daemon=True).start()
-
-    def _repeat_adjust(self, start_time, counter, short_step, long_step):
-        if time.monotonic() - start_time < self.config.timing.increment_delay_s:
-            return None
-
-        counter += 1
-        if counter > self.config.timing.fast_increment_count:
-            self.preset_timer += long_step
-        else:
-            self.preset_timer += short_step
-        return counter
-
 
 def build_digital_twin(config):
     pb_1 = PushButton("Push Button 1", GpioState.OFF)
