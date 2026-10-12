@@ -9,7 +9,7 @@ def duration_timer(component):
     component.timer_start = time.perf_counter()
 
 
-debounce = .095
+debounce = 0
 
 class PushButton:
     def __init__(self, name, state):
