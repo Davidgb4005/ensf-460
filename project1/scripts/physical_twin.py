@@ -15,13 +15,19 @@ except ImportError:
     BadPinFactory = RuntimeError
 
 
-def _gpio_backend_error(exc):
+def _gpio_backend_error(exc, attempts=None):
+    detail = ""
+    if attempts:
+        detail = " Tried: " + "; ".join(
+            f"gpiochip{chip}: {error}" for chip, error in attempts
+        )
     return RuntimeError(
         "GPIO backend is unavailable. If this is a Raspberry Pi, try running with "
         "`sudo`, install `python3-lgpio`, fix permissions for /dev/gpiochip*, "
         "or set `gpio_chip` in testing_config.py to the chip that contains the "
         "40-pin header GPIO lines. If this is not a Raspberry Pi, set GPIO pins "
         "to None or run without physical GPIO."
+        f"{detail}"
     )
 
 
@@ -31,14 +37,16 @@ def configure_gpio_backend(gpio_chip):
 
     chips = _candidate_gpio_chips(gpio_chip)
     last_error = None
+    attempts = []
     for chip in chips:
         try:
             Device.pin_factory = LGPIOFactory(chip=chip)
             return
         except Exception as exc:
             last_error = exc
+            attempts.append((chip, exc))
 
-    raise _gpio_backend_error(last_error)
+    raise _gpio_backend_error(last_error, attempts)
 
 
 def _candidate_gpio_chips(configured_chip):
