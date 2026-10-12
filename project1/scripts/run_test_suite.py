@@ -66,6 +66,16 @@ def run_file(path, args):
         power_profiler.stop()
 
 
+def power_profiler_preflight(args):
+    if not args.power_profile:
+        return
+
+    config = _new_config(args)
+    power_profiler = build_power_profiler(config)
+    power_profiler.start("preflight")
+    power_profiler.stop()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run digital twin command tests.")
     parser.add_argument("paths", nargs="*", help="Test files or directories to run.")
@@ -97,6 +107,12 @@ def main():
     if args.worker:
         run_file(Path(args.worker), args)
         return 0
+
+    try:
+        power_profiler_preflight(args)
+    except Exception as exc:
+        print(f"Power profiler preflight failed: {exc}")
+        return 1
 
     failures = []
     test_files = list(_iter_test_files(args.paths, args.include_power))

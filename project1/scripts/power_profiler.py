@@ -1,4 +1,5 @@
 import csv
+import os
 import re
 import threading
 import time
@@ -40,9 +41,14 @@ class Ppk2PowerProfiler:
             ) from exc
 
         port = self.config.power.port or self._auto_detect_port(PPK2_API)
+        self._check_port_access(port)
+
+        self._ppk = PPK2_API(port)
+        self._ppk.get_modifiers()
+        self._configure_mode()
+
         self.output_path = self._output_path(label)
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
-
         self._csv_file = open(self.output_path, "w", newline="", encoding="utf-8")
         self._writer = csv.writer(self._csv_file)
         self._writer.writerow(
@@ -54,9 +60,6 @@ class Ppk2PowerProfiler:
             )
         )
 
-        self._ppk = PPK2_API(port)
-        self._ppk.get_modifiers()
-        self._configure_mode()
         self._stop_event.clear()
         self._sample_index = 0
         self._ppk.start_measuring()
@@ -101,6 +104,16 @@ class Ppk2PowerProfiler:
             ports = ", ".join(device for device, _serial in devices)
             raise RuntimeError(f"Multiple PPK2 devices found ({ports}); set --power-port.")
         return devices[0][0]
+
+    def _check_port_access(self, port):
+        if not os.path.exists(port):
+            raise RuntimeError(f"PPK2 serial port {port} does not exist.")
+        if not os.access(port, os.R_OK | os.W_OK):
+            raise RuntimeError(
+                f"Permission denied opening PPK2 serial port {port}. "
+                "Add your user to the port's group, reload udev, then log out/in "
+                "or run the test with sudo."
+            )
 
     def _configure_mode(self):
         mode = self.config.power.mode.lower()
