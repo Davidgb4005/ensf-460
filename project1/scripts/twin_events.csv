@@ -1,0 +1,8 @@
+time_s,source,event,diff,digital_state,digital_pb1,digital_pb2,digital_pb3,digital_led1_state,digital_led1_output,digital_led2_state,digital_led2_output,digital_preset,digital_elapsed,physical_state,physical_pb1,physical_pb2,physical_pb3,physical_led1,physical_led2
+0.00540,Logger,START,OK,IDLE,OFF,OFF,OFF,OFF,OFF,OFF,OFF,0,0,IDLE,OFF,OFF,OFF,OFF,OFF
+0.04174,DigitalTwin PB1,OFF->ON,pb1:D=ON/P=OFF,IDLE,ON,OFF,OFF,OFF,OFF,OFF,OFF,0,0,IDLE,OFF,OFF,OFF,OFF,OFF
+1.20001,DigitalTwin PB2,OFF->ON,pb1:D=ON/P=OFF; pb2:D=ON/P=OFF,IDLE,ON,ON,OFF,OFF,OFF,OFF,OFF,5,0,IDLE,OFF,OFF,OFF,OFF,OFF
+2.21126,DigitalTwin state,IDLE->RUN,state:D=RUN/P=IDLE; pb1:D=ON/P=OFF; led1:D=ON/P=OFF,RUN,ON,OFF,OFF,BLINK,ON,OFF,OFF,5,5,IDLE,OFF,OFF,OFF,OFF,OFF
+2.24696,DigitalTwin PB2,ON->OFF,state:D=RUN/P=IDLE; pb1:D=ON/P=OFF; led1:D=ON/P=OFF,RUN,ON,OFF,OFF,BLINK,ON,OFF,OFF,5,5,IDLE,OFF,OFF,OFF,OFF,OFF
+2.26750,DigitalTwin PB1,ON->OFF,state:D=RUN/P=IDLE; led1:D=ON/P=OFF,RUN,OFF,OFF,OFF,BLINK,ON,OFF,OFF,5,5,IDLE,OFF,OFF,OFF,OFF,OFF
+7.31746,DigitalTwin state,RUN->ALARM,state:D=ALARM/P=IDLE; led1:D=ON/P=OFF; led2:D=ON/P=OFF,ALARM,OFF,OFF,OFF,ON,ON,BLINK,ON,5,0,IDLE,OFF,OFF,OFF,OFF,OFF

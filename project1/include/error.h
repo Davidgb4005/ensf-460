@@ -1,0 +1,16 @@
+#ifndef ERROR_H
+#define ERROR_H
+
+typedef enum
+{
+    ERROR_NONE = 0,
+    ERROR_BUFFER_OVERWRITE = 1,
+    ERROR_BUFFER_OVERREAD = 2,
+    ERROR_BUFFER_EMPTY = 3,
+    ERROR_STRING_BUFFER_EMPTY = 4,
+    ERROR_INVALID_ARGUMENT = 5,
+    ERROR_UNSUPPORTED_MODE = 6,
+    ERROR_NULL_VALUE = 7,
+} error_e;
+
+#endif

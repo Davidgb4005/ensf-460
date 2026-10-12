@@ -1,17 +1,22 @@
 #include "timer.h"
 #include <xc.h>
+#include "superloop.h"
 
-
+static volatile uint16_t ms_ticks;
 static volatile uint16_t s_ticks;
-
-
-
-uint16_t millis(){
-  return s_ticks;
+uint16_t timer_millis(void){
+  return ms_ticks;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void) {
-  s_ticks++;
+  ms_ticks++;
+  if (state == TIMER_RUN){
+    s_ticks++;
+    if(s_ticks > 1000){
+      elapsed_value--;
+      s_ticks = 0;
+    }
+  }
   IFS0bits.T2IF = 0;
 }
 

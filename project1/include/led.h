@@ -3,12 +3,13 @@
 
 
 #include "stdint.h"
+#include "error.h"
 
 typedef enum{
-    BLINK,
-    PWM,
-    DIGITAL,
-}led_mode_e;
+    LED_BLINK,
+    LED_PWM,
+    LED_DIGITAL,
+} led_mode_e;
 
 typedef struct
 {
@@ -28,13 +29,13 @@ typedef struct
     };
     uint16_t freq;
     uint16_t prev_time;
-    uint16_t mode;
+    led_mode_e mode;
     uint16_t blink_delay;
-}led_t;
+} led_s;
 
 
 
-uint16_t updateLed(led_t * led);
-uint16_t writeLed(led_t * led,uint16_t input);
-uint16_t toggleLed(led_t * led);
+error_e led_update(led_s *led);
+error_e led_write(led_s *led, uint16_t input);
+error_e led_toggle(led_s *led);
 #endif

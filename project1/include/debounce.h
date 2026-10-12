@@ -4,11 +4,11 @@
 #include "gpio.h"
 typedef enum
 {
-    NO_EDGE,
-    FALLING_EDGE,
-    RISING_EDGE,
+    DEBOUNCE_NO_EDGE,
+    DEBOUNCE_FALLING_EDGE,
+    DEBOUNCE_RISING_EDGE,
 
-} edge_type;
+} debounce_edge_e;
 typedef struct
 {
     uint16_t pin;
@@ -29,12 +29,13 @@ typedef struct
     uint16_t debounce_start_time;
     uint16_t falling_edge_time;
     uint16_t rising_edge_time;
-} debounce;
+} debounce_s;
 
-uint8_t debounce_read(debounce *pb);
-uint16_t debounce_previous_duration(debounce *pb);
-uint16_t debounce_state_duration(debounce *pb);
-uint16_t debounce_edge_read(debounce *pb, edge_type edge_read);
+uint8_t debounce_read(debounce_s *pb);
+uint16_t debounce_previous_duration(debounce_s *pb);
+uint16_t debounce_state_duration(debounce_s *pb);
+uint16_t debounce_edge_read(debounce_s *pb, debounce_edge_e edge_read);
+
 
 
 #endif

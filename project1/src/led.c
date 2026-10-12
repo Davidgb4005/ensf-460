@@ -2,98 +2,100 @@
 #include "led.h"
 #include "gpio.h"
 
-uint16_t updateLed(led_t *led)
+error_e led_update(led_s *led)
 {
     if (!led->st_bits.enabled) {
-        digitalWrite(led->led_pin, 0);
-        return 1;
+        gpio_digital_write(led->led_pin, 0);
+        led->prev_time = timer_millis();
+        return ERROR_UNSUPPORTED_MODE;
     }
 
     if (led->st_bits.paused) {
-        return 1;
+        led->prev_time = timer_millis();
+        return ERROR_UNSUPPORTED_MODE;
     }
 
     switch (led->mode)
     {
-    case BLINK:
-        if ((uint16_t)(millis() - led->prev_time) >= led->blink_delay) {
+    case LED_BLINK:
+        if ((uint16_t)(timer_millis() - led->prev_time) >= led->blink_delay) {
             led->st_bits.output ^= 1;
             led->prev_time += led->blink_delay;
         }
         break;
 
-    case DIGITAL:
+    case LED_DIGITAL:
         break;
 
-    case PWM:
-        return 1;
+    case LED_PWM:
+        return ERROR_UNSUPPORTED_MODE;
 
     default:
-        return 1;
+        return ERROR_UNSUPPORTED_MODE;
     }
 
-    digitalWrite(led->led_pin, led->st_bits.output);
-    return 0;
+    gpio_digital_write(led->led_pin, led->st_bits.output);
+    return ERROR_NONE;
 }
 
-uint16_t writeLed(led_t *led, uint16_t input)
+error_e led_write(led_s *led, uint16_t input)
 {
     if (!led->st_bits.enabled) {
-        digitalWrite(led->led_pin, 0);
-        return 1;
+        gpio_digital_write(led->led_pin, 0);
+        return ERROR_UNSUPPORTED_MODE;
     }
 
     if (led->st_bits.paused) {
-        return 1;
+        return ERROR_UNSUPPORTED_MODE;
     }
 
     switch (led->mode)
     {
-    case BLINK:
-        return 1;
+    case LED_BLINK:
+        return ERROR_UNSUPPORTED_MODE;
 
-    case DIGITAL:
+    case LED_DIGITAL:
         led->st_bits.output = !!input;
         break;
 
-    case PWM:
-        return 1;
+    case LED_PWM:
+        return ERROR_UNSUPPORTED_MODE;
 
     default:
-        return 1;
+        return ERROR_UNSUPPORTED_MODE;
     }
 
-    digitalWrite(led->led_pin, led->st_bits.output);
-    return 0;
+    gpio_digital_write(led->led_pin, led->st_bits.output);
+    return ERROR_NONE;
 }
 
-uint16_t toggleLed(led_t *led)
+error_e led_toggle(led_s *led)
 {
     if (!led->st_bits.enabled) {
-        digitalWrite(led->led_pin, 0);
-        return 1;
+        gpio_digital_write(led->led_pin, 0);
+        return ERROR_UNSUPPORTED_MODE;
     }
 
     if (led->st_bits.paused) {
-        return 1;
+        return ERROR_UNSUPPORTED_MODE;
     }
 
     switch (led->mode)
     {
-    case BLINK:
-        return 1;
+    case LED_BLINK:
+        return ERROR_UNSUPPORTED_MODE;
 
-    case DIGITAL:
+    case LED_DIGITAL:
         led->st_bits.output ^= 1;
         break;
 
-    case PWM:
-        return 1;
+    case LED_PWM:
+        return ERROR_UNSUPPORTED_MODE;
 
     default:
-        return 1;
+        return ERROR_UNSUPPORTED_MODE;
     }
 
-    digitalWrite(led->led_pin, led->st_bits.output);
-    return 0;
+    gpio_digital_write(led->led_pin, led->st_bits.output);
+    return ERROR_NONE;
 }

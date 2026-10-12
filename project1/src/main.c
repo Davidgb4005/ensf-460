@@ -53,9 +53,9 @@
 
 int main(void) {
 	CLKDIVbits.RCDIV = 0b000;
-	setup();
+	superloop_setup();
 	while(1){
-		loop();
+		superloop_loop();
 	}
   return 0;
 }

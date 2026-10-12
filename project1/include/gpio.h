@@ -2,19 +2,20 @@
 #ifndef _GPIO_H
 #define _GPIO_H
 #include <stdint.h>
+#include "error.h"
 
 typedef enum
 {
-	UNINIT,
-	INPUT,
-	INPUT_PULLUP,
-	INPUT_PULLDOWN,
-	OUTPUT,
-} mode_e;
+	GPIO_UNINIT,
+	GPIO_INPUT,
+	GPIO_INPUT_PULLUP,
+	GPIO_INPUT_PULLDOWN,
+	GPIO_OUTPUT,
+} gpio_mode_e;
 
 
-uint16_t pinMode(uint16_t pin, mode_e mode);
-uint16_t digitalRead(uint16_t pin);
-void digitalWrite(uint16_t pin, uint16_t value);
+uint16_t gpio_pin_mode(uint16_t pin, gpio_mode_e mode);
+uint16_t gpio_digital_read(uint16_t pin);
+error_e gpio_digital_write(uint16_t pin, uint16_t value);
 
 #endif
