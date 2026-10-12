@@ -19,7 +19,7 @@
 
 #define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
 #define BUFFER_SIZE 32
-#define DEBOUNCE_DELAY 95
+#define DEBOUNCE_DELAY 0
 #define MAX_PRESET_VALUE 3599
 #define MIN_PRESET_VALUE 0
 #define REPEAT_DELAY_MS 200

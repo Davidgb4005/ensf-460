@@ -20,4 +20,6 @@ press pb3 0.20
 wait_until state RUN 1.50
 wait 2.00
 expect state RUN
-
+press pb3 3.35
+wait_until state IDLE 5.00
+expect elapsed 0

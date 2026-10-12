@@ -20,4 +20,8 @@ wait_until state RUN 1.50
 wait_until state ALARM 8.00
 press pb1 0.20
 wait_until state IDLE 1.50
-
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+wait_until state ALARM 8.00
+press pb2 0.20
+wait_until state IDLE 1.50

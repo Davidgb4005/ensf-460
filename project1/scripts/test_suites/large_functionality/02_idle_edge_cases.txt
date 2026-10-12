@@ -9,8 +9,8 @@ expect preset 0
 press pb1 0.75
 wait 1.10
 expect_range preset 1 5
-press pb1+pb2 4.00
-wait 4.80
+press pb1+pb2 4.50
+wait 5.30
 expect state IDLE
 expect preset 0
 press pb1 0.35
