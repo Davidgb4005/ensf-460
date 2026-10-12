@@ -4,15 +4,12 @@ from testing_config import EdgeType, GpioState, TimerState
 from digital_twin import Led, PushButton, StopWatch, duration_timer
 
 try:
-    from gpiozero import Device, DigitalInputDevice, DigitalOutputDevice
-    from gpiozero.exc import BadPinFactory
-    from gpiozero.pins.lgpio import LGPIOFactory
+    import lgpio
 except ImportError:
-    Device = None
-    DigitalInputDevice = None
-    DigitalOutputDevice = None
-    LGPIOFactory = None
-    BadPinFactory = RuntimeError
+    lgpio = None
+
+
+_GPIO_BACKEND = None
 
 
 def _gpio_backend_error(exc, attempts=None):
@@ -32,7 +29,8 @@ def _gpio_backend_error(exc, attempts=None):
 
 
 def configure_gpio_backend(gpio_chip):
-    if Device is None or LGPIOFactory is None:
+    global _GPIO_BACKEND
+    if lgpio is None:
         return
 
     chips = _candidate_gpio_chips(gpio_chip)
@@ -40,7 +38,7 @@ def configure_gpio_backend(gpio_chip):
     attempts = []
     for chip in chips:
         try:
-            Device.pin_factory = LGPIOFactory(chip=chip)
+            _GPIO_BACKEND = LgpioBackend(chip)
             return
         except Exception as exc:
             last_error = exc
@@ -68,53 +66,93 @@ def _gpio_state(value):
     return GpioState.ON if value else GpioState.OFF
 
 
+class LgpioBackend:
+    def __init__(self, chip):
+        self.chip = chip
+        self.handle = lgpio.gpiochip_open(chip)
+
+    def claim_input(self, pin, pull_up=False):
+        flags = self._pull_flags(pull_up)
+        if flags:
+            lgpio.gpio_claim_input(self.handle, pin, flags)
+        else:
+            lgpio.gpio_claim_input(self.handle, pin)
+
+    def claim_output(self, pin, initial_level):
+        lgpio.gpio_claim_output(self.handle, pin, initial_level)
+
+    def read(self, pin):
+        return lgpio.gpio_read(self.handle, pin)
+
+    def write(self, pin, level):
+        lgpio.gpio_write(self.handle, pin, level)
+
+    def free(self, pin):
+        try:
+            lgpio.gpio_free(self.handle, pin)
+        except Exception:
+            pass
+
+    def _pull_flags(self, pull_up):
+        if pull_up and hasattr(lgpio, "SET_PULL_UP"):
+            return lgpio.SET_PULL_UP
+        if not pull_up and hasattr(lgpio, "SET_PULL_DOWN"):
+            return lgpio.SET_PULL_DOWN
+        return 0
+
+
+def _backend():
+    if _GPIO_BACKEND is None:
+        raise RuntimeError("GPIO backend was not configured before pin creation.")
+    return _GPIO_BACKEND
+
+
 class GpioInput:
     def __init__(self, pin, active_high=True, pull_up=False):
         self.pin = pin
         self.active_high = active_high
-        self._device = None
-        if pin is not None and DigitalInputDevice is not None:
-            try:
-                self._device = DigitalInputDevice(
-                    pin,
-                    pull_up=pull_up,
-                    active_state=active_high,
-                )
-            except BadPinFactory as exc:
-                raise _gpio_backend_error(exc) from exc
+        self._claimed = False
+        if pin is not None and lgpio is not None:
+            _backend().claim_input(pin, pull_up)
+            self._claimed = True
 
     def read(self):
-        if self._device is None:
+        if not self._claimed:
             return GpioState.OFF
-        return _gpio_state(self._device.value)
+        value = _backend().read(self.pin)
+        if not self.active_high:
+            value = not value
+        return _gpio_state(value)
 
     def close(self):
-        if self._device is not None:
-            self._device.close()
+        if self._claimed:
+            _backend().free(self.pin)
+            self._claimed = False
 
 
 class GpioOutput:
     def __init__(self, pin, active_high=True, initial_state=GpioState.OFF):
         self.pin = pin
         self.active_high = active_high
-        self._device = None
-        if pin is not None and DigitalOutputDevice is not None:
-            try:
-                self._device = DigitalOutputDevice(
-                    pin,
-                    active_high=active_high,
-                    initial_value=(initial_state == GpioState.ON),
-                )
-            except BadPinFactory as exc:
-                raise _gpio_backend_error(exc) from exc
+        self._claimed = False
+        if pin is not None and lgpio is not None:
+            _backend().claim_output(pin, self._level(initial_state))
+            self._claimed = True
 
     def write(self, state):
-        if self._device is not None:
-            self._device.value = state == GpioState.ON
+        if self._claimed:
+            _backend().write(self.pin, self._level(state))
 
     def close(self):
-        if self._device is not None:
-            self._device.close()
+        if self._claimed:
+            _backend().free(self.pin)
+            self._claimed = False
+
+    def _level(self, state):
+        active = state == GpioState.ON
+        if not self.active_high:
+            active = not active
+        return int(active)
 
 
 class PhysicalPushButton(PushButton):
