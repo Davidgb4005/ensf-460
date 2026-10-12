@@ -60,7 +60,7 @@ static pin_s pin_array[19] = {
     {.gpio_reg = &PORT_A, .gpio_mask = 1<<4, .mode = GPIO_UNINIT , .cn_reg = &CN_1 , .cn_mask = 1<<0},
     {.gpio_reg = &PORT_B, .gpio_mask = 1<<7, .mode = GPIO_UNINIT , .cn_reg = &CN_2 , .cn_mask = 1<<7},
     {.gpio_reg = &PORT_B, .gpio_mask = 1<<8, .mode = GPIO_UNINIT , .cn_reg = &CN_2 , .cn_mask = 1<<6},
-    {.gpio_reg = &PORT_B, .gpio_mask = 1<<9, .mode = GPIO_UNINIT , .cn_reg = &CN_2 , .cn_mask = 1<<7},
+    {.gpio_reg = &PORT_B, .gpio_mask = 1<<9, .mode = GPIO_UNINIT , .cn_reg = &CN_2 , .cn_mask = 1<<5},
     {.gpio_reg = &PORT_A, .gpio_mask = 1<<6, .mode = GPIO_UNINIT , .cn_reg = &CN_1 , .cn_mask = 1<<8},
     {.gpio_reg = &PORT_B, .gpio_mask = 1<<12, .mode = GPIO_UNINIT , .cn_reg =&CN_1 , .cn_mask = 1<<14},
     {.gpio_reg = &PORT_B, .gpio_mask = 1<<13, .mode = GPIO_UNINIT , .cn_reg =&CN_1 , .cn_mask = 1<<13},
