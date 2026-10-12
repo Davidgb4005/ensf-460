@@ -76,6 +76,18 @@ class GpioConfig:
 
 
 @dataclass
+class PowerProfilerConfig:
+    enabled: bool = False
+    port: str | None = None
+    output_dir: str = str(Path(__file__).with_name("power_logs"))
+    mode: str = "source"
+    source_voltage_mv: int = 3300
+    enable_dut_power: bool = True
+    sample_rate_hz: int = 100000
+    poll_interval_s: float = 0.010
+
+
+@dataclass
 class TestConfig:
     mode: TestMode = TestMode.MANUAL
     command_file: str | None = str(Path(__file__).with_name("input_commands.txt"))
@@ -83,6 +95,7 @@ class TestConfig:
     timing: TimingConfig = field(default_factory=TimingConfig)
     preset: PresetConfig = field(default_factory=PresetConfig)
     gpio: GpioConfig = field(default_factory=GpioConfig)
+    power: PowerProfilerConfig = field(default_factory=PowerProfilerConfig)
 
 
 DEFAULT_COMMANDS = (

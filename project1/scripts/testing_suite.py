@@ -1,12 +1,14 @@
 import argparse
 import copy
 from dataclasses import dataclass
+from pathlib import Path
 import threading
 import time
 
 from command_input import load_commands, run_commands
 from digital_twin import build_digital_twin
 from event_logger import TwinEventLogger
+from power_profiler import build_power_profiler
 from physical_twin import build_physical_twin, sync_button_from_physical
 from testing_config import CONFIG, TestMode
 from tui_output import Tui
@@ -16,6 +18,7 @@ from tui_output import Tui
 class TestStatus:
     status: str = "MANUAL"
     command_file: str | None = None
+    power_file: str | None = None
     error: str | None = None
 
 
@@ -37,7 +40,10 @@ def automated_command_loop(digital_twin, physical_twin, config, test_status):
     test_status.status = "RUNNING"
     test_status.command_file = config.command_file
     test_status.error = None
+    power_profiler = build_power_profiler(config)
     try:
+        power_path = power_profiler.start(Path(config.command_file).stem)
+        test_status.power_file = str(power_path) if power_path is not None else None
         commands = load_commands(config.command_file)
         run_commands(commands, digital_twin, physical_twin)
     except Exception as exc:
@@ -45,6 +51,10 @@ def automated_command_loop(digital_twin, physical_twin, config, test_status):
         test_status.error = str(exc)
     else:
         test_status.status = "PASSED"
+    finally:
+        power_path = power_profiler.stop()
+        if power_path is not None:
+            test_status.power_file = str(power_path)
 
 
 def logger_loop(logger, digital_twin, physical_twin, config):
@@ -60,12 +70,32 @@ def build_runtime_config():
         nargs="?",
         help="Optional command file to run in automated mode while showing the TUI.",
     )
+    parser.add_argument(
+        "--power-profile",
+        action="store_true",
+        help="Record a PPK2 CSV capture while the automated command file runs.",
+    )
+    parser.add_argument("--power-port", help="PPK2 serial port, for example /dev/ttyACM0.")
+    parser.add_argument("--power-dir", help="Directory for PPK2 CSV captures.")
+    parser.add_argument(
+        "--power-mode",
+        choices=("source", "ampere"),
+        help="PPK2 mode. Defaults to CONFIG.power.mode.",
+    )
     args = parser.parse_args()
 
     config = copy.deepcopy(CONFIG)
     if args.command_file is not None:
         config.mode = TestMode.AUTOMATED
         config.command_file = args.command_file
+    if args.power_profile:
+        config.power.enabled = True
+    if args.power_port is not None:
+        config.power.port = args.power_port
+    if args.power_dir is not None:
+        config.power.output_dir = args.power_dir
+    if args.power_mode is not None:
+        config.power.mode = args.power_mode
     return config
 
 

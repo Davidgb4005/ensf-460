@@ -25,6 +25,19 @@ For faster digital-only development runs, skip that preamble with:
 python3 scripts/run_test_suite.py --no-startup-reset
 ```
 
+To capture Nordic PPK2 current data while tests run:
+
+```sh
+python3 scripts/run_test_suite.py --power-profile --power-port /dev/ttyACM0
+```
+
+This writes one CSV per test into `scripts/power_logs/` by default. The TUI
+harness supports the same profiler flags:
+
+```sh
+python3 scripts/testing_suite.py --power-profile --power-port /dev/ttyACM0 scripts/test_suites/large_power/02_short_interval_alarm.txt
+```
+
 Command files support:
 
 - `press <pb1|pb2|pb3|pb1+pb2> <seconds>`

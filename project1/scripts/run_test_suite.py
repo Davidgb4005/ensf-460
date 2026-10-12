@@ -7,6 +7,7 @@ from pathlib import Path
 
 from command_input import load_commands, run_commands
 from digital_twin import build_digital_twin
+from power_profiler import build_power_profiler
 from testing_config import CONFIG, TestMode
 
 
@@ -32,19 +33,37 @@ def _iter_test_files(paths, include_power):
             yield path
 
 
-def _new_digital_twin():
+def _new_config(args):
     config = copy.deepcopy(CONFIG)
     config.mode = TestMode.AUTOMATED
+    if args.power_profile:
+        config.power.enabled = True
+    if args.power_port is not None:
+        config.power.port = args.power_port
+    if args.power_dir is not None:
+        config.power.output_dir = args.power_dir
+    if args.power_mode is not None:
+        config.power.mode = args.power_mode
+    return config
+
+
+def _new_digital_twin(config):
     digital_twin = build_digital_twin(config)
     digital_twin.main()
     time.sleep(0.05)
     return digital_twin
 
 
-def run_file(path, startup_reset=True):
-    digital_twin = _new_digital_twin()
+def run_file(path, args):
+    config = _new_config(args)
+    digital_twin = _new_digital_twin(config)
+    power_profiler = build_power_profiler(config)
     commands = load_commands(path)
-    run_commands(commands, digital_twin, startup_reset=startup_reset)
+    try:
+        power_profiler.start(Path(path).stem)
+        run_commands(commands, digital_twin, startup_reset=not args.no_startup_reset)
+    finally:
+        power_profiler.stop()
 
 
 def main():
@@ -61,10 +80,22 @@ def main():
         action="store_true",
         help="Also run long power-consumption command scenarios.",
     )
+    parser.add_argument(
+        "--power-profile",
+        action="store_true",
+        help="Record a PPK2 CSV capture for each test file.",
+    )
+    parser.add_argument("--power-port", help="PPK2 serial port, for example /dev/ttyACM0.")
+    parser.add_argument("--power-dir", help="Directory for PPK2 CSV captures.")
+    parser.add_argument(
+        "--power-mode",
+        choices=("source", "ampere"),
+        help="PPK2 mode. Defaults to CONFIG.power.mode.",
+    )
     args = parser.parse_args()
 
     if args.worker:
-        run_file(Path(args.worker), startup_reset=not args.no_startup_reset)
+        run_file(Path(args.worker), args)
         return 0
 
     failures = []
@@ -85,6 +116,10 @@ def main():
                     if args.no_startup_reset
                     else ()
                 ),
+                *(("--power-profile",) if args.power_profile else ()),
+                *(("--power-port", args.power_port) if args.power_port else ()),
+                *(("--power-dir", args.power_dir) if args.power_dir else ()),
+                *(("--power-mode", args.power_mode) if args.power_mode else ()),
             ],
             capture_output=True,
             text=True,

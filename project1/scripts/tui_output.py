@@ -76,10 +76,13 @@ class Tui:
             return []
         status = getattr(test_status, "status", None)
         command_file = getattr(test_status, "command_file", None)
+        power_file = getattr(test_status, "power_file", None)
         error = getattr(test_status, "error", None)
         lines = [f"Test: {status}"]
         if command_file:
             lines.append(f"File: {command_file}")
+        if power_file:
+            lines.append(f"Power: {power_file}")
         if error:
             lines.append(f"Error: {error}")
         lines.append("")
