@@ -1,0 +1,23 @@
+# Build a preset, start it, pause/resume, then let alarm fire and acknowledge.
+press pb1 0.65
+wait 1.00
+press pb2 0.25
+wait 0.60
+expect state IDLE
+expect_range preset 63 66
+press pb1+pb3 0.35
+wait 0.70
+expect_range preset 60 65
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+wait 1.20
+expect state RUN
+press pb3 0.20
+wait_until state PAUSE 1.50
+wait 1.00
+expect state PAUSE
+press pb3 0.20
+wait_until state RUN 1.50
+wait 2.00
+expect state RUN
+

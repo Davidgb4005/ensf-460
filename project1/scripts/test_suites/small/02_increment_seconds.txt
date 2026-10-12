@@ -1,0 +1,7 @@
+# PB1 adjusts preset seconds while idle.
+press pb1 0.35
+wait 0.70
+expect state IDLE
+expect_range preset 1 3
+expect elapsed 0
+

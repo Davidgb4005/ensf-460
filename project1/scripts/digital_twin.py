@@ -9,6 +9,8 @@ def duration_timer(component):
     component.timer_start = time.perf_counter()
 
 
+debounce = .095
+
 class PushButton:
     def __init__(self, name, state):
         self.name = name
@@ -16,14 +18,14 @@ class PushButton:
         self.last_edge = EdgeType.CONSUMED_EDGE
         self.state_duration = 0
         self.timer_start = time.perf_counter()
-
     def press_button(self, duration):
-        duration_timer(self)
-        self.state = GpioState.ON
-        self.last_edge = EdgeType.RISING_EDGE
 
         def release():
-            time.sleep(duration)
+            time.sleep(debounce)
+            duration_timer(self)
+            self.state = GpioState.ON
+            self.last_edge = EdgeType.RISING_EDGE
+            time.sleep(duration+debounce)
             duration_timer(self)
             self.state = GpioState.OFF
             self.last_edge = EdgeType.FALLING_EDGE
@@ -132,6 +134,7 @@ class StopWatch:
             prev_state = TimerState.TIMER_IDLE
             start_time = time.monotonic()
             trigger_flag = 0
+
             while True:
                 buttons = (
                     (self.pb_1.state == GpioState.ON) << 0
@@ -140,7 +143,7 @@ class StopWatch:
                 )
 
                 if buttons != prev_buttons or self.state != prev_state:
-                    start_time = time.monotonic() + self.config.timing.debounce_delay_s
+                    start_time = time.monotonic()
                     counter = 0
 
                 if request_state != self.state:
@@ -154,6 +157,8 @@ class StopWatch:
                     self.pb_2.last_edge = EdgeType.CONSUMED_EDGE
                     self.pb_1.last_edge = EdgeType.CONSUMED_EDGE
 
+
+                #Current max preset by default is 5999 secs or 99 mins 59 seconds
                 self.preset_timer = max(
                     self.config.preset.min_preset_s,
                     min(self.config.preset.max_preset_s, self.preset_timer),
@@ -204,6 +209,7 @@ class StopWatch:
                                         self.preset_timer = 0
                                         trigger_flag = 0
 
+
                     case TimerState.TIMER_RUN:
                         self.led_1.resume_blink()
                         self.led_1.start_blink(self.config.timing.led1_blink_delay_s)
@@ -215,6 +221,7 @@ class StopWatch:
                         elif time.monotonic() - start_time >= self.config.timing.count_delay_s:
                             start_time = time.monotonic()
                             self.elapsed_timer -= 1
+
 
                     case TimerState.TIMER_PAUSE:
                         self.led_1.pause_blink()
@@ -229,6 +236,8 @@ class StopWatch:
                         if time.monotonic() - start_time >= self.config.timing.clear_delay_s:
                             request_state = TimerState.TIMER_IDLE
                             self.elapsed_timer = 0
+
+
 
                     case TimerState.TIMER_ALARM:
                         self.led_1.start_blink(0)

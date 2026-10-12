@@ -1,0 +1,7 @@
+# PB2 adjusts preset minutes while idle.
+press pb2 0.35
+wait 0.70
+expect state IDLE
+expect_range preset 60 180
+expect elapsed 0
+

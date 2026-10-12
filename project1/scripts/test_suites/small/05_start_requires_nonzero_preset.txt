@@ -1,0 +1,7 @@
+# PB1+PB2 release should not start when preset is zero.
+press pb1+pb2 0.20
+wait 0.70
+expect state IDLE
+expect preset 0
+expect elapsed 0
+

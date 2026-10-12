@@ -50,7 +50,7 @@ class TimingConfig:
 
 @dataclass
 class PresetConfig:
-    max_preset_s: int = 5999
+    max_preset_s: int = 3599 
     min_preset_s: int = 0
     short_second_step_s: int = 1
     long_second_step_s: int = 5
@@ -61,17 +61,17 @@ class PresetConfig:
 @dataclass
 class GpioConfig:
     gpio_chip: int | None = None
-    pb1_drive_pin: int | None = 2
-    pb1_sample_pin: int | None = 17
-    pb2_drive_pin: int | None = 3 
-    pb2_sample_pin: int | None = 27
-    pb3_drive_pin: int | None = 4
-    pb3_sample_pin: int | None = 22
-    led1_sample_pin: int | None = 23 
-    led2_sample_pin: int | None = 24
-    state_bit0_pin: int | None = None
-    state_bit1_pin: int | None = None
-    
+    pb1_drive_pin: int | None = 4
+    pb1_sample_pin: int | None = 22
+    pb2_drive_pin: int | None = 17 
+    pb2_sample_pin: int | None = 23
+    pb3_drive_pin: int | None = 27
+    pb3_sample_pin: int | None = 24
+    led1_sample_pin: int | None = 25 
+    led2_sample_pin: int | None = 26
+    state_bit0_pin: int | None = 5
+    state_bit1_pin: int | None = 6
+
     active_high: bool = True
 
 
