@@ -61,21 +61,21 @@ class PresetConfig:
 @dataclass
 class GpioConfig:
     pb1_drive_pin: int | None = None
-    pb1_sample_pin: int | None = None
-    pb2_drive_pin: int | None = None
-    pb2_sample_pin: int | None = None
+    pb1_sample_pin: int | None = 2
+    pb2_drive_pin: int | None = None 
+    pb2_sample_pin: int | None = 3
     pb3_drive_pin: int | None = None
-    pb3_sample_pin: int | None = None
-    led1_sample_pin: int | None = None
-    led2_sample_pin: int | None = None
-    state_bit0_pin: int | None = None
-    state_bit1_pin: int | None = None
+    pb3_sample_pin: int | None = 4 
+    led1_sample_pin: int | None = 8
+    led2_sample_pin: int | None = 10
+    state_bit0_pin: int | None = 23
+    state_bit1_pin: int | None = 24
     active_high: bool = True
 
 
 @dataclass
 class TestConfig:
-    mode: TestMode = TestMode.AUTOMATED
+    mode: TestMode = TestMode.MANUAL
     command_file: str | None = str(Path(__file__).with_name("input_commands.txt"))
     log_file: str = str(Path(__file__).with_name("twin_events.csv"))
     timing: TimingConfig = field(default_factory=TimingConfig)
