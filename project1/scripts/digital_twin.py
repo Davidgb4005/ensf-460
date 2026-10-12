@@ -132,6 +132,7 @@ class StopWatch:
             prev_state = TimerState.TIMER_IDLE
             start_time = time.monotonic()
 
+            double_press = 0 
             while True:
                 buttons = (
                     (self.pb_1.state == GpioState.ON) << 0
