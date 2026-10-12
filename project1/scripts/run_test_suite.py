@@ -41,16 +41,21 @@ def _new_digital_twin():
     return digital_twin
 
 
-def run_file(path):
+def run_file(path, startup_reset=True):
     digital_twin = _new_digital_twin()
     commands = load_commands(path)
-    run_commands(commands, digital_twin)
+    run_commands(commands, digital_twin, startup_reset=startup_reset)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Run digital twin command tests.")
     parser.add_argument("paths", nargs="*", help="Test files or directories to run.")
     parser.add_argument("--worker", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--no-startup-reset",
+        action="store_true",
+        help="Skip the default PB3 clear and PB1+PB2 reset preamble.",
+    )
     parser.add_argument(
         "--include-power",
         action="store_true",
@@ -59,7 +64,7 @@ def main():
     args = parser.parse_args()
 
     if args.worker:
-        run_file(Path(args.worker))
+        run_file(Path(args.worker), startup_reset=not args.no_startup_reset)
         return 0
 
     failures = []
@@ -70,7 +75,17 @@ def main():
 
     for path in test_files:
         result = subprocess.run(
-            [sys.executable, __file__, "--worker", str(path)],
+            [
+                sys.executable,
+                __file__,
+                "--worker",
+                str(path),
+                *(
+                    ("--no-startup-reset",)
+                    if args.no_startup_reset
+                    else ()
+                ),
+            ],
             capture_output=True,
             text=True,
         )

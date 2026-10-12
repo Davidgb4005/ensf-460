@@ -13,6 +13,18 @@ sets are intentionally skipped because they contain longer waits. Run them with:
 python3 scripts/run_test_suite.py --include-power
 ```
 
+Every command file starts with a default reset preamble:
+
+- hold `PB3` for 5 seconds
+- hold `PB1+PB2` for 5 seconds
+- verify `state=IDLE`, `preset=0`, and `elapsed=0`
+
+For faster digital-only development runs, skip that preamble with:
+
+```sh
+python3 scripts/run_test_suite.py --no-startup-reset
+```
+
 Command files support:
 
 - `press <pb1|pb2|pb3|pb1+pb2> <seconds>`

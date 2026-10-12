@@ -12,6 +12,16 @@ VALID_COMMANDS = {
     "wait_until",
 }
 
+STARTUP_RESET_COMMANDS = (
+    ("press", ("pb3", "5")),
+    ("wait", ("5.5",)),
+    ("press", ("pb1+pb2", "5")),
+    ("wait", ("5.5",)),
+    ("expect", ("state", "IDLE")),
+    ("expect", ("preset", "0")),
+    ("expect", ("elapsed", "0")),
+)
+
 
 def load_commands(path):
     if path is None:
@@ -100,12 +110,15 @@ def _wait_until(digital_twin, field, expected, timeout_s):
     raise AssertionError(f"timed out waiting for {field}={expected}, got {actual}")
 
 
-def run_commands(commands, digital_twin, physical_twin=None):
+def run_commands(commands, digital_twin, physical_twin=None, startup_reset=True):
     buttons = {
         "pb1": (digital_twin.pb_1, physical_twin.pb_1 if physical_twin is not None else None),
         "pb2": (digital_twin.pb_2, physical_twin.pb_2 if physical_twin is not None else None),
         "pb3": (digital_twin.pb_3, physical_twin.pb_3 if physical_twin is not None else None),
     }
+
+    if startup_reset:
+        commands = (*STARTUP_RESET_COMMANDS, *commands)
 
     for command, args in commands:
         if command == "note":

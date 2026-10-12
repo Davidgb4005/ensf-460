@@ -6,14 +6,14 @@ class Tui:
         self.panel_width = panel_width
         self._last_height = 0
 
-    def print(self, digital, physical):
+    def print(self, digital, physical, test_status=None):
         if physical is not None and digital is not None and hasattr(physical, "sync_expected"):
             physical.sync_expected(digital)
 
         columns = [
             self.digital_twin_panel(digital),
             self.physical_twin_panel(physical),
-            self.diff_panel(digital, physical),
+            self.diff_panel(digital, physical, test_status),
         ]
         height = max(len(column) for column in columns)
         padded_columns = [
@@ -38,14 +38,16 @@ class Tui:
     def physical_twin_panel(self, twin):
         return self._panel("PHYSICAL TWIN", self._physical_snapshot_lines(self._twin_snapshot(twin)))
 
-    def diff_panel(self, digital, physical):
+    def diff_panel(self, digital, physical, test_status=None):
         if physical is not None and digital is not None and hasattr(physical, "sync_expected"):
             physical.sync_expected(digital)
         digital_snapshot = self._twin_snapshot(digital)
         physical_snapshot = self._twin_snapshot(physical)
 
+        lines = self._test_status_lines(test_status)
+
         if digital_snapshot is None or physical_snapshot is None:
-            lines = [
+            lines += [
                 "No physical twin loaded",
                 "Digital-only simulation",
                 "Diff unavailable",
@@ -59,7 +61,6 @@ class Tui:
                 ("LED2", "led2_digital", "led2_physical"),
                 ("State", "stopwatch_state", "physical_state"),
             )
-            lines = []
             for label, digital_key, physical_key in labels:
                 if digital_snapshot[digital_key] == physical_snapshot[physical_key]:
                     lines.append(f"{label}: OK")
@@ -69,6 +70,20 @@ class Tui:
                     )
 
         return self._panel("DIFFERENCE", lines)
+
+    def _test_status_lines(self, test_status):
+        if test_status is None:
+            return []
+        status = getattr(test_status, "status", None)
+        command_file = getattr(test_status, "command_file", None)
+        error = getattr(test_status, "error", None)
+        lines = [f"Test: {status}"]
+        if command_file:
+            lines.append(f"File: {command_file}")
+        if error:
+            lines.append(f"Error: {error}")
+        lines.append("")
+        return lines
 
     def _twin_snapshot(self, twin):
         if twin is None:
