@@ -131,8 +131,7 @@ class StopWatch:
             request_state = TimerState.TIMER_IDLE
             prev_state = TimerState.TIMER_IDLE
             start_time = time.monotonic()
-            request_to_exit = 0
-            double_press = 0 
+            trigger_flag = 0
             while True:
                 buttons = (
                     (self.pb_1.state == GpioState.ON) << 0
@@ -148,8 +147,7 @@ class StopWatch:
                     self.state = request_state
                     start_time = time.monotonic()
                     counter = 0
-                    double_press = 0
-                    request_to_exit = 0
+                    trigger_flag = 0
                     self.led_1.stop_blink()
                     self.led_2.stop_blink()
                     self.pb_3.last_edge = EdgeType.CONSUMED_EDGE
@@ -163,10 +161,9 @@ class StopWatch:
 
                 match self.state:
                     case TimerState.TIMER_IDLE:
-                        if ((self.pb_1.last_edge == EdgeType.FALLING_EDGE or self.pb_2.last_edge == EdgeType.FALLING_EDGE) and double_press == 1 and self.preset_timer > 0):
+                        if ((self.pb_1.last_edge == EdgeType.FALLING_EDGE or self.pb_2.last_edge == EdgeType.FALLING_EDGE) and trigger_flag == 1 and self.preset_timer > 0):
                             request_state = TimerState.TIMER_RUN
                             self.elapsed_timer = self.preset_timer
-                            double_press = 0
                         else:
                             match buttons:
                                 case 0b001:
@@ -202,7 +199,7 @@ class StopWatch:
                                         else:
                                             self.preset_timer = self.preset_timer - self.config.preset.short_minute_step_s
                                 case 0b011:
-                                    double_press = 1
+                                    trigger_flag = 1
                                     if time.monotonic() - start_time >= self.config.timing.reset_delay_s:
                                         start_time = time.monotonic()
                                         self.preset_timer = 0
@@ -221,11 +218,11 @@ class StopWatch:
 
                     case TimerState.TIMER_PAUSE:
                         self.led_1.pause_blink()
-                        if request_to_exit == 1 and (buttons & 4) == 0:
+                        if trigger_flag == 1 and (buttons & 4) == 0:
                             request_state = TimerState.TIMER_RUN
 
                         if self.pb_3.last_edge == EdgeType.RISING_EDGE:
-                            request_to_exit = 1
+                            trigger_flag = 1
                         if not(buttons & 4):
                             start_time = time.monotonic()
                             
