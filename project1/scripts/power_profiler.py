@@ -27,6 +27,7 @@ class Ppk2PowerProfiler:
         self._ppk = None
         self._thread = None
         self._stop_event = threading.Event()
+        self._lock = threading.Lock()
         self._sample_index = 0
         self._csv_file = None
         self._writer = None
@@ -81,17 +82,18 @@ class Ppk2PowerProfiler:
 
         self._drain_samples()
 
-        if self.config.power.mode.lower() == "source" and self.config.power.enable_dut_power:
-            self._ppk.toggle_DUT_power("OFF")
-        self._ppk.stop_measuring()
+        with self._lock:
+            if self.config.power.mode.lower() == "source" and self.config.power.enable_dut_power:
+                self._ppk.toggle_DUT_power("OFF")
+            self._ppk.stop_measuring()
 
-        if self._csv_file is not None:
-            self._csv_file.close()
+            if self._csv_file is not None:
+                self._csv_file.close()
 
-        self._thread = None
-        self._csv_file = None
-        self._writer = None
-        self._ppk = None
+            self._thread = None
+            self._csv_file = None
+            self._writer = None
+            self._ppk = None
         return self.output_path
 
     def _auto_detect_port(self, ppk2_api):
@@ -135,25 +137,29 @@ class Ppk2PowerProfiler:
             time.sleep(self.config.power.poll_interval_s)
 
     def _drain_samples(self):
-        data = self._ppk.get_data()
-        if not data:
-            return
+        with self._lock:
+            if self._ppk is None or self._writer is None or self._csv_file is None:
+                return
 
-        samples, digital_bits = self._ppk.get_samples(data)
-        for offset, current_ua in enumerate(samples):
-            bits = digital_bits[offset] if offset < len(digital_bits) else ""
-            elapsed_s = self._sample_index / self.config.power.sample_rate_hz
-            self._writer.writerow(
-                (
-                    f"{elapsed_s:.8f}",
-                    self._sample_index,
-                    f"{current_ua:.6f}",
-                    bits,
+            data = self._ppk.get_data()
+            if not data:
+                return
+
+            samples, digital_bits = self._ppk.get_samples(data)
+            for offset, current_ua in enumerate(samples):
+                bits = digital_bits[offset] if offset < len(digital_bits) else ""
+                elapsed_s = self._sample_index / self.config.power.sample_rate_hz
+                self._writer.writerow(
+                    (
+                        f"{elapsed_s:.8f}",
+                        self._sample_index,
+                        f"{current_ua:.6f}",
+                        bits,
+                    )
                 )
-            )
-            self._sample_index += 1
+                self._sample_index += 1
 
-        self._csv_file.flush()
+            self._csv_file.flush()
 
     def _output_path(self, label):
         safe_label = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(label)).strip("_")
