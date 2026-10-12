@@ -1,3 +1,5 @@
+import argparse
+import copy
 import threading
 import time
 
@@ -34,38 +36,55 @@ def logger_loop(logger, digital_twin, physical_twin, config):
         time.sleep(config.timing.log_poll_s)
 
 
+def build_runtime_config():
+    parser = argparse.ArgumentParser(description="Run the twin TUI harness.")
+    parser.add_argument(
+        "command_file",
+        nargs="?",
+        help="Optional command file to run in automated mode while showing the TUI.",
+    )
+    args = parser.parse_args()
+
+    config = copy.deepcopy(CONFIG)
+    if args.command_file is not None:
+        config.mode = TestMode.AUTOMATED
+        config.command_file = args.command_file
+    return config
+
+
 def main():
-    open(CONFIG.log_file, "w", encoding="utf-8").close()
-    digital_twin = build_digital_twin(CONFIG)
+    config = build_runtime_config()
+    open(config.log_file, "w", encoding="utf-8").close()
+    digital_twin = build_digital_twin(config)
     physical_twin = build_physical_twin(
-        CONFIG,
-        drive_pushbuttons=(CONFIG.mode == TestMode.AUTOMATED),
+        config,
+        drive_pushbuttons=(config.mode == TestMode.AUTOMATED),
     )
     tui = Tui()
-    logger = TwinEventLogger(CONFIG.log_file)
+    logger = TwinEventLogger(config.log_file)
 
     digital_twin.main()
     threading.Thread(
         target=logger_loop,
-        args=(logger, digital_twin, physical_twin, CONFIG),
+        args=(logger, digital_twin, physical_twin, config),
         daemon=True,
     ).start()
     threading.Thread(
         target=tui_loop,
-        args=(tui, digital_twin, physical_twin, CONFIG),
+        args=(tui, digital_twin, physical_twin, config),
         daemon=True,
     ).start()
 
-    if CONFIG.mode == TestMode.AUTOMATED:
+    if config.mode == TestMode.AUTOMATED:
         threading.Thread(
             target=automated_command_loop,
-            args=(digital_twin, physical_twin, CONFIG),
+            args=(digital_twin, physical_twin, config),
             daemon=True,
         ).start()
     else:
         threading.Thread(
             target=manual_input_loop,
-            args=(digital_twin, physical_twin, CONFIG),
+            args=(digital_twin, physical_twin, config),
             daemon=True,
         ).start()
 
