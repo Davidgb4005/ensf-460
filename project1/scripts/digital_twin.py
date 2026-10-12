@@ -233,7 +233,7 @@ class StopWatch:
                             request_state = TimerState.TIMER_RUN
                         if self.pb_3.last_edge == EdgeType.RISING_EDGE:
                             request_to_exit = 1
-                        elif time.monotonic() - start_time >= self.config.timing.clear_delay_s and (buttons & 0x4):
+                        if time.monotonic() - start_time >= self.config.timing.clear_delay_s and request_to_exit == 0:
                             request_state = TimerState.TIMER_IDLE
                             self.elapsed_timer = 0
 
