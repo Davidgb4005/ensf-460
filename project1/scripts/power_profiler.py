@@ -1,4 +1,6 @@
 import csv
+import contextlib
+import io
 import os
 import re
 import threading
@@ -202,7 +204,11 @@ class Ppk2PowerProfiler:
             if not data:
                 return
 
-            samples, digital_bits = self._ppk.get_samples(data)
+            # The ppk2_api library prints "Measurement outside of range!" for
+            # discarded samples. Keep the test output readable; valid samples
+            # are still returned and written below.
+            with contextlib.redirect_stdout(io.StringIO()):
+                samples, digital_bits = self._ppk.get_samples(data)
             for offset, current_ua in enumerate(samples):
                 bits = digital_bits[offset] if offset < len(digital_bits) else ""
                 elapsed_s = self._sample_index / self.config.power.sample_rate_hz
