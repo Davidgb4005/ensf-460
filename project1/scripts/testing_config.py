@@ -60,6 +60,7 @@ class PresetConfig:
 
 @dataclass
 class GpioConfig:
+    gpio_chip: int | None = 0
     pb1_drive_pin: int | None = 2
     pb1_sample_pin: int | None = 17
     pb2_drive_pin: int | None = 3 

@@ -2,10 +2,34 @@ from testing_config import EdgeType, GpioState, TimerState
 from digital_twin import Led, PushButton, StopWatch, duration_timer
 
 try:
-    from gpiozero import DigitalInputDevice, DigitalOutputDevice
+    from gpiozero import Device, DigitalInputDevice, DigitalOutputDevice
+    from gpiozero.exc import BadPinFactory
+    from gpiozero.pins.lgpio import LGPIOFactory
 except ImportError:
+    Device = None
     DigitalInputDevice = None
     DigitalOutputDevice = None
+    LGPIOFactory = None
+    BadPinFactory = RuntimeError
+
+
+def _gpio_backend_error(exc):
+    return RuntimeError(
+        "GPIO backend is unavailable. If this is a Raspberry Pi, try running with "
+        "`sudo`, install `python3-lgpio`, or fix permissions for /dev/gpiochip* "
+        "or /dev/gpiomem. If this is not a Raspberry Pi, set GPIO pins to None "
+        "or run without physical GPIO."
+    )
+
+
+def configure_gpio_backend(gpio_chip):
+    if gpio_chip is None or Device is None or LGPIOFactory is None:
+        return
+
+    try:
+        Device.pin_factory = LGPIOFactory(chip=gpio_chip)
+    except Exception as exc:
+        raise _gpio_backend_error(exc) from exc
 
 
 def _gpio_state(value):
@@ -18,11 +42,14 @@ class GpioInput:
         self.active_high = active_high
         self._device = None
         if pin is not None and DigitalInputDevice is not None:
-            self._device = DigitalInputDevice(
-                pin,
-                pull_up=pull_up,
-                active_state=active_high,
-            )
+            try:
+                self._device = DigitalInputDevice(
+                    pin,
+                    pull_up=pull_up,
+                    active_state=active_high,
+                )
+            except BadPinFactory as exc:
+                raise _gpio_backend_error(exc) from exc
 
     def read(self):
         if self._device is None:
@@ -40,11 +67,14 @@ class GpioOutput:
         self.active_high = active_high
         self._device = None
         if pin is not None and DigitalOutputDevice is not None:
-            self._device = DigitalOutputDevice(
-                pin,
-                active_high=active_high,
-                initial_value=(initial_state == GpioState.ON),
-            )
+            try:
+                self._device = DigitalOutputDevice(
+                    pin,
+                    active_high=active_high,
+                    initial_value=(initial_state == GpioState.ON),
+                )
+            except BadPinFactory as exc:
+                raise _gpio_backend_error(exc) from exc
 
     def write(self, state):
         if self._device is not None:
@@ -193,6 +223,7 @@ class PhysicalStopWatch(StopWatch):
 
 def build_physical_twin(config, drive_pushbuttons=True):
     gpio = config.gpio
+    configure_gpio_backend(gpio.gpio_chip)
     return PhysicalStopWatch(
         PhysicalPushButton(
             "Physical Push Button 1",
