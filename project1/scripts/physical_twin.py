@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from testing_config import EdgeType, GpioState, TimerState
 from digital_twin import Led, PushButton, StopWatch, duration_timer
 
@@ -16,20 +18,42 @@ except ImportError:
 def _gpio_backend_error(exc):
     return RuntimeError(
         "GPIO backend is unavailable. If this is a Raspberry Pi, try running with "
-        "`sudo`, install `python3-lgpio`, or fix permissions for /dev/gpiochip* "
-        "or /dev/gpiomem. If this is not a Raspberry Pi, set GPIO pins to None "
-        "or run without physical GPIO."
+        "`sudo`, install `python3-lgpio`, fix permissions for /dev/gpiochip*, "
+        "or set `gpio_chip` in testing_config.py to the chip that contains the "
+        "40-pin header GPIO lines. If this is not a Raspberry Pi, set GPIO pins "
+        "to None or run without physical GPIO."
     )
 
 
 def configure_gpio_backend(gpio_chip):
-    if gpio_chip is None or Device is None or LGPIOFactory is None:
+    if Device is None or LGPIOFactory is None:
         return
 
-    try:
-        Device.pin_factory = LGPIOFactory(chip=gpio_chip)
-    except Exception as exc:
-        raise _gpio_backend_error(exc) from exc
+    chips = _candidate_gpio_chips(gpio_chip)
+    last_error = None
+    for chip in chips:
+        try:
+            Device.pin_factory = LGPIOFactory(chip=chip)
+            return
+        except Exception as exc:
+            last_error = exc
+
+    raise _gpio_backend_error(last_error)
+
+
+def _candidate_gpio_chips(configured_chip):
+    chips = []
+    if configured_chip is not None:
+        chips.append(configured_chip)
+    else:
+        chips.append(0)
+
+    for path in sorted(Path("/dev").glob("gpiochip*")):
+        suffix = path.name.removeprefix("gpiochip")
+        if suffix.isdigit():
+            chips.append(int(suffix))
+
+    return list(dict.fromkeys(chips))
 
 
 def _gpio_state(value):
