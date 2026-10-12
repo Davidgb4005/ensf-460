@@ -67,8 +67,8 @@ class GpioConfig:
     pb2_sample_pin: int | None = 27
     pb3_drive_pin: int | None = 4
     pb3_sample_pin: int | None = 22
-    led1_sample_pin: int | None = 8
-    led2_sample_pin: int | None = 10
+    led1_sample_pin: int | None = None 
+    led2_sample_pin: int | None = None
     state_bit0_pin: int | None = 23
     state_bit1_pin: int | None = 24
     active_high: bool = True
