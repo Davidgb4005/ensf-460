@@ -147,6 +147,7 @@ class StopWatch:
                     self.state = request_state
                     start_time = time.monotonic()
                     counter = 0
+                    double_press = 0
                     self.pb_3.last_edge = EdgeType.CONSUMED_EDGE
                     self.pb_2.last_edge = EdgeType.CONSUMED_EDGE
                     self.pb_1.last_edge = EdgeType.CONSUMED_EDGE
@@ -158,12 +159,10 @@ class StopWatch:
 
                 match self.state:
                     case TimerState.TIMER_IDLE:
-                        if (
-                            self.pb_1.last_edge == EdgeType.FALLING_EDGE
-                            or self.pb_2.last_edge == EdgeType.FALLING_EDGE
-                        ):
+                        if ((self.pb_1.last_edge == EdgeType.FALLING_EDGE or self.pb_2.last_edge == EdgeType.FALLING_EDGE) and double_press == 1):
                             request_state = TimerState.TIMER_RUN
                             self.elapsed_timer = self.preset_timer
+                            double_press = 0
                         else:
                             match buttons:
                                 case 0b001:
@@ -207,6 +206,7 @@ class StopWatch:
                                         counter = next_counter
                                         start_time = time.monotonic()
                                 case 0b011:
+                                    double_press = 1
                                     if time.monotonic() - start_time >= self.config.timing.reset_delay_s:
                                         start_time = time.monotonic()
                                         self.preset_timer = 0
