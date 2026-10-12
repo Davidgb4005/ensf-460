@@ -45,7 +45,15 @@ class Ppk2PowerProfiler:
         self._check_port_access(port)
 
         self._ppk = PPK2_API(port)
-        self._ppk.get_modifiers()
+        self._prepare_device_for_metadata()
+        try:
+            self._ppk.get_modifiers()
+        except UnicodeDecodeError as exc:
+            raise RuntimeError(
+                "PPK2 returned binary data while metadata was expected. "
+                "Unplug/replug the PPK2 or close the Nordic Power Profiler app, "
+                "then retry."
+            ) from exc
         self._configure_mode()
 
         self.output_path = self._output_path(label)
@@ -116,6 +124,34 @@ class Ppk2PowerProfiler:
                 "Add your user to the port's group, reload udev, then log out/in "
                 "or run the test with sudo."
             )
+
+    def _prepare_device_for_metadata(self):
+        # A previous interrupted run can leave the PPK2 streaming binary samples.
+        # Stop and flush before reading UTF-8 metadata.
+        try:
+            self._ppk.stop_measuring()
+        except Exception:
+            pass
+
+        try:
+            self._ppk.toggle_DUT_power("OFF")
+        except Exception:
+            pass
+
+        serial_port = getattr(self._ppk, "ser", None)
+        if serial_port is not None:
+            try:
+                serial_port.reset_input_buffer()
+            except Exception:
+                pass
+
+        time.sleep(0.25)
+
+        if serial_port is not None:
+            try:
+                serial_port.read(serial_port.in_waiting)
+            except Exception:
+                pass
 
     def _configure_mode(self):
         mode = self.config.power.mode.lower()
