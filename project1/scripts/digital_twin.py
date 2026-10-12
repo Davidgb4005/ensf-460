@@ -201,7 +201,6 @@ class StopWatch:
                                 case 0b011:
                                     trigger_flag = 1
                                     if time.monotonic() - start_time >= self.config.timing.reset_delay_s:
-                                        start_time = time.monotonic()
                                         self.preset_timer = 0
                                         trigger_flag = 0
 
