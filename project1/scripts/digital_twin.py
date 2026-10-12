@@ -203,6 +203,7 @@ class StopWatch:
                                     if time.monotonic() - start_time >= self.config.timing.reset_delay_s:
                                         start_time = time.monotonic()
                                         self.preset_timer = 0
+                                        trigger_flag = 0
 
                     case TimerState.TIMER_RUN:
                         self.led_1.resume_blink()
