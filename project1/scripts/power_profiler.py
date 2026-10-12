@@ -17,6 +17,9 @@ class NoPowerProfiler:
     def stop(self):
         return None
 
+    def close(self):
+        return None
+
 
 class Ppk2PowerProfiler:
     enabled = True
@@ -31,30 +34,10 @@ class Ppk2PowerProfiler:
         self._sample_index = 0
         self._csv_file = None
         self._writer = None
+        self._port = None
 
     def start(self, label):
-        try:
-            from ppk2_api.ppk2_api import PPK2_API
-        except ImportError as exc:
-            raise RuntimeError(
-                "PPK2 power profiling needs the ppk2_api Python package. "
-                "Install it before enabling power profiling."
-            ) from exc
-
-        port = self.config.power.port or self._auto_detect_port(PPK2_API)
-        self._check_port_access(port)
-
-        self._ppk = PPK2_API(port)
-        self._prepare_device_for_metadata()
-        try:
-            self._ppk.get_modifiers()
-        except UnicodeDecodeError as exc:
-            raise RuntimeError(
-                "PPK2 returned binary data while metadata was expected. "
-                "Unplug/replug the PPK2 or close the Nordic Power Profiler app, "
-                "then retry."
-            ) from exc
-        self._configure_mode()
+        self._ensure_device_open()
 
         self.output_path = self._output_path(label)
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -101,8 +84,46 @@ class Ppk2PowerProfiler:
             self._thread = None
             self._csv_file = None
             self._writer = None
-            self._ppk = None
         return self.output_path
+
+    def close(self):
+        self.stop()
+        with self._lock:
+            if self._ppk is not None:
+                try:
+                    serial_port = getattr(self._ppk, "ser", None)
+                    if serial_port is not None:
+                        serial_port.close()
+                finally:
+                    self._ppk = None
+
+    def _ensure_device_open(self):
+        if self._ppk is not None:
+            return
+
+        try:
+            from ppk2_api.ppk2_api import PPK2_API
+        except ImportError as exc:
+            raise RuntimeError(
+                "PPK2 power profiling needs the ppk2_api Python package. "
+                "Install it before enabling power profiling."
+            ) from exc
+
+        port = self.config.power.port or self._auto_detect_port(PPK2_API)
+        self._check_port_access(port)
+        self._port = port
+
+        self._ppk = PPK2_API(port)
+        self._prepare_device_for_metadata()
+        try:
+            self._ppk.get_modifiers()
+        except UnicodeDecodeError as exc:
+            raise RuntimeError(
+                "PPK2 returned binary data while metadata was expected. "
+                "Unplug/replug the PPK2 or close the Nordic Power Profiler app, "
+                "then retry."
+            ) from exc
+        self._configure_mode()
 
     def _auto_detect_port(self, ppk2_api):
         devices = ppk2_api.list_devices()

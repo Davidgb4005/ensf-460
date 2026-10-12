@@ -57,23 +57,8 @@ def _new_digital_twin(config):
 def run_file(path, args):
     config = _new_config(args)
     digital_twin = _new_digital_twin(config)
-    power_profiler = build_power_profiler(config)
     commands = load_commands(path)
-    try:
-        power_profiler.start(Path(path).stem)
-        run_commands(commands, digital_twin, startup_reset=not args.no_startup_reset)
-    finally:
-        power_profiler.stop()
-
-
-def power_profiler_preflight(args):
-    if not args.power_profile:
-        return
-
-    config = _new_config(args)
-    power_profiler = build_power_profiler(config)
-    power_profiler.start("preflight")
-    power_profiler.stop()
+    run_commands(commands, digital_twin, startup_reset=not args.no_startup_reset)
 
 
 def main():
@@ -108,45 +93,55 @@ def main():
         run_file(Path(args.worker), args)
         return 0
 
-    try:
-        power_profiler_preflight(args)
-    except Exception as exc:
-        print(f"Power profiler preflight failed: {exc}")
-        return 1
-
     failures = []
     test_files = list(_iter_test_files(args.paths, args.include_power))
     if not test_files:
         print("No test files found.")
         return 1
 
-    for path in test_files:
-        result = subprocess.run(
-            [
-                sys.executable,
-                __file__,
-                "--worker",
-                str(path),
-                *(
-                    ("--no-startup-reset",)
-                    if args.no_startup_reset
-                    else ()
-                ),
-                *(("--power-profile",) if args.power_profile else ()),
-                *(("--power-port", args.power_port) if args.power_port else ()),
-                *(("--power-dir", args.power_dir) if args.power_dir else ()),
-                *(("--power-mode", args.power_mode) if args.power_mode else ()),
-            ],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            message = (result.stderr or result.stdout).strip().splitlines()
-            detail = message[-1] if message else f"exit code {result.returncode}"
-            failures.append((path, detail))
-            print(f"FAIL {path}: {detail}")
-        else:
-            print(f"PASS {path}")
+    power_profiler = build_power_profiler(_new_config(args))
+    try:
+        for path in test_files:
+            try:
+                power_path = power_profiler.start(Path(path).stem)
+            except Exception as exc:
+                failures.append((path, exc))
+                print(f"FAIL {path}: power profiler start failed: {exc}")
+                continue
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    __file__,
+                    "--worker",
+                    str(path),
+                    *(
+                        ("--no-startup-reset",)
+                        if args.no_startup_reset
+                        else ()
+                    ),
+                ],
+                capture_output=True,
+                text=True,
+            )
+
+            try:
+                power_profiler.stop()
+            except Exception as exc:
+                failures.append((path, exc))
+                print(f"FAIL {path}: power profiler stop failed: {exc}")
+                continue
+
+            if result.returncode != 0:
+                message = (result.stderr or result.stdout).strip().splitlines()
+                detail = message[-1] if message else f"exit code {result.returncode}"
+                failures.append((path, detail))
+                print(f"FAIL {path}: {detail}")
+            else:
+                suffix = f" power={power_path}" if power_path is not None else ""
+                print(f"PASS {path}{suffix}")
+    finally:
+        power_profiler.close()
 
     print(f"\n{len(test_files) - len(failures)} passed, {len(failures)} failed")
     return 1 if failures else 0
