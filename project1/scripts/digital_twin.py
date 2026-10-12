@@ -229,10 +229,10 @@ class StopWatch:
 
                     case TimerState.TIMER_PAUSE:
                         self.led_1.pause_blink()
+                        if request_to_exit == 1 and (buttons & 4) == 0:
+                            request_state = TimerState.TIMER_RUN
                         if self.pb_3.last_edge == EdgeType.RISING_EDGE:
                             request_to_exit = 1
-                        if request_to_exit and (buttons & 4) == 0:
-                            request_state = TimerState.TIMER_RUN
                         elif time.monotonic() - start_time >= self.config.timing.clear_delay_s and (buttons & 0x4):
                             request_state = TimerState.TIMER_IDLE
                             self.elapsed_timer = 0
