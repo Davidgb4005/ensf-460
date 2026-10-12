@@ -131,7 +131,7 @@ class StopWatch:
             request_state = TimerState.TIMER_IDLE
             prev_state = TimerState.TIMER_IDLE
             start_time = time.monotonic()
-
+            request_to_exit = 0
             double_press = 0 
             while True:
                 buttons = (
@@ -149,6 +149,9 @@ class StopWatch:
                     start_time = time.monotonic()
                     counter = 0
                     double_press = 0
+                    request_to_exit = 0
+                    self.led_1.stop_blink()
+                    self.led_2.stop_blink()
                     self.pb_3.last_edge = EdgeType.CONSUMED_EDGE
                     self.pb_2.last_edge = EdgeType.CONSUMED_EDGE
                     self.pb_1.last_edge = EdgeType.CONSUMED_EDGE
@@ -213,6 +216,7 @@ class StopWatch:
                                         self.preset_timer = 0
 
                     case TimerState.TIMER_RUN:
+                        self.led_1.resume_blink()
                         self.led_1.start_blink(self.config.timing.led1_blink_delay_s)
                         if self.elapsed_timer == 0:
                             request_state = TimerState.TIMER_ALARM
@@ -224,7 +228,10 @@ class StopWatch:
                             self.elapsed_timer -= 1
 
                     case TimerState.TIMER_PAUSE:
+                        self.led_1.pause_blink()
                         if self.pb_3.last_edge == EdgeType.RISING_EDGE:
+                            request_to_exit = 1
+                        if request_to_exit and (buttons & 4) == 0:
                             request_state = TimerState.TIMER_RUN
                         elif time.monotonic() - start_time >= self.config.timing.clear_delay_s and (buttons & 0x4):
                             request_state = TimerState.TIMER_IDLE
