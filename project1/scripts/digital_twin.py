@@ -163,7 +163,7 @@ class StopWatch:
 
                 match self.state:
                     case TimerState.TIMER_IDLE:
-                        if ((self.pb_1.last_edge == EdgeType.FALLING_EDGE or self.pb_2.last_edge == EdgeType.FALLING_EDGE) and double_press == 1):
+                        if ((self.pb_1.last_edge == EdgeType.FALLING_EDGE or self.pb_2.last_edge == EdgeType.FALLING_EDGE) and double_press == 1 and self.preset_timer > 0):
                             request_state = TimerState.TIMER_RUN
                             self.elapsed_timer = self.preset_timer
                             double_press = 0
