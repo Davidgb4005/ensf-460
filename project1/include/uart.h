@@ -5,6 +5,28 @@
 #include "ring_buffer.h"
 
 
+typedef struct  
+{
+    uint16_t elapsed_seconds;
+    uint16_t preset_seconds;
+    union
+    {
+        uint16_t flags;
+        struct
+        {
+            uint16_t state_code : 3;
+            uint16_t prev_state_code : 3;
+            uint16_t pb_1 :1;
+            uint16_t pb_2 :1;
+            uint16_t pb_3 :1;
+            uint16_t led_1_state : 2;
+            uint16_t led_2_state : 2;
+            uint16_t reserved : 3;
+        }bits;
+        
+    };
+    
+}test_rig_data_s;
 typedef enum
 {
     UART_COUNT_FORMAT,
@@ -19,6 +41,7 @@ typedef enum
 
 extern const char *messages[];
 
+error_e uart_send_state(const test_rig_data_s * data);
 uint16_t uart_init(ring_buffer_s *uart_rx_buffer, ring_buffer_s *uart_tx_buffer);
 error_e uart_write_char(uint8_t data);
 error_e uart_write_string(const char *data);

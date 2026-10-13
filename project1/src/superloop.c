@@ -133,6 +133,8 @@ static uint16_t delay_elapsed(uint16_t *start_time, uint16_t requested_delay)
     return 0;
 }
 
+
+
 error_e superloop_setup(void)
 {
     if (uart_init(&rx_buffer, &tx_buffer) == 0)
@@ -178,6 +180,8 @@ error_e superloop_setup(void)
     return ERROR_NONE;
 }
 
+static test_rig_data_s test_rig_data;
+
 error_e superloop_loop(void)
 {
     uint16_t counter = 0;
@@ -188,7 +192,7 @@ error_e superloop_loop(void)
     timer_state_e prev_state = TIMER_IDLE;
 
     while (1)
-    {
+    { 
         const char *selected_message = NULL;
         uint16_t buttons = 0;
 
@@ -198,7 +202,7 @@ error_e superloop_loop(void)
         }
         buttons = read_control_register();
 
-        if (buttons != prev_buttons || state != prev_state)
+        if (buttons != prev_buttons)
         {
             start_time = timer_millis();
             counter = 0;
@@ -206,6 +210,7 @@ error_e superloop_loop(void)
 
         if (request_state != state)
         {
+            prev_state = state;
             state = request_state;
             write_state_outputs(state);
             start_time = timer_millis();
@@ -369,12 +374,23 @@ error_e superloop_loop(void)
 
         preset_value = clamp_preset_value(preset_value);
 
+        test_rig_data.preset_seconds = preset_value;
+        test_rig_data.elapsed_seconds = elapsed_value;
+        test_rig_data.bits.state_code = state;
+        test_rig_data.bits.prev_state_code = prev_state;
+        test_rig_data.bits.pb_1 = push_button[0].state_bits.pb_current_state;
+        test_rig_data.bits.pb_2 = push_button[1].state_bits.pb_current_state;
+        test_rig_data.bits.pb_3 = push_button[2].state_bits.pb_current_state;
+        test_rig_data.bits.led_1_state = led[0].mode;
+        test_rig_data.bits.led_1_state = led[1].mode;
+
+        uart_send_state(&test_rig_data);
+
         if (selected_message != NULL)
         {
             uart_send_message(selected_message, (uint16_t)(elapsed_value), (uint16_t)preset_value);
         }
 
-        prev_state = state;
         prev_buttons = buttons;
     }
 }

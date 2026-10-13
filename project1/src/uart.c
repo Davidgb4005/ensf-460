@@ -106,6 +106,43 @@ void __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 
     IFS1bits.U2RXIF = 0;
 }
+
+error_e uart_send_state(const test_rig_data_s *data)
+  {
+      uint16_t flags =
+            ((data->bits.state_code     & 0x07u) << 0)
+          | ((data->bits.prev_state_code & 0x07u) << 3)
+          | ((data->bits.pb_1            & 0x01u) << 6)
+          | ((data->bits.pb_2            & 0x01u) << 7)
+          | ((data->bits.pb_3            & 0x01u) << 8)
+          | ((data->bits.led_1_state     & 0x03u) << 9)
+          | ((data->bits.led_2_state     & 0x03u) << 11);
+
+      uint8_t payload[6] = {
+          (uint8_t)(data->elapsed_seconds),
+          (uint8_t)(data->elapsed_seconds >> 8),
+          (uint8_t)(data->preset_seconds),
+          (uint8_t)(data->preset_seconds >> 8),
+          (uint8_t)(flags),
+          (uint8_t)(flags >> 8),
+      };
+
+      uint8_t checksum = 0;
+
+      uart_write_char((char)0xAA);
+      uart_write_char((char)0x55);
+
+      for (size_t i = 0; i < sizeof(payload); i++) {
+          uart_write_char((char)payload[i]);
+          checksum = (uint8_t)(checksum + payload[i]);
+      }
+
+      uart_write_char((char)checksum);
+
+      return ERROR_NONE; // Replace with your success value
+}
+
+
 error_e uart_send_message(const char *msg, uint16_t elapsed_value,uint16_t preset_value)
 {
     static uint16_t prev_elapsed;
