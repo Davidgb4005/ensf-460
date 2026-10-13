@@ -328,9 +328,11 @@ def _addnstr(win, row: int, column: int, text: object, count: int) -> None:
         pass
 
 
-def field_line(win, row: int, label: str, value: object) -> None:
+def field_line(
+    win, row: int, label: str, value: object, *, label_width: int = 14
+) -> None:
     width = win.getmaxyx()[1]
-    _addnstr(win, row, 2, f"{label:<14}: {value}", width - 4)
+    _addnstr(win, row, 2, f"{label:<{label_width}}: {value}", width - 4)
 
 
 def title_line(win, title: str) -> None:
@@ -344,14 +346,14 @@ def draw_twin(win, title: str, data: TwinView) -> None:
     title_line(win, title)
     for row, label, value in (
         (3, "State", data.state),
-        (4, "Previous State", data.previous_state),
-        (5, "Elapsed Time", data.elapsed_time),
-        (6, "Preset Time", data.preset_time),
-        (7, "PB 1", data.pb1),
-        (8, "PB 2", data.pb2),
-        (9, "PB 3", data.pb3),
+        (4, "Previous", data.previous_state),
+        (5, "Elapsed", data.elapsed_time),
+        (6, "Preset", data.preset_time),
+        (7, "PB1", data.pb1),
+        (8, "PB2", data.pb2),
+        (9, "PB3", data.pb3),
     ):
-        field_line(win, row, label, value)
+        field_line(win, row, label, value, label_width=8)
     win.noutrefresh()
 
 
@@ -442,6 +444,11 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
         stdscr.refresh()
         return False
 
+    # Derived windows share the parent screen. Queue the cleared parent before
+    # drawing its children; refreshing the parent last can overwrite changed
+    # child contents on real ncurses implementations.
+    stdscr.noutrefresh()
+
     gap = 1
     left_width = width * 62 // 100
     right_x = left_width + gap
@@ -479,7 +486,6 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
     draw_serial(hardware_serial, "Hardware UART Output", data.hardware_uart)
     draw_status(status, data.status)
 
-    stdscr.noutrefresh()
     curses.doupdate()
     return True
 

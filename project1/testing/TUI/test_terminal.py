@@ -14,12 +14,14 @@ class FakeClock:
 
 
 class FakeWindow:
-    def __init__(self, height, width, keys=None):
+    def __init__(self, height, width, keys=None, refresh_trace=None, name="root"):
         self.height = height
         self.width = width
         self.keys = list(keys or [])
         self.children = []
         self.text = []
+        self.refresh_trace = refresh_trace if refresh_trace is not None else []
+        self.name = name
         self.timeout_ms = None
         self.keypad_enabled = False
         self.refreshed = False
@@ -40,10 +42,15 @@ class FakeWindow:
         self.refreshed = True
 
     def noutrefresh(self):
-        pass
+        self.refresh_trace.append(self.name)
 
     def derwin(self, height, width, row, column):
-        child = FakeWindow(height, width)
+        child = FakeWindow(
+            height,
+            width,
+            refresh_trace=self.refresh_trace,
+            name=f"child-{len(self.children)}",
+        )
         child.origin = (row, column)
         self.children.append(child)
         return child
@@ -265,6 +272,8 @@ class RenderingTests(unittest.TestCase):
             terminal.MIN_WIDTH,
         )
         self.assertEqual(status.height, terminal.TOP_PANEL_HEIGHT)
+        self.assertEqual(screen.refresh_trace[0], "root")
+        self.assertNotIn("root", screen.refresh_trace[1:])
         status_text = " ".join(text for _, _, text in status.text)
         self.assertIn("^R Restart", status_text)
         self.assertIn("^N Next", status_text)
@@ -289,6 +298,32 @@ class RenderingTests(unittest.TestCase):
         gpio_text = " ".join(text for _, _, text in screen.children[3].text)
         self.assertIn("PB1 GPIO4: HIGH (PRESSED)", gpio_text)
         self.assertIn("PB2 GPIO17: LOW (RELEASED)", gpio_text)
+
+    def test_consecutive_frames_redraw_changed_twin_values(self):
+        screen = FakeWindow(terminal.MIN_HEIGHT, terminal.MIN_WIDTH)
+        changed = terminal.DashboardData(
+            digital=terminal.TwinData(
+                state="RUN", elapsed_seconds=9, preset_seconds=12, pb1="ON"
+            ),
+            hardware=terminal.TwinData(
+                state="PAUSE", elapsed_seconds=8, preset_seconds=12, pb3="ON"
+            ),
+        )
+        model = terminal.DashboardModel(FakeClock())
+
+        with patch.object(terminal.curses, "doupdate"):
+            terminal.draw_dashboard(screen, model.update(make_frame()),)
+            terminal.draw_dashboard(screen, model.update(make_frame(changed)),)
+
+        second_frame = screen.children[-7:]
+        digital_text = " ".join(text for _, _, text in second_frame[0].text)
+        hardware_text = " ".join(text for _, _, text in second_frame[2].text)
+        self.assertIn("State   : RUN", digital_text)
+        self.assertIn("Elapsed : 00:00:09", digital_text)
+        self.assertIn("Preset  : 00:00:12", digital_text)
+        self.assertIn("PB1     : ON", digital_text)
+        self.assertIn("State   : PAUSE", hardware_text)
+        self.assertIn("PB3     : ON", hardware_text)
 
     def test_small_terminal_shows_warning_without_building_windows(self):
         screen = FakeWindow(10, 40)
