@@ -3,7 +3,7 @@ use std::error::Error;
 use std::thread;
 use std::time::Duration;
 
-const PB1_SAMPLE_PIN: u8 = 18;
+const PB1_SAMPLE_PIN: u8 = 22;
 const PB2_SAMPLE_PIN: u8 = 23;
 const PB3_SAMPLE_PIN: u8 = 24;
 const LED1_SAMPLE_PIN: u8 = 25;

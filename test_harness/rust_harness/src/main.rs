@@ -9,12 +9,12 @@ use crate::TimerStates::RunToPause;
 
 const LED_1: u8 = 25;
 const LED_2: u8 = 26;
-const PUSHBUTTON_1_INPUT: u8 = 18;
-const PUSHBUTTON_2_INPUT: u8 = 23;
-const PUSHBUTTON_3_INPUT: u8 = 24;
+const PUSHBUTTON_1_INPUT: u8 = 22;
+const PUSHBUTTON_2_INPUT: u8 = 27;
+const PUSHBUTTON_3_INPUT: u8 = 22;
 const PUSHBUTTON_1_OUTPUT: u8 = 4;
-const PUSHBUTTON_2_OUTPUT: u8 = 17;
-const PUSHBUTTON_3_OUTPUT: u8 = 27;
+const PUSHBUTTON_2_OUTPUT: u8 = 23;
+const PUSHBUTTON_3_OUTPUT: u8 = 24;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
 const COUNT_DELAY_MS: u32 = 1000;
