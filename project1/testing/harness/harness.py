@@ -36,6 +36,9 @@ from .models import (
 )
 
 
+MAX_EVENTS_PER_SERVICE = 64
+
+
 class _Control(Enum):
     COMPLETE = auto()
     RESTART = auto()
@@ -320,7 +323,11 @@ class TestHarness:
         tui_error = getattr(self.tui, "error", None)
         if tui_error is not None:
             self._background_error = f"TUI failed: {tui_error}"
-        while True:
+        # UART can arrive continuously. Draining until the queue is empty can
+        # starve snapshot publication, command handling, and test deadlines if
+        # the producer is faster than the logger. Process a bounded batch and
+        # continue with the rest of the harness cycle.
+        for _ in range(MAX_EVENTS_PER_SERVICE):
             try:
                 event = self._events.get_nowait()
             except Empty:
@@ -508,6 +515,10 @@ class TestHarness:
         self._publish_dashboard()
 
     def _stop_components(self) -> None:
+        # Ask curses to leave raw mode first so an interrupted run restores the
+        # user's terminal while the hardware resources are being released.
+        if self.tui is not None:
+            self.tui.stop()
         for twin in (self.digital_twin, self.hardware_twin):
             try:
                 twin.stop()
@@ -519,5 +530,4 @@ class TestHarness:
             except Exception:
                 pass
         if self.tui is not None:
-            self.tui.stop()
-            self.tui.join()
+            self.tui.join(timeout=2.0)

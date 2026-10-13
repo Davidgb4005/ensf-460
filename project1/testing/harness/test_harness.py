@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import unittest
 
 from testing.TUI.terminal import TuiCommand, TuiSharedState
-from testing.harness.harness import TestHarness
+from testing.harness.harness import MAX_EVENTS_PER_SERVICE, TestHarness
 from testing.harness.models import (
     ButtonInputs,
     FieldChange,
@@ -313,6 +313,32 @@ class TestHarnessTests(unittest.TestCase):
         self.assertEqual(active.gpio_drive.pb1_pin, 4)
         self.assertEqual(active.gpio_drive.pb2_pin, 17)
         self.assertEqual(active.gpio_drive.pb3_pin, 27)
+
+    def test_continuous_uart_backlog_cannot_starve_dashboard_service(self):
+        tui_state = ReactiveTuiState()
+        harness, digital, hardware = self.make_harness(
+            (test_case(),), tui_state=tui_state
+        )
+        harness._latest[TwinSource.DIGITAL] = digital.snapshot()
+        harness._latest[TwinSource.HARDWARE] = hardware.snapshot()
+        for sequence in range(MAX_EVENTS_PER_SERVICE + 10):
+            harness._events.put(
+                TwinEvent(
+                    source=TwinSource.HARDWARE,
+                    kind=TwinEventKind.UART_MESSAGE,
+                    timestamp_ns=sequence,
+                    sequence=sequence,
+                    snapshot=hardware.snapshot(),
+                    uart_message=f"frame {sequence}",
+                )
+            )
+
+        harness._service()
+
+        self.assertIsNotNone(tui_state.last_dashboard)
+        frame = tui_state.read_frame()
+        self.assertEqual(len(frame.hardware_uart), MAX_EVENTS_PER_SERVICE)
+        self.assertFalse(harness._events.empty())
 
     def test_power_profiler_failure_stops_suite_as_infrastructure_error(self):
         power = FakePowerProfiler(fail_stop=True)
