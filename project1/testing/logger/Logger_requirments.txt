@@ -1,0 +1,19 @@
+The Logger will get all needed output paths from a top-level config file.
+
+The logger owns three output files:
+- a pure digital-twin UART log
+- a pure hardware-twin UART log
+- a full-state event log
+
+Each full-state event record contains a logger timestamp, the action that
+caused the record (for example a state change or UART message), the complete
+state of both twins, and the UART message when one exists.
+
+UART events are written both to the appropriate pure UART file and to the
+full-state event log. State-change events are written to the full-state event
+log only.
+
+The logger and TUI are independent consumers. The logger must not forward UART
+messages to the TUI. The twin/controller sends events directly to either or
+both components, allowing the TUI to run without the logger and the logger to
+run without the TUI.

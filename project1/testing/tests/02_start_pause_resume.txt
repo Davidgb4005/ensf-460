@@ -1,0 +1,20 @@
+name Start pause and resume
+
+allow state 500ms
+allow previous_state 500ms
+allow elapsed 1200ms
+allow pb1 250ms
+allow pb2 250ms
+allow pb3 250ms
+allow led1_state 500ms
+allow led1_output 1200ms
+
+# Add enough time to pause before the countdown reaches zero.
+hold pb1 800ms
+wait 400ms
+hold pb1+pb2 200ms
+wait 500ms
+hold pb3 200ms
+wait 500ms
+hold pb3 200ms
+wait 500ms

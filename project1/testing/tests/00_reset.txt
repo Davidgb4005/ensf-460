@@ -1,0 +1,16 @@
+name Reset to defaults
+
+# This is the same reset sequence used by the TUI Restart command.
+allow state 500ms
+allow previous_state 500ms
+allow pb1 250ms
+allow pb2 250ms
+allow pb3 250ms
+allow led1_state 500ms
+allow led1_output 500ms
+allow led2_state 500ms
+allow led2_output 500ms
+
+hold pb3 4s
+hold pb1+pb2 4s
+wait 500ms
