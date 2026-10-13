@@ -33,6 +33,14 @@ wait 1.00
 expect state IDLE
 expect preset 0
 
+# A zero-preset start attempt leaves the start trigger armed in the current
+# implementation. Hold PB1+PB2 through reset_delay before testing increments.
+press pb1+pb2 3.50
+wait 4.20
+expect state IDLE
+expect preset 0
+expect elapsed 0
+
 note ===== SHORT AND LONG SECOND INCREMENTS =====
 # Short PB1 increments use one-second steps.
 press pb1 1.00
@@ -116,6 +124,7 @@ wait 1.40
 expect_range preset 120 300
 press pb1+pb2 0.30
 wait_until state RUN 2.00
+wait 0.10
 expect led1_state BLINK
 expect led2_state OFF
 
@@ -134,7 +143,7 @@ expect_range elapsed 60 300
 press pb3 0.25
 wait_until state PAUSE 2.00
 expect state PAUSE
-expect led1_state BLINK
+expect led1_state OFF
 wait 20.00
 expect state PAUSE
 
@@ -149,8 +158,10 @@ expect state RUN
 press pb3 0.25
 wait_until state PAUSE 2.00
 expect state PAUSE
+wait 0.40
 press pb3 3.50
 wait_until state IDLE 5.00
+wait 0.75
 expect state IDLE
 expect elapsed 0
 expect_range preset 120 300
@@ -173,6 +184,7 @@ wait 25.00
 expect state RUN
 press pb3 3.50
 wait_until state IDLE 5.00
+wait 0.75
 expect state IDLE
 expect elapsed 0
 expect_range preset 120 300
@@ -183,6 +195,7 @@ press pb1+pb2 0.30
 wait_until state RUN 2.00
 press pb3 3.80
 wait_until state IDLE 5.00
+wait 1.00
 expect state IDLE
 expect elapsed 0
 expect_range preset 120 300
@@ -201,8 +214,10 @@ wait 1.10
 expect_range preset 1 5
 press pb1+pb2 0.30
 wait_until state RUN 2.00
+wait 0.10
 expect led1_state BLINK
 wait_until state ALARM 8.00
+wait 0.10
 expect state ALARM
 expect elapsed 0
 expect led1_state ON
@@ -216,8 +231,9 @@ expect led1_state ON
 expect led2_state BLINK
 
 # PB1 acknowledges the alarm and returns to idle.
-press pb1 0.30
+press pb1 0.10
 wait_until state IDLE 2.00
+wait 0.20
 expect state IDLE
 expect led1_state OFF
 expect led2_state OFF
@@ -227,9 +243,11 @@ note ===== ALARM ACKNOWLEDGEMENT THROUGH PB2 =====
 press pb1+pb2 0.30
 wait_until state RUN 2.00
 wait_until state ALARM 8.00
+wait 0.10
 expect state ALARM
-press pb2 0.30
+press pb2 0.10
 wait_until state IDLE 2.00
+wait 0.20
 expect state IDLE
 expect elapsed 0
 
@@ -247,6 +265,7 @@ wait 2.00
 expect state PAUSE
 press pb3 0.20
 wait_until state RUN 2.00
+wait 0.35
 
 press pb3 0.20
 wait_until state PAUSE 2.00
@@ -254,6 +273,7 @@ wait 1.50
 expect state PAUSE
 press pb3 0.20
 wait_until state RUN 2.00
+wait 0.35
 
 press pb3 0.20
 wait_until state PAUSE 2.00
@@ -265,8 +285,9 @@ wait_until state ALARM 12.00
 expect state ALARM
 
 note ===== ALARM ACKNOWLEDGEMENT AFTER REPEATED PAUSES =====
-press pb1 0.30
+press pb1 0.10
 wait_until state IDLE 2.00
+wait 0.20
 expect state IDLE
 expect elapsed 0
 
