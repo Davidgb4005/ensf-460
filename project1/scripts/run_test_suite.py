@@ -44,6 +44,8 @@ def _new_config(args):
         config.power.output_dir = args.power_dir
     if args.power_mode is not None:
         config.power.mode = args.power_mode
+    if args.power_control_dut:
+        config.power.enable_dut_power = True
     return config
 
 
@@ -86,6 +88,11 @@ def main():
         "--power-mode",
         choices=("source", "ampere"),
         help="PPK2 mode. Defaults to CONFIG.power.mode.",
+    )
+    parser.add_argument(
+        "--power-control-dut",
+        action="store_true",
+        help="Let the PPK2 turn DUT power on during capture and off afterward.",
     )
     args = parser.parse_args()
 

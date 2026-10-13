@@ -38,6 +38,9 @@ harness supports the same profiler flags:
 python3 scripts/testing_suite.py --power-profile --power-port /dev/ttyACM0 scripts/test_suites/large_power/02_short_interval_alarm.txt
 ```
 
+By default, the profiler does not toggle PPK2 DUT power. If the PPK2 should
+power the board during a capture, add `--power-control-dut`.
+
 Command files support:
 
 - `press <pb1|pb2|pb3|pb1+pb2> <seconds>`

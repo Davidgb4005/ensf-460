@@ -19,6 +19,8 @@ class TestStatus:
     status: str = "MANUAL"
     command_file: str | None = None
     power_file: str | None = None
+    mode: str | None = None
+    drive_pushbuttons: bool = False
     error: str | None = None
 
 
@@ -82,6 +84,11 @@ def build_runtime_config():
         choices=("source", "ampere"),
         help="PPK2 mode. Defaults to CONFIG.power.mode.",
     )
+    parser.add_argument(
+        "--power-control-dut",
+        action="store_true",
+        help="Let the PPK2 turn DUT power on during capture and off afterward.",
+    )
     args = parser.parse_args()
 
     config = copy.deepcopy(CONFIG)
@@ -96,6 +103,8 @@ def build_runtime_config():
         config.power.output_dir = args.power_dir
     if args.power_mode is not None:
         config.power.mode = args.power_mode
+    if args.power_control_dut:
+        config.power.enable_dut_power = True
     return config
 
 
@@ -112,6 +121,8 @@ def main():
     test_status = TestStatus(
         status="PENDING" if config.mode == TestMode.AUTOMATED else "MANUAL",
         command_file=config.command_file if config.mode == TestMode.AUTOMATED else None,
+        mode=config.mode.name,
+        drive_pushbuttons=(config.mode == TestMode.AUTOMATED),
     )
 
     digital_twin.main()

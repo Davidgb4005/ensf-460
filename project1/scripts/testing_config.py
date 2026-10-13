@@ -82,7 +82,7 @@ class PowerProfilerConfig:
     output_dir: str = str(Path(__file__).with_name("power_logs"))
     mode: str = "source"
     source_voltage_mv: int = 3300
-    enable_dut_power: bool = True
+    enable_dut_power: bool = False
     sample_rate_hz: int = 100000
     poll_interval_s: float = 0.010
 

@@ -77,8 +77,14 @@ class Tui:
         status = getattr(test_status, "status", None)
         command_file = getattr(test_status, "command_file", None)
         power_file = getattr(test_status, "power_file", None)
+        mode = getattr(test_status, "mode", None)
+        drive_pushbuttons = getattr(test_status, "drive_pushbuttons", None)
         error = getattr(test_status, "error", None)
         lines = [f"Test: {status}"]
+        if mode:
+            lines.append(f"Mode: {mode}")
+        if drive_pushbuttons is not None:
+            lines.append(f"PB drive: {'ON' if drive_pushbuttons else 'OFF'}")
         if command_file:
             lines.append(f"File: {command_file}")
         if power_file:
