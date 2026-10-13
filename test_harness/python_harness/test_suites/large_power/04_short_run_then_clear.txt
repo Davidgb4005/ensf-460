@@ -1,0 +1,9 @@
+# Power profile: start, pause quickly, hold PB3 to clear.
+press pb1 1.00
+wait 1.30
+press pb1+pb2 0.20
+wait_until state RUN 2.00
+wait 1.00
+press pb3 3.35
+wait_until state IDLE 5.00
+

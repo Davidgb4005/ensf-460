@@ -1,0 +1,74 @@
+# Multi-iteration functional workout:
+# set time, start, pause, clear, reset, set/decrement/set, start/alarm,
+# start/pause/unpause/alarm, increment/alarm.
+
+# Set a short time, start, pause, and clear from pause.
+press pb1 0.95
+wait 1.30
+expect_range preset 4 6
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+wait 0.60
+press pb3 3.35
+wait_until state IDLE 5.00
+expect elapsed 0
+expect_range preset 4 6
+
+# Reset/clear the preset with a long PB1+PB2 hold.
+press pb1+pb2 4.00
+wait 4.80
+expect state IDLE
+expect preset 0
+expect elapsed 0
+
+# Set minutes, decrement minutes, then set seconds again.
+press pb2 0.35
+wait 0.70
+expect_range preset 60 180
+press pb2+pb3 0.35
+wait 0.70
+expect_range preset 0 120
+press pb1 0.55
+wait 0.90
+expect_range preset 1 125
+
+# Reset again so the alarm sections use short, bounded intervals.
+press pb1+pb2 4.00
+wait 4.80
+expect preset 0
+
+# Set a short time, start, let alarm happen, acknowledge.
+press pb1 0.45
+wait 0.80
+expect_range preset 1 3
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+wait_until state ALARM 6.00
+press pb1 0.20
+wait_until state IDLE 1.50
+expect elapsed 0
+
+# Start again from the same preset, pause, unpause, then alarm.
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+press pb3 0.20
+wait_until state PAUSE 1.50
+wait 0.70
+expect state PAUSE
+press pb3 0.20
+wait_until state RUN 1.50
+wait_until state ALARM 7.00
+press pb2 0.20
+wait_until state IDLE 1.50
+
+# Increment the preset, start, alarm again, acknowledge.
+press pb1 0.35
+wait 0.70
+expect_range preset 2 6
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+wait_until state ALARM 9.00
+press pb1 0.20
+wait_until state IDLE 1.50
+expect elapsed 0
+

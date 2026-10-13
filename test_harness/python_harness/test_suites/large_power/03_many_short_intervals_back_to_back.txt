@@ -1,0 +1,16 @@
+# Power profile: repeated short run/alarm/ack cycles.
+press pb1 0.35
+wait 0.70
+press pb1+pb2 0.20
+wait_until state ALARM 8.00
+press pb1 0.20
+wait_until state IDLE 2.00
+press pb1+pb2 0.20
+wait_until state ALARM 8.00
+press pb2 0.20
+wait_until state IDLE 2.00
+press pb1+pb2 0.20
+wait_until state ALARM 8.00
+press pb1 0.20
+wait_until state IDLE 2.00
+

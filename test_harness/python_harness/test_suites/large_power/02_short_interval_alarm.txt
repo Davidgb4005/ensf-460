@@ -1,0 +1,10 @@
+# Power profile: short interval from run into alarm, then acknowledge.
+press pb1 0.35
+wait 0.70
+press pb1+pb2 0.20
+wait_until state RUN 2.00
+wait_until state ALARM 8.00
+wait 5.00
+press pb1 0.20
+wait_until state IDLE 2.00
+

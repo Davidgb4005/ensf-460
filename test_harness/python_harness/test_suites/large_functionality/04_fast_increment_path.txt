@@ -1,0 +1,9 @@
+# Hold PB1 long enough to cross fast_increment_count and use long second steps.
+press pb1 4.70
+wait 5.40
+expect state IDLE
+expect_range preset 25 80
+press pb1+pb3 1.10
+wait 1.80
+expect state IDLE
+expect_range preset 15 80

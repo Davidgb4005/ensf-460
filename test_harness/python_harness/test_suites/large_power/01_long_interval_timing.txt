@@ -1,0 +1,12 @@
+# Power profile: build roughly two minutes, run, then pause before completion.
+press pb2 0.55
+wait 1.00
+press pb2 0.55
+wait 1.00
+press pb1+pb2 0.20
+wait_until state RUN 2.00
+wait 30.00
+press pb3 0.20
+wait_until state PAUSE 2.00
+wait 10.00
+
