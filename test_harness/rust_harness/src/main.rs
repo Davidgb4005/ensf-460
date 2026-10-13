@@ -185,7 +185,7 @@ fn decode_packet(packet: &[u8; 9]) -> Option<TwinState> {
 #[derive(Parser, Debug)]
 #[command(version, about = "UART serial reader")]
 struct Args {
-    #[arg(short = 'D', long, default_value = "/dev/ttyUSB0")]
+    #[arg(short = 'D', long, default_value = "/dev/ttyAMA0")]
     port: String,
 
     #[arg(short = 'b', long, default_value_t = 9600)]
