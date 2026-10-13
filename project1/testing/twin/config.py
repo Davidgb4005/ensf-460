@@ -62,6 +62,9 @@ class GpioConfig:
     pb1_drive_pin: int = 4
     pb2_drive_pin: int = 17
     pb3_drive_pin: int = 27
+    pb1_sample_pin = 18
+    pb2_sample_pin 23 
+    pb_3sameplin 24
     led1_sample_pin: int = 25
     led2_sample_pin: int = 26
     active_high: bool = True
