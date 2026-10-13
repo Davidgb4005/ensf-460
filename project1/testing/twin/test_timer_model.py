@@ -14,6 +14,8 @@ class TimerModelTests(unittest.TestCase):
         self.assertEqual(model.elapsed_timer, 0)
         self.assertEqual(model.pb_1.state, GpioState.OFF)
         self.assertEqual(model.led_1.state, GpioState.OFF)
+        self.assertEqual(DEFAULT_CONFIG.uart.port, "/dev/serial0")
+        self.assertEqual(DEFAULT_CONFIG.uart.baud_rate, 9600)
 
     def test_uart_codes_match_model_enums(self):
         for state in TimerState:

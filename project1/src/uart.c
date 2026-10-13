@@ -5,7 +5,7 @@
 #include "stdio.h"
 
 #define FCY         4000000UL
-#define BAUD_RATE   57600UL
+#define BAUD_RATE   9600UL
 #define ECHO_ENABLE 1
 
 ring_buffer_s *rx_buffer;

@@ -43,14 +43,20 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--uart-port",
-        default="/dev/ttyUSB0",
-        help="Hardware status UART port (default: /dev/ttyUSB0)",
+        default=DEFAULT_CONFIG.uart.port,
+        help=(
+            "Pi GPIO hardware UART device "
+            f"(default: {DEFAULT_CONFIG.uart.port})"
+        ),
     )
     parser.add_argument(
         "--baud-rate",
         type=int,
-        default=115200,
-        help="Hardware UART baud rate (default: 115200)",
+        default=DEFAULT_CONFIG.uart.baud_rate,
+        help=(
+            "Hardware UART baud rate "
+            f"(default: {DEFAULT_CONFIG.uart.baud_rate})"
+        ),
     )
     parser.add_argument(
         "--gpio-chip",

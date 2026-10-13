@@ -22,8 +22,8 @@ from .protocol import FrameDecoder, StatusFrame, format_frame
 
 @dataclass(frozen=True)
 class HardwareTwinConfig:
-    uart_port: str
-    baud_rate: int = 9600 
+    uart_port: str = "/dev/serial0"
+    baud_rate: int = 9600
     gpio_chip: int = 0
     pb1_drive_pin: int = 4
     pb2_drive_pin: int = 17

@@ -35,7 +35,7 @@ shared.publish(
             hardware_uart_path="logs/hardware-uart.log",
             digital_uart_path="logs/digital-uart.log",
             power_profiler_status="CONNECTED",
-            hardware_uart_port="/dev/ttyUSB0",
+            hardware_uart_port="/dev/serial0",
         ),
     )
 )

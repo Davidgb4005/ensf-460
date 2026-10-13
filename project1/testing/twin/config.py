@@ -61,10 +61,18 @@ class GpioConfig:
 
 
 @dataclass(frozen=True)
+class UartConfig:
+    # /dev/serial0 follows whichever hardware UART is routed to GPIO14/15.
+    port: str = "/dev/serial0"
+    baud_rate: int = 9600
+
+
+@dataclass(frozen=True)
 class TwinConfig:
     timing: TimingConfig = field(default_factory=TimingConfig)
     preset: PresetConfig = field(default_factory=PresetConfig)
     gpio: GpioConfig = field(default_factory=GpioConfig)
+    uart: UartConfig = field(default_factory=UartConfig)
 
 
 DEFAULT_CONFIG = TwinConfig()

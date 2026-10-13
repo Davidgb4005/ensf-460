@@ -35,7 +35,8 @@ bit GPIO inputs. It:
 ```python
 hardware_twin = HardwareTwin(
     HardwareTwinConfig(
-        uart_port="/dev/ttyUSB0",
+        uart_port="/dev/serial0",
+        baud_rate=9600,
         gpio_chip=0,
         pb1_drive_pin=4,
         pb2_drive_pin=17,
@@ -45,6 +46,10 @@ hardware_twin = HardwareTwin(
     )
 )
 ```
+
+`/dev/serial0` is the Raspberry Pi hardware-UART alias for GPIO14/GPIO15. The
+UART pins are configured by Linux and are intentionally not claimed through
+`lgpio`; `lgpio` is used only for the button-drive and LED-sample lines.
 
 ## UART frame
 

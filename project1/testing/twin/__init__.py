@@ -9,6 +9,7 @@ from .config import (
     TimerState,
     TimingConfig,
     TwinConfig,
+    UartConfig,
 )
 from .digital_twin import DigitalTwin
 from .hardware_twin import HardwareTwin, HardwareTwinConfig
@@ -41,6 +42,7 @@ __all__ = (
     "TimerState",
     "TimingConfig",
     "TwinConfig",
+    "UartConfig",
     "build_digital_model",
     "decode_frame",
     "encode_frame",
