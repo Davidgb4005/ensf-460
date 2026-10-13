@@ -7,11 +7,10 @@ from enum import Enum
 
 
 class TimerState(Enum):
-    TIMER_NO_STATE_SELECTED = 0
-    TIMER_IDLE = 1
-    TIMER_RUN = 2
-    TIMER_PAUSE = 3
-    TIMER_ALARM = 4
+    TIMER_IDLE = 0
+    TIMER_RUN = 1
+    TIMER_PAUSE = 2
+    TIMER_ALARM = 3
 
 
 class GpioState(Enum):
@@ -62,8 +61,8 @@ class GpioConfig:
 
 @dataclass(frozen=True)
 class UartConfig:
-    # /dev/serial0 follows whichever hardware UART is routed to GPIO14/15.
-    port: str = "/dev/serial0"
+    # None lets the runner select /dev/serial0 or the Pi 5 GPIO-header UART.
+    port: str | None = None
     baud_rate: int = 9600
 
 

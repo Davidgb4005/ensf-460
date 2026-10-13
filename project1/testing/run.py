@@ -46,7 +46,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
         default=DEFAULT_CONFIG.uart.port,
         help=(
             "Pi GPIO hardware UART device "
-            f"(default: {DEFAULT_CONFIG.uart.port})"
+            "(default: auto-detect /dev/serial0 or /dev/ttyAMA0)"
         ),
     )
     parser.add_argument(
@@ -103,7 +103,8 @@ def build_argument_parser() -> argparse.ArgumentParser:
 
 
 def run(args: argparse.Namespace) -> int:
-    harness_config = HarnessConfig(hardware_uart_port=args.uart_port)
+    uart_port = resolve_uart_port(args.uart_port)
+    harness_config = HarnessConfig(hardware_uart_port=uart_port)
     test_paths = args.tests or [DEFAULT_TESTS]
     suite = load_suite(
         test_paths,
@@ -142,7 +143,7 @@ def run(args: argparse.Namespace) -> int:
     )
     hardware_twin = HardwareTwin(
         HardwareTwinConfig(
-            uart_port=args.uart_port,
+            uart_port=uart_port,
             baud_rate=args.baud_rate,
             gpio_chip=gpio_chip,
             pb1_drive_pin=gpio.pb1_drive_pin,
@@ -169,6 +170,23 @@ def run(args: argparse.Namespace) -> int:
     has_output_files = logger is not None or power_profiler is not None
     _print_result(result, session_directory if has_output_files else None)
     return 0 if result.status is TestStatus.PASSED else 1
+
+
+def resolve_uart_port(
+    requested: str | None,
+    *,
+    candidates: tuple[Path, ...] = (Path("/dev/serial0"), Path("/dev/ttyAMA0")),
+) -> str:
+    """Resolve the GPIO-header UART while allowing an explicit override."""
+    if requested:
+        return requested
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    raise RuntimeError(
+        "Pi GPIO UART is not available; enable UART0 and reboot, or pass "
+        "--uart-port explicitly"
+    )
 
 
 def _session_directory(parent: Path) -> Path:

@@ -35,7 +35,7 @@ bit GPIO inputs. It:
 ```python
 hardware_twin = HardwareTwin(
     HardwareTwinConfig(
-        uart_port="/dev/serial0",
+        uart_port="/dev/ttyAMA0",  # Pi 5 GPIO14/GPIO15 on Ubuntu
         baud_rate=9600,
         gpio_chip=0,
         pb1_drive_pin=4,
@@ -47,9 +47,11 @@ hardware_twin = HardwareTwin(
 )
 ```
 
-`/dev/serial0` is the Raspberry Pi hardware-UART alias for GPIO14/GPIO15. The
-UART pins are configured by Linux and are intentionally not claimed through
-`lgpio`; `lgpio` is used only for the button-drive and LED-sample lines.
+The runner prefers the `/dev/serial0` Raspberry Pi hardware-UART alias and
+falls back to `/dev/ttyAMA0` for Pi 5 Ubuntu systems where the alias is absent.
+`/dev/ttyAMA10` is the Pi 5 debug-header UART, not GPIO14/GPIO15. The UART pins
+are configured by Linux and are intentionally not claimed through `lgpio`;
+`lgpio` is used only for the button-drive and LED-sample lines.
 
 ## UART frame
 
@@ -74,9 +76,9 @@ Packed flags:
 | 11–12 | LED2 logical state |
 | 13–15 | Reserved; transmit as zero |
 
-Timer codes preserve the current model enum: `0=NO_STATE_SELECTED`, `1=IDLE`,
-`2=RUN`, `3=PAUSE`, and `4=ALARM`. LED codes also preserve the current model:
-`1=ON`, `2=OFF`, and `3=BLINK`; zero is treated as `INVALID`.
+Timer codes match the firmware enum: `0=IDLE`, `1=RUN`, `2=PAUSE`, and
+`3=ALARM`. LED codes preserve the current model: `1=ON`, `2=OFF`, and
+`3=BLINK`; zero is treated as `INVALID`.
 
 The decoder accepts partial UART reads, finds the marker after unrelated bytes,
 rejects bad checksums, and resumes searching for the next valid frame.

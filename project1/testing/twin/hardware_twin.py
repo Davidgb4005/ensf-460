@@ -70,8 +70,8 @@ class HardwareTwin:
         self._sequence = 0
         self._snapshot = TwinSnapshot(
             captured_at_ns=self._clock_ns(),
-            state="NO_STATE_SELECTED",
-            previous_state="NO_STATE_SELECTED",
+            state="UNINITIALIZED",
+            previous_state="UNINITIALIZED",
             elapsed_seconds=0,
             preset_seconds=0,
             pb1=False,

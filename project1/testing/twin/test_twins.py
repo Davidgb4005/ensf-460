@@ -212,8 +212,8 @@ class HardwareTwinTests(unittest.TestCase):
                 StatusFrame(
                     elapsed_seconds=58,
                     preset_seconds=60,
-                    state_code=2,
-                    previous_state_code=1,
+                    state_code=1,
+                    previous_state_code=0,
                     pb1=True,
                     pb2=False,
                     pb3=True,

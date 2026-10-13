@@ -374,6 +374,9 @@ error_e superloop_loop(void)
 
         preset_value = clamp_preset_value(preset_value);
 
+        static uint16_t send_delay = 0;
+        if (timer_millis() - send_delay > 100){
+        send_delay = timer_millis();
         test_rig_data.preset_seconds = preset_value;
         test_rig_data.elapsed_seconds = elapsed_value;
         test_rig_data.bits.state_code = state;
@@ -383,9 +386,8 @@ error_e superloop_loop(void)
         test_rig_data.bits.pb_3 = push_button[2].state_bits.pb_current_state;
         test_rig_data.bits.led_1_state = led[0].mode;
         test_rig_data.bits.led_1_state = led[1].mode;
-
         uart_send_state(&test_rig_data);
-
+        }
         if (selected_message != NULL)
         {
             uart_send_message(selected_message, (uint16_t)(elapsed_value), (uint16_t)preset_value);

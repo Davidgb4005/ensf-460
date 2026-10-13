@@ -14,8 +14,8 @@ def sample_frame(**overrides):
     values = {
         "elapsed_seconds": 58,
         "preset_seconds": 60,
-        "state_code": 2,
-        "previous_state_code": 1,
+        "state_code": 1,
+        "previous_state_code": 0,
         "pb1": True,
         "pb2": False,
         "pb3": True,
@@ -42,6 +42,14 @@ class ProtocolTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "checksum"):
             decode_frame(bytes(encoded))
+
+    def test_decodes_firmware_example(self):
+        frame = decode_frame(bytes((170, 85, 0, 0, 4, 0, 11, 0, 15)))
+
+        self.assertEqual(frame.elapsed_seconds, 0)
+        self.assertEqual(frame.preset_seconds, 4)
+        self.assertEqual(frame.state, "ALARM")
+        self.assertEqual(frame.previous_state, "RUN")
 
     def test_stream_decoder_handles_partial_and_multiple_frames(self):
         first = encode_frame(sample_frame(elapsed_seconds=1))

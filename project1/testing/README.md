@@ -27,9 +27,11 @@ the digital UART log, hardware UART log, and full state-event CSV. Add
 
 ## Raspberry Pi GPIO UART
 
-The hardware twin uses `/dev/serial0` at 9600 baud by default. This is the
-kernel hardware-UART alias for the UART routed to the Pi header; the harness
-does not bit-bang or claim GPIO14/GPIO15 through `lgpio`.
+The runner first looks for `/dev/serial0`, then falls back to `/dev/ttyAMA0`,
+at 9600 baud. `/dev/serial0` is the normal kernel alias. On Raspberry Pi 5
+running Ubuntu, that alias may be absent while `/dev/ttyAMA0` provides UART0 on
+GPIO14/GPIO15. `/dev/ttyAMA10` is the separate Pi 5 debug-header UART. The
+harness does not bit-bang or claim GPIO14/GPIO15 through `lgpio`.
 
 Wire the target's TX to the Pi's RXD pin (GPIO15, physical pin 10) and connect
 the grounds. If two-way communication is later required, connect the target's
@@ -41,10 +43,10 @@ Serial Port**: disable the login shell and enable the serial hardware. Reboot
 after changing it. The user running the test also needs access to
 `/dev/serial0`, normally through the `dialout` group.
 
-Confirm the alias before running:
+Confirm the available devices before running:
 
 ```bash
-ls -l /dev/serial0
+ls -l /dev/serial0 /dev/ttyAMA0 /dev/ttyAMA10
 ```
 
 Use `--uart-port` or `--baud-rate` only when the firmware is configured

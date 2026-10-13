@@ -13,11 +13,10 @@ _PAYLOAD = struct.Struct("<HHH")
 
 
 TIMER_STATES = {
-    0: "NO_STATE_SELECTED",
-    1: "IDLE",
-    2: "RUN",
-    3: "PAUSE",
-    4: "ALARM",
+    0: "IDLE",
+    1: "RUN",
+    2: "PAUSE",
+    3: "ALARM",
 }
 
 LED_STATES = {
