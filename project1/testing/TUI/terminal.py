@@ -20,6 +20,7 @@ from typing import Callable
 MIN_WIDTH = 100
 MIN_HEIGHT = 30
 REFRESH_INTERVAL_MS = 50
+REFRESH_INTERVAL_SECONDS = REFRESH_INTERVAL_MS / 1000
 DIFFERENCE_WIDTH = 12
 TOP_PANEL_HEIGHT = 15
 GPIO_PANEL_HEIGHT = 4
@@ -559,7 +560,7 @@ class TerminalTUI:
             except curses.error:
                 pass
             stdscr.keypad(True)
-            stdscr.timeout(REFRESH_INTERVAL_MS)
+            stdscr.nodelay(True)
 
             while not self._stop_event.is_set():
                 height, width = stdscr.getmaxyx()
@@ -582,6 +583,7 @@ class TerminalTUI:
                 elif key == 17:  # Ctrl+Q
                     self._shared_state.command_queue.put(TuiCommand.QUIT)
                     self._stop_event.set()
+                self._stop_event.wait(REFRESH_INTERVAL_SECONDS)
         finally:
             if raw_mode:
                 curses.noraw()

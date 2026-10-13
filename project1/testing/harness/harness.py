@@ -323,20 +323,10 @@ class TestHarness:
         tui_error = getattr(self.tui, "error", None)
         if tui_error is not None:
             self._background_error = f"TUI failed: {tui_error}"
-        # UART can arrive continuously. Draining until the queue is empty can
-        # starve snapshot publication, command handling, and test deadlines if
-        # the producer is faster than the logger. Process a bounded batch and
-        # continue with the rest of the harness cycle.
-        for _ in range(MAX_EVENTS_PER_SERVICE):
-            try:
-                event = self._events.get_nowait()
-            except Empty:
-                break
-            self._route_event(event)
 
         # Snapshots are the authoritative live state. Events remain responsible
-        # for UART display and logging, but the dashboard must not freeze if a
-        # twin coalesces or misses a state-change notification.
+        # for UART display and logging. Publish snapshots before doing file I/O
+        # so a slow logger cannot delay the live twin panels.
         for source, twin in (
             (TwinSource.DIGITAL, self.digital_twin),
             (TwinSource.HARDWARE, self.hardware_twin),
@@ -354,6 +344,17 @@ class TestHarness:
             if new_failures and self._status is TestStatus.RUNNING:
                 self._status = TestStatus.FAILED
         self._publish_dashboard()
+
+        # UART can arrive continuously. Draining until the queue is empty can
+        # starve command handling and test deadlines if the producer is faster
+        # than the logger. Process a bounded batch after the live display has
+        # already received this cycle's snapshots.
+        for _ in range(MAX_EVENTS_PER_SERVICE):
+            try:
+                event = self._events.get_nowait()
+            except Empty:
+                break
+            self._route_event(event)
 
     def _route_event(self, event: TwinEvent) -> None:
         if event.sequence <= self._last_sequence[event.source]:

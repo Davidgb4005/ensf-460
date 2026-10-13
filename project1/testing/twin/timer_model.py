@@ -290,6 +290,10 @@ class StopWatch:
 
                 prev_state = self.state
                 prev_buttons = buttons
+                # The firmware superloop yields naturally between CPU
+                # instructions. Explicitly release Python's GIL here so this
+                # model cannot starve the TUI and hardware polling threads.
+                time.sleep(0)
 
         threading.Thread(target=main_thread, daemon=True).start()
 

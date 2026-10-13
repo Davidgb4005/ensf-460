@@ -23,6 +23,7 @@ class FakeWindow:
         self.refresh_trace = refresh_trace if refresh_trace is not None else []
         self.name = name
         self.timeout_ms = None
+        self.nodelay_enabled = False
         self.keypad_enabled = False
         self.refreshed = False
 
@@ -60,6 +61,9 @@ class FakeWindow:
 
     def timeout(self, milliseconds):
         self.timeout_ms = milliseconds
+
+    def nodelay(self, enabled):
+        self.nodelay_enabled = enabled
 
     def getch(self):
         return self.keys.pop(0) if self.keys else -1
@@ -355,7 +359,7 @@ class TerminalThreadTests(unittest.TestCase):
         self.assertFalse(tui.is_alive)
         self.assertIsNone(tui.error)
         self.assertTrue(screen.keypad_enabled)
-        self.assertEqual(screen.timeout_ms, terminal.REFRESH_INTERVAL_MS)
+        self.assertTrue(screen.nodelay_enabled)
         raw.assert_called_once_with()
         noraw.assert_called_once_with()
         self.assertEqual(
