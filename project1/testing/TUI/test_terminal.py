@@ -237,10 +237,21 @@ class RenderingTests(unittest.TestCase):
         difference = screen.children[1]
         self.assertEqual(difference.width, terminal.DIFFERENCE_WIDTH)
         self.assertEqual(difference.origin[0], 0)
-        root_text = " ".join(text for _, _, text in screen.text)
-        self.assertIn("Ctrl+R: Restart Test", root_text)
-        self.assertIn("Ctrl+N: Next Test", root_text)
-        self.assertIn("Ctrl+Q: Quit", root_text)
+
+        digital_uart = screen.children[3]
+        hardware_uart = screen.children[4]
+        status = screen.children[5]
+        self.assertEqual(digital_uart.origin, (terminal.TOP_PANEL_HEIGHT + 1, 0))
+        self.assertEqual(hardware_uart.origin[0], terminal.TOP_PANEL_HEIGHT + 1)
+        self.assertEqual(
+            digital_uart.width + hardware_uart.width + 1,
+            terminal.MIN_WIDTH,
+        )
+        self.assertEqual(status.height, terminal.TOP_PANEL_HEIGHT)
+        status_text = " ".join(text for _, _, text in status.text)
+        self.assertIn("^R Restart", status_text)
+        self.assertIn("^N Next", status_text)
+        self.assertIn("^Q Quit", status_text)
 
     def test_small_terminal_shows_warning_without_building_windows(self):
         screen = FakeWindow(10, 40)

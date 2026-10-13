@@ -14,11 +14,10 @@ from testing.twin import (
 
 
 class TimerState(Enum):
-    TIMER_NO_STATE_SELECTED = 0
-    TIMER_IDLE = 1
-    TIMER_RUN = 2
-    TIMER_PAUSE = 3
-    TIMER_ALARM = 4
+    TIMER_IDLE = 0
+    TIMER_RUN = 1
+    TIMER_PAUSE = 2
+    TIMER_ALARM = 3
 
 
 class GpioState(Enum):

@@ -21,6 +21,7 @@ MIN_WIDTH = 100
 MIN_HEIGHT = 30
 REFRESH_INTERVAL_MS = 50
 DIFFERENCE_WIDTH = 12
+TOP_PANEL_HEIGHT = 15
 MAX_UART_BACKLOG = 1_000
 _NO_RUN_SEEN = object()
 
@@ -352,24 +353,21 @@ def draw_status(win, data: StatusView) -> None:
     win.box()
     title_line(win, "Status")
     for row, label, value in (
-        (3, "Test Status", data.test_status),
-        (4, "Time Elapsed", data.test_time_elapsed),
-        (5, "Time Remaining", data.time_remaining),
-        (7, "Current Test", data.current_test_name),
-        (8, "Current Path", data.current_test_path),
-        (10, "Next Test", data.next_test_name),
-        (11, "Next Path", data.next_test_path),
+        (2, "Test Status", data.test_status),
+        (3, "Time Elapsed", data.test_time_elapsed),
+        (4, "Time Remaining", data.time_remaining),
+        (5, "Current Test", data.current_test_name),
+        (6, "Current Path", data.current_test_path),
+        (7, "Next Test", data.next_test_name),
+        (8, "Next Path", data.next_test_path),
+        (9, "Hardware UART", data.hardware_uart_path),
+        (10, "Digital UART", data.digital_uart_path),
+        (11, "Power Profiler", data.power_profiler_status),
+        (12, "Hardware Port", data.hardware_uart_port),
     ):
         field_line(win, row, label, value)
-
-    height = win.getmaxyx()[0]
-    for row, label, value in (
-        (height - 8, "Hardware UART", data.hardware_uart_path),
-        (height - 7, "Digital UART", data.digital_uart_path),
-        (height - 5, "Power Profiler", data.power_profiler_status),
-        (height - 4, "Hardware Port", data.hardware_uart_port),
-    ):
-        field_line(win, row, label, value)
+    width = win.getmaxyx()[1]
+    _addnstr(win, 13, 2, "^R Restart  ^N Next  ^Q Quit", width - 4)
     win.noutrefresh()
 
 
@@ -384,8 +382,7 @@ def draw_serial(win, title: str, lines: tuple[str, ...]) -> None:
 
 
 def serial_capacity(height: int) -> int:
-    top_height = height // 2
-    serial_y = top_height + 4
+    serial_y = TOP_PANEL_HEIGHT + 1
     serial_height = height - serial_y - 1
     return max(0, serial_height - 4)
 
@@ -408,8 +405,8 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
     left_width = width * 62 // 100
     right_x = left_width + gap
     right_width = width - right_x - gap
-    top_height = height // 2
-    serial_y = top_height + 4
+    top_height = TOP_PANEL_HEIGHT
+    serial_y = top_height + gap
     serial_height = height - serial_y - gap
 
     diff_width = DIFFERENCE_WIDTH
@@ -421,15 +418,15 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
     difference = stdscr.derwin(top_height, diff_width, 0, twin_width + gap)
     hardware = stdscr.derwin(top_height, hardware_width, 0, hardware_x)
 
-    serial_width = (left_width - gap) // 2
+    serial_width = (width - gap) // 2
     digital_serial = stdscr.derwin(serial_height, serial_width, serial_y, 0)
     hardware_serial = stdscr.derwin(
         serial_height,
-        left_width - serial_width - gap,
+        width - serial_width - gap,
         serial_y,
         serial_width + gap,
     )
-    status = stdscr.derwin(height - 5, right_width, 0, right_x)
+    status = stdscr.derwin(top_height, right_width, 0, right_x)
 
     draw_twin(digital, "Digital Twin", data.digital)
     draw_difference(difference, data.differences)
@@ -438,12 +435,6 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
     draw_serial(hardware_serial, "Hardware UART Output", data.hardware_uart)
     draw_status(status, data.status)
 
-    for offset, label in (
-        (4, "Ctrl+R: Restart Test"),
-        (3, "Ctrl+N: Next Test"),
-        (2, "Ctrl+Q: Quit"),
-    ):
-        _addnstr(stdscr, height - offset, right_x + 2, label, right_width - 3)
     stdscr.noutrefresh()
     curses.doupdate()
     return True
