@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from hardware.test_harness_config import EdgeType, GpioState, TimerState
-from hardware.digital_timer_model import Led, PushButton, StopWatch, duration_timer
+from _junkdrawer.scripts.hardware.test_harness_config import EdgeType, GpioState, TimerState
+from _junkdrawer.scripts.hardware.digital_timer_model import Led, PushButton, StopWatch, duration_timer
 
 try:
     import lgpio

@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from testing import headless_test_runner, tui_harness_runner
+from testing.TUI import headless_test_runner, tui_harness_runner
 
 
 def main(argv=None):

@@ -1,8 +1,8 @@
 import argparse
 import time
 
-from hardware.test_harness_config import CONFIG, GpioState
-from hardware.raspi_gpio_twin import GpioInput, GpioOutput, configure_gpio_backend
+from _junkdrawer.scripts.hardware.test_harness_config import CONFIG, GpioState
+from _junkdrawer.scripts.hardware.raspi_gpio_twin import GpioInput, GpioOutput, configure_gpio_backend
 
 
 def _state(value):

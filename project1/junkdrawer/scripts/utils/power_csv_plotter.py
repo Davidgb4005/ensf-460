@@ -4,7 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from hardware.test_harness_config import CONFIG
+from _junkdrawer.scripts.hardware.test_harness_config import CONFIG
 
 
 def load_power_csv(path):

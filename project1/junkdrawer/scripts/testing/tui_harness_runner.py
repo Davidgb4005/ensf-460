@@ -5,13 +5,13 @@ from pathlib import Path
 import threading
 import time
 
-from hardware.test_harness_config import CONFIG, TestMode
-from hardware.digital_timer_model import build_digital_twin
-from hardware.raspi_gpio_twin import build_physical_twin, sync_button_from_physical
-from hardware.terminal_dashboard import Tui
-from testing.command_file_runner import load_commands, run_commands
-from testing.twin_event_logger import TwinEventLogger
-from utils.nordic_power_profiler import build_power_profiler
+from _junkdrawer.scripts.hardware.test_harness_config import CONFIG, TestMode
+from _junkdrawer.scripts.hardware.digital_timer_model import build_digital_twin
+from _junkdrawer.scripts.hardware.raspi_gpio_twin import build_physical_twin, sync_button_from_physical
+from _junkdrawer.scripts.hardware.terminal_dashboard import Tui
+from _junkdrawer.scripts.testing.command_file_runner import load_commands, run_commands
+from _junkdrawer.scripts.testing.twin_event_logger import TwinEventLogger
+from _junkdrawer.scripts.utils.nordic_power_profiler import build_power_profiler
 
 
 @dataclass

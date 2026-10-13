@@ -1,7 +1,7 @@
 import threading
 import time
 
-from hardware.test_harness_config import EdgeType, GpioState, TimerState
+from _junkdrawer.scripts.hardware.test_harness_config import EdgeType, GpioState, TimerState
 
 
 def duration_timer(component):
@@ -90,11 +90,11 @@ class Led:
 
         def blink_thread():
             while not event.is_set():
-                self.output = GpioState.ON
+                self.output = GpioState.OFF
                 if not delay(duration):
                     break
 
-                self.output = GpioState.OFF
+                self.output = GpioState.ON
                 if not delay(duration):
                     break
 
