@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from testing import headless_runner, tui_runner
+from testing import headless_test_runner, tui_harness_runner
 
 
 def main(argv=None):
@@ -52,7 +52,7 @@ def main(argv=None):
             headless_args.append("--include-power")
         headless_args.extend(common_power_args)
         headless_args.extend(tests)
-        return headless_runner.main(headless_args)
+        return headless_test_runner.main(headless_args)
 
     tui_args = []
     tui_args.extend(common_power_args)
@@ -60,7 +60,7 @@ def main(argv=None):
         if len(tests) > 1:
             parser.error("--tui accepts at most one command file")
         tui_args.append(tests[0])
-    return tui_runner.main(tui_args)
+    return tui_harness_runner.main(tui_args)
 
 
 if __name__ == "__main__":

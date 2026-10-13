@@ -1,7 +1,7 @@
 import threading
 import time
 
-from hardware.config import EdgeType, GpioState, TimerState
+from hardware.test_harness_config import EdgeType, GpioState, TimerState
 
 
 def duration_timer(component):

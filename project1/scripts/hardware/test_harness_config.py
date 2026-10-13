@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 SCRIPT_ROOT = Path(__file__).resolve().parents[1]
+OUTPUT_ROOT = SCRIPT_ROOT / "output"
 
 
 class TimerState(Enum):
@@ -82,7 +83,7 @@ class GpioConfig:
 class PowerProfilerConfig:
     enabled: bool = False
     port: str | None = None
-    output_dir: str = str(SCRIPT_ROOT / "power_logs")
+    output_dir: str = str(OUTPUT_ROOT / "power")
     mode: str = "source"
     source_voltage_mv: int = 3300
     enable_dut_power: bool = False
@@ -94,7 +95,7 @@ class PowerProfilerConfig:
 class TestConfig:
     mode: TestMode = TestMode.MANUAL
     command_file: str | None = str(SCRIPT_ROOT / "input_commands.txt")
-    log_file: str = str(SCRIPT_ROOT / "twin_events.csv")
+    log_file: str = str(OUTPUT_ROOT / "twin_events" / "twin_events.csv")
     timing: TimingConfig = field(default_factory=TimingConfig)
     preset: PresetConfig = field(default_factory=PresetConfig)
     gpio: GpioConfig = field(default_factory=GpioConfig)

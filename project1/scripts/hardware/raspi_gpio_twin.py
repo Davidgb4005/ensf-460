@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from hardware.config import EdgeType, GpioState, TimerState
-from hardware.digital_twin import Led, PushButton, StopWatch, duration_timer
+from hardware.test_harness_config import EdgeType, GpioState, TimerState
+from hardware.digital_timer_model import Led, PushButton, StopWatch, duration_timer
 
 try:
     import lgpio
@@ -21,7 +21,7 @@ def _gpio_backend_error(exc, attempts=None):
     return RuntimeError(
         "GPIO backend is unavailable. If this is a Raspberry Pi, try running with "
         "`sudo`, install `python3-lgpio`, fix permissions for /dev/gpiochip*, "
-        "or set `gpio_chip` in testing_config.py to the chip that contains the "
+        "or set `gpio_chip` in test_harness_config.py to the chip that contains the "
         "40-pin header GPIO lines. If this is not a Raspberry Pi, set GPIO pins "
         "to None or run without physical GPIO."
         f"{detail}"

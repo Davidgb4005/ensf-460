@@ -9,10 +9,10 @@ SCRIPT_ROOT = Path(__file__).resolve().parents[1]
 if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
-from hardware.config import CONFIG, TestMode
-from hardware.digital_twin import build_digital_twin
-from testing.command_input import load_commands, run_commands
-from utils.power_profiler import build_power_profiler
+from hardware.test_harness_config import CONFIG, TestMode
+from hardware.digital_timer_model import build_digital_twin
+from testing.command_file_runner import load_commands, run_commands
+from utils.nordic_power_profiler import build_power_profiler
 
 
 TEST_ROOT = SCRIPT_ROOT / "test_suites"

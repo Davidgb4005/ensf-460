@@ -1,6 +1,7 @@
 import csv
 import time
 from enum import Enum
+from pathlib import Path
 
 
 class TwinEventLogger:
@@ -153,6 +154,7 @@ class TwinEventLogger:
         return "; ".join(diffs) if diffs else "OK"
 
     def _write_header(self):
+        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         with open(self.path, "a", newline="", encoding="utf-8") as log_file:
             writer = csv.DictWriter(log_file, fieldnames=self.columns)
             writer.writeheader()

@@ -5,13 +5,13 @@ from pathlib import Path
 import threading
 import time
 
-from hardware.config import CONFIG, TestMode
-from hardware.digital_twin import build_digital_twin
-from hardware.physical_twin import build_physical_twin, sync_button_from_physical
-from hardware.tui_output import Tui
-from testing.command_input import load_commands, run_commands
-from testing.event_logger import TwinEventLogger
-from utils.power_profiler import build_power_profiler
+from hardware.test_harness_config import CONFIG, TestMode
+from hardware.digital_timer_model import build_digital_twin
+from hardware.raspi_gpio_twin import build_physical_twin, sync_button_from_physical
+from hardware.terminal_dashboard import Tui
+from testing.command_file_runner import load_commands, run_commands
+from testing.twin_event_logger import TwinEventLogger
+from utils.nordic_power_profiler import build_power_profiler
 
 
 @dataclass
@@ -110,6 +110,7 @@ def build_runtime_config(argv=None):
 
 def main(argv=None):
     config = build_runtime_config(argv)
+    Path(config.log_file).parent.mkdir(parents=True, exist_ok=True)
     open(config.log_file, "w", encoding="utf-8").close()
     digital_twin = build_digital_twin(config)
     physical_twin = build_physical_twin(

@@ -4,7 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from hardware.config import CONFIG
+from hardware.test_harness_config import CONFIG
 
 
 def load_power_csv(path):
@@ -87,12 +87,12 @@ def plot(data, summary, voltage_v, title, output):
 
 def main():
     parser = argparse.ArgumentParser(description="Plot a PPK2 CSV capture.")
-    parser.add_argument("csv_file", help="CSV file from run_test_suite.py --power-profile.")
+    parser.add_argument("csv_file", help="CSV file from run.py --headless --power-profile.")
     parser.add_argument(
         "--voltage",
         type=float,
         default=CONFIG.power.source_voltage_mv / 1000.0,
-        help="DUT voltage in volts. Defaults to testing_config.py power voltage.",
+        help="DUT voltage in volts. Defaults to test_harness_config.py power voltage.",
     )
     parser.add_argument("--output", help="Save plot image instead of opening a window.")
     args = parser.parse_args()

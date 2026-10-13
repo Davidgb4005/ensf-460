@@ -1,6 +1,6 @@
 import time
 
-from hardware.config import DEFAULT_COMMANDS
+from hardware.test_harness_config import DEFAULT_COMMANDS
 
 
 VALID_COMMANDS = {

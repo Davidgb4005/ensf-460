@@ -3,14 +3,14 @@
 Run the normal automated tests with:
 
 ```sh
-python3 scripts/run_test_suite.py
+python3 scripts/run.py --headless
 ```
 
 This runs `small/` and `large_functionality/`. The power-consumption command
 sets are intentionally skipped because they contain longer waits. Run them with:
 
 ```sh
-python3 scripts/run_test_suite.py --include-power
+python3 scripts/run.py --headless --include-power
 ```
 
 Every command file starts with a default reset preamble:
@@ -22,20 +22,20 @@ Every command file starts with a default reset preamble:
 For faster digital-only development runs, skip that preamble with:
 
 ```sh
-python3 scripts/run_test_suite.py --no-startup-reset
+python3 scripts/run.py --headless --no-startup-reset
 ```
 
 To capture Nordic PPK2 current data while tests run:
 
 ```sh
-python3 scripts/run_test_suite.py --power-profile --power-port /dev/ttyACM0
+python3 scripts/run.py --headless --power-profile --power-port /dev/ttyACM0
 ```
 
-This writes one CSV per test into `scripts/power_logs/` by default. The TUI
+This writes one CSV per test into `scripts/output/power/` by default. The TUI
 harness supports the same profiler flags:
 
 ```sh
-python3 scripts/testing_suite.py --power-profile --power-port /dev/ttyACM0 scripts/test_suites/large_power/02_short_interval_alarm.txt
+python3 scripts/run.py --tui --power-profile --power-port /dev/ttyACM0 --tests scripts/test_suites/large_power/02_short_interval_alarm.txt
 ```
 
 By default, the profiler does not toggle PPK2 DUT power. If the PPK2 should
