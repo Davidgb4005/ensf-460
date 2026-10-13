@@ -221,6 +221,16 @@ class DashboardModelTests(unittest.TestCase):
         self.assertEqual(first.status.test_time_elapsed, "00:00:00")
         self.assertEqual(later.status.test_time_elapsed, "00:00:00")
 
+    def test_gpio_drive_data_is_carried_into_the_view(self):
+        gpio = terminal.GpioDriveData(
+            pb1_pin=4, pb2_pin=17, pb3_pin=27, pb1_active=True
+        )
+        dashboard = terminal.DashboardData(gpio_drive=gpio)
+
+        view = self.model.update(make_frame(dashboard))
+
+        self.assertIs(view.gpio_drive, gpio)
+
 
 class RenderingTests(unittest.TestCase):
     def setUp(self):
@@ -233,16 +243,23 @@ class RenderingTests(unittest.TestCase):
             fitted = terminal.draw_dashboard(screen, self.view)
 
         self.assertTrue(fitted)
-        self.assertEqual(len(screen.children), 6)
+        self.assertEqual(len(screen.children), 7)
         difference = screen.children[1]
         self.assertEqual(difference.width, terminal.DIFFERENCE_WIDTH)
         self.assertEqual(difference.origin[0], 0)
 
-        digital_uart = screen.children[3]
-        hardware_uart = screen.children[4]
-        status = screen.children[5]
-        self.assertEqual(digital_uart.origin, (terminal.TOP_PANEL_HEIGHT + 1, 0))
-        self.assertEqual(hardware_uart.origin[0], terminal.TOP_PANEL_HEIGHT + 1)
+        gpio_drive = screen.children[3]
+        digital_uart = screen.children[4]
+        hardware_uart = screen.children[5]
+        status = screen.children[6]
+        expected_uart_y = (
+            terminal.TOP_PANEL_HEIGHT + 1 + terminal.GPIO_PANEL_HEIGHT + 1
+        )
+        self.assertEqual(gpio_drive.origin, (terminal.TOP_PANEL_HEIGHT + 1, 0))
+        self.assertEqual(gpio_drive.height, terminal.GPIO_PANEL_HEIGHT)
+        self.assertEqual(digital_uart.origin, (expected_uart_y, 0))
+        self.assertEqual(hardware_uart.origin[0], expected_uart_y)
+        self.assertEqual(digital_uart.height, 8)
         self.assertEqual(
             digital_uart.width + hardware_uart.width + 1,
             terminal.MIN_WIDTH,
@@ -252,6 +269,26 @@ class RenderingTests(unittest.TestCase):
         self.assertIn("^R Restart", status_text)
         self.assertIn("^N Next", status_text)
         self.assertIn("^Q Quit", status_text)
+
+    def test_gpio_panel_displays_physical_levels_and_commands(self):
+        dashboard = terminal.DashboardData(
+            gpio_drive=terminal.GpioDriveData(
+                pb1_pin=4,
+                pb2_pin=17,
+                pb3_pin=27,
+                pb1_active=True,
+                active_high=True,
+            )
+        )
+        view = terminal.DashboardModel(FakeClock()).update(make_frame(dashboard))
+        screen = FakeWindow(terminal.MIN_HEIGHT, terminal.MIN_WIDTH)
+
+        with patch.object(terminal.curses, "doupdate"):
+            terminal.draw_dashboard(screen, view)
+
+        gpio_text = " ".join(text for _, _, text in screen.children[3].text)
+        self.assertIn("PB1 GPIO4: HIGH (PRESSED)", gpio_text)
+        self.assertIn("PB2 GPIO17: LOW (RELEASED)", gpio_text)
 
     def test_small_terminal_shows_warning_without_building_windows(self):
         screen = FakeWindow(10, 40)

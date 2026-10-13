@@ -22,6 +22,7 @@ MIN_HEIGHT = 30
 REFRESH_INTERVAL_MS = 50
 DIFFERENCE_WIDTH = 12
 TOP_PANEL_HEIGHT = 15
+GPIO_PANEL_HEIGHT = 4
 MAX_UART_BACKLOG = 1_000
 _NO_RUN_SEEN = object()
 
@@ -71,6 +72,19 @@ class OutputData:
 
 
 @dataclass(frozen=True)
+class GpioDriveData:
+    """GPIO pins and the logical button levels commanded by the harness."""
+
+    pb1_pin: int | None = None
+    pb2_pin: int | None = None
+    pb3_pin: int | None = None
+    pb1_active: bool = False
+    pb2_active: bool = False
+    pb3_active: bool = False
+    active_high: bool = True
+
+
+@dataclass(frozen=True)
 class DashboardData:
     """One complete, immutable display snapshot."""
 
@@ -78,6 +92,7 @@ class DashboardData:
     hardware: TwinData = field(default_factory=TwinData)
     test: TestData = field(default_factory=TestData)
     outputs: OutputData = field(default_factory=OutputData)
+    gpio_drive: GpioDriveData = field(default_factory=GpioDriveData)
 
 
 @dataclass(frozen=True)
@@ -177,6 +192,7 @@ class DashboardView:
     hardware: TwinView
     differences: dict[str, str]
     status: StatusView
+    gpio_drive: GpioDriveData
     digital_uart: tuple[str, ...]
     hardware_uart: tuple[str, ...]
 
@@ -263,6 +279,7 @@ class DashboardModel:
                 power_profiler_status=data.outputs.power_profiler_status,
                 hardware_uart_port=data.outputs.hardware_uart_port,
             ),
+            gpio_drive=data.gpio_drive,
             digital_uart=tuple(self._digital_uart),
             hardware_uart=tuple(self._hardware_uart),
         )
@@ -381,8 +398,32 @@ def draw_serial(win, title: str, lines: tuple[str, ...]) -> None:
     win.noutrefresh()
 
 
+def draw_gpio_drive(win, data: GpioDriveData) -> None:
+    win.erase()
+    win.box()
+    title_line(win, "Pi GPIO Drive")
+    height, width = win.getmaxyx()
+    if height > 2:
+        entries = []
+        for name, pin, active in (
+            ("PB1", data.pb1_pin, data.pb1_active),
+            ("PB2", data.pb2_pin, data.pb2_active),
+            ("PB3", data.pb3_pin, data.pb3_active),
+        ):
+            if pin is None:
+                entries.append(f"{name}: not configured")
+                continue
+            physical_high = active if data.active_high else not active
+            level = "HIGH" if physical_high else "LOW"
+            command = "PRESSED" if active else "RELEASED"
+            entries.append(f"{name} GPIO{pin}: {level} ({command})")
+        text = "   |   ".join(entries)
+        _addnstr(win, 2, 2, text, width - 4)
+    win.noutrefresh()
+
+
 def serial_capacity(height: int) -> int:
-    serial_y = TOP_PANEL_HEIGHT + 1
+    serial_y = TOP_PANEL_HEIGHT + 1 + GPIO_PANEL_HEIGHT + 1
     serial_height = height - serial_y - 1
     return max(0, serial_height - 4)
 
@@ -406,7 +447,8 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
     right_x = left_width + gap
     right_width = width - right_x - gap
     top_height = TOP_PANEL_HEIGHT
-    serial_y = top_height + gap
+    gpio_y = top_height + gap
+    serial_y = gpio_y + GPIO_PANEL_HEIGHT + gap
     serial_height = height - serial_y - gap
 
     diff_width = DIFFERENCE_WIDTH
@@ -417,6 +459,7 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
     digital = stdscr.derwin(top_height, twin_width, 0, 0)
     difference = stdscr.derwin(top_height, diff_width, 0, twin_width + gap)
     hardware = stdscr.derwin(top_height, hardware_width, 0, hardware_x)
+    gpio_drive = stdscr.derwin(GPIO_PANEL_HEIGHT, width - gap, gpio_y, 0)
 
     serial_width = (width - gap) // 2
     digital_serial = stdscr.derwin(serial_height, serial_width, serial_y, 0)
@@ -431,6 +474,7 @@ def draw_dashboard(stdscr, data: DashboardView) -> bool:
     draw_twin(digital, "Digital Twin", data.digital)
     draw_difference(difference, data.differences)
     draw_twin(hardware, "Hardware Twin", data.hardware)
+    draw_gpio_drive(gpio_drive, data.gpio_drive)
     draw_serial(digital_serial, "Digital UART Output", data.digital_uart)
     draw_serial(hardware_serial, "Hardware UART Output", data.hardware_uart)
     draw_status(status, data.status)

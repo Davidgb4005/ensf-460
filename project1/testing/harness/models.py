@@ -190,6 +190,10 @@ class HarnessConfig:
     restart_mismatch_limits_ms: Mapping[TwinField, int] | None = None
     tick_interval_seconds: float = 0.01
     hardware_uart_port: str = ""
+    pb1_drive_pin: int | None = None
+    pb2_drive_pin: int | None = None
+    pb3_drive_pin: int | None = None
+    gpio_active_high: bool = True
 
     def restart_limits(self) -> dict[TwinField, int]:
         selected = self.restart_mismatch_limits_ms or self.default_mismatch_limits_ms

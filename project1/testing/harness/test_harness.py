@@ -42,12 +42,14 @@ class FakeTwin:
         follow_inputs=True,
         fixed_state="IDLE",
         emit_uart=False,
+        emit_state_events=True,
     ):
         self.source = source
         self.clock = clock
         self.follow_inputs = follow_inputs
         self.fixed_state = fixed_state
         self.emit_uart = emit_uart
+        self.emit_state_events = emit_state_events
         self.inputs = ButtonInputs()
         self.input_history = []
         self.sequence = 0
@@ -84,7 +86,7 @@ class FakeTwin:
             new = getattr(self.inputs, field_name.value)
             if old != new:
                 changes.append(FieldChange(field_name, old, new))
-        if changes and self.sink is not None:
+        if changes and self.sink is not None and self.emit_state_events:
             self._emit(TwinEventKind.STATE_CHANGED, tuple(changes))
         if self.emit_uart and inputs.pb1 and not self.uart_sent and self.sink is not None:
             self.uart_sent = True
@@ -149,6 +151,7 @@ class ReactiveTuiState(TuiSharedState):
     def __init__(self, first_command=None, quit_on_reset_failure=False):
         super().__init__()
         self.last_dashboard = None
+        self.dashboards = []
         self.quit_on_reset_failure = quit_on_reset_failure
         self.quit_sent = False
         if first_command is not None:
@@ -156,6 +159,7 @@ class ReactiveTuiState(TuiSharedState):
 
     def publish(self, dashboard):
         self.last_dashboard = dashboard
+        self.dashboards.append(dashboard)
         super().publish(dashboard)
 
     def get_command(self, *, block=False, timeout=None):
@@ -265,6 +269,50 @@ class TestHarnessTests(unittest.TestCase):
         self.assertIn("digital PB1 ON", frame.digital_uart[0])
         self.assertEqual(len(logger.uart), 1)
         self.assertEqual(logger.uart[0][0], "digital")
+
+    def test_dashboard_refreshes_from_snapshots_without_state_events(self):
+        tui_state = ReactiveTuiState()
+        harness, _, _ = self.make_harness(
+            (test_case(hold=True),),
+            tui_state=tui_state,
+            digital_options={"emit_state_events": False},
+            hardware_options={"emit_state_events": False},
+        )
+
+        result = harness.run()
+
+        self.assertEqual(result.status, TestStatus.PASSED)
+        self.assertTrue(
+            any(
+                dashboard.digital.pb1 == "ON"
+                and dashboard.hardware.pb1 == "ON"
+                for dashboard in tui_state.dashboards
+            )
+        )
+
+    def test_dashboard_reports_configured_gpio_drive_levels(self):
+        tui_state = ReactiveTuiState()
+        config = HarnessConfig(
+            tick_interval_seconds=0.005,
+            pb1_drive_pin=4,
+            pb2_drive_pin=17,
+            pb3_drive_pin=27,
+            gpio_active_high=True,
+        )
+        harness, _, _ = self.make_harness(
+            (test_case(hold=True),), tui_state=tui_state, config=config
+        )
+
+        harness.run()
+
+        active = next(
+            dashboard
+            for dashboard in tui_state.dashboards
+            if dashboard.gpio_drive.pb1_active
+        )
+        self.assertEqual(active.gpio_drive.pb1_pin, 4)
+        self.assertEqual(active.gpio_drive.pb2_pin, 17)
+        self.assertEqual(active.gpio_drive.pb3_pin, 27)
 
     def test_power_profiler_failure_stops_suite_as_infrastructure_error(self):
         power = FakePowerProfiler(fail_stop=True)

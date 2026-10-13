@@ -9,6 +9,7 @@ from typing import Callable
 
 from testing.TUI.terminal import (
     DashboardData,
+    GpioDriveData,
     OutputData,
     TestData,
     TuiCommand,
@@ -88,6 +89,7 @@ class TestHarness:
         self._next_test: TestCase | None = None
         self._status = TestStatus.PENDING
         self._power_status = "DISABLED" if power_profiler is None else "IDLE"
+        self._driven_inputs = ButtonInputs()
 
     def run(self) -> SuiteResult:
         results: list[TestResult] = []
@@ -325,6 +327,18 @@ class TestHarness:
                 break
             self._route_event(event)
 
+        # Snapshots are the authoritative live state. Events remain responsible
+        # for UART display and logging, but the dashboard must not freeze if a
+        # twin coalesces or misses a state-change notification.
+        for source, twin in (
+            (TwinSource.DIGITAL, self.digital_twin),
+            (TwinSource.HARDWARE, self.hardware_twin),
+        ):
+            try:
+                self._latest[source] = twin.snapshot()
+            except Exception as exc:
+                self._background_error = f"{source.value} twin snapshot failed: {exc}"
+
         if self._comparator is not None and len(self._latest) == 2:
             digital, hardware = self._snapshot_pair()
             new_failures = self._comparator.update(
@@ -382,6 +396,7 @@ class TestHarness:
         try:
             self.digital_twin.set_inputs(inputs)
             self.hardware_twin.set_inputs(inputs)
+            self._driven_inputs = inputs
         except Exception:
             self._release_inputs()
             raise
@@ -393,6 +408,7 @@ class TestHarness:
                 twin.set_inputs(released)
             except Exception:
                 pass
+        self._driven_inputs = released
 
     def _snapshot_pair(self) -> tuple[TwinSnapshot, TwinSnapshot]:
         return self._latest[TwinSource.DIGITAL], self._latest[TwinSource.HARDWARE]
@@ -442,6 +458,15 @@ class TestHarness:
                     digital_uart_path=self._logger_path("digital_uart"),
                     power_profiler_status=self._power_status,
                     hardware_uart_port=self.config.hardware_uart_port,
+                ),
+                gpio_drive=GpioDriveData(
+                    pb1_pin=self.config.pb1_drive_pin,
+                    pb2_pin=self.config.pb2_drive_pin,
+                    pb3_pin=self.config.pb3_drive_pin,
+                    pb1_active=self._driven_inputs.pb1,
+                    pb2_active=self._driven_inputs.pb2,
+                    pb3_active=self._driven_inputs.pb3,
+                    active_high=self.config.gpio_active_high,
                 ),
             )
         )

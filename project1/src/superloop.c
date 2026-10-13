@@ -375,7 +375,7 @@ error_e superloop_loop(void)
         preset_value = clamp_preset_value(preset_value);
 
         static uint16_t send_delay = 0;
-        if (timer_millis() - send_delay > 100){
+        if (timer_millis() - send_delay > 250){
         send_delay = timer_millis();
         test_rig_data.preset_seconds = preset_value;
         test_rig_data.elapsed_seconds = elapsed_value;

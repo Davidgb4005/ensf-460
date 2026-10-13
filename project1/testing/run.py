@@ -104,7 +104,14 @@ def build_argument_parser() -> argparse.ArgumentParser:
 
 def run(args: argparse.Namespace) -> int:
     uart_port = resolve_uart_port(args.uart_port)
-    harness_config = HarnessConfig(hardware_uart_port=uart_port)
+    gpio = DEFAULT_CONFIG.gpio
+    harness_config = HarnessConfig(
+        hardware_uart_port=uart_port,
+        pb1_drive_pin=gpio.pb1_drive_pin,
+        pb2_drive_pin=gpio.pb2_drive_pin,
+        pb3_drive_pin=gpio.pb3_drive_pin,
+        gpio_active_high=gpio.active_high,
+    )
     test_paths = args.tests or [DEFAULT_TESTS]
     suite = load_suite(
         test_paths,
@@ -132,7 +139,6 @@ def run(args: argparse.Namespace) -> int:
             )
         )
 
-    gpio = DEFAULT_CONFIG.gpio
     gpio_chip = args.gpio_chip
     if gpio_chip is None:
         gpio_chip = gpio.gpio_chip
