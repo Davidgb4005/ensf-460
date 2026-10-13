@@ -10,11 +10,11 @@ use crate::TimerStates::RunToPause;
 const LED_1: u8 = 25;
 const LED_2: u8 = 26;
 const PUSHBUTTON_1_INPUT: u8 = 22;
-const PUSHBUTTON_2_INPUT: u8 = 27;
-const PUSHBUTTON_3_INPUT: u8 = 17;
+const PUSHBUTTON_2_INPUT: u8 = 23;
+const PUSHBUTTON_3_INPUT: u8 = 24;
 const PUSHBUTTON_1_OUTPUT: u8 = 4;
-const PUSHBUTTON_2_OUTPUT: u8 = 23;
-const PUSHBUTTON_3_OUTPUT: u8 = 24;
+const PUSHBUTTON_2_OUTPUT: u8 = 17;
+const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
 const COUNT_DELAY_MS: u32 = 1000;
@@ -319,6 +319,9 @@ fn run_digital_twin() -> Result<(), rppal::gpio::Error> {
     };
     let mut emulator_state = EmulatorState::new();
 
+    println!("Digital twin started in Idle");
+    println!("Monitoring PB inputs: BCM22, BCM23, BCM24");
+
     loop {
         cycle_digital_twin(&mut digital_state, &hardware_state, &mut emulator_state);
 
@@ -337,6 +340,7 @@ fn cycle_digital_twin(
         | ((hardware_state.push_button_inputs[2].is_high() as u8) << 2);
 
     if buttons != emulator_state.prev_buttons {
+        println!("Buttons changed: {buttons:03b}");
         emulator_state.prev_buttons = buttons;
         emulator_state.counter = 0;
         emulator_state.deadline = current_time + Duration::from_millis(emulator_state.delay.into());

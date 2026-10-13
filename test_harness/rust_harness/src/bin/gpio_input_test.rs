@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let led2 = gpio.get(LED2_SAMPLE_PIN)?.into_input();
 
     println!("Monitoring GPIO inputs. Press Ctrl+C to stop.");
-    println!("PB1=BCM18 PB2=BCM23 PB3=BCM24 LED1=BCM25 LED2=BCM26");
+    println!("PB1=BCM22 PB2=BCM23 PB3=BCM24 LED1=BCM25 LED2=BCM26");
 
     let mut previous = None;
 
