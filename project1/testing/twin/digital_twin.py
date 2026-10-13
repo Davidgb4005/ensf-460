@@ -141,9 +141,9 @@ class DigitalTwin:
             pb1=self._is_on(self.stopwatch.pb_1.state),
             pb2=self._is_on(self.stopwatch.pb_2.state),
             pb3=self._is_on(self.stopwatch.pb_3.state),
-            led1_state=self._enum_name(self.stopwatch.led_1.state, "GPIO_"),
+            led1_state=self._led_mode(self.stopwatch.led_1),
             led1_output=self._is_on(self.stopwatch.led_1.output),
-            led2_state=self._enum_name(self.stopwatch.led_2.state, "GPIO_"),
+            led2_state=self._led_mode(self.stopwatch.led_2),
             led2_output=self._is_on(self.stopwatch.led_2.output),
         )
 
@@ -169,6 +169,16 @@ class DigitalTwin:
     @staticmethod
     def _enum_name(value, prefix: str) -> str:
         return getattr(value, "name", str(value)).removeprefix(prefix)
+
+    @classmethod
+    def _led_mode(cls, led) -> str:
+        mode = getattr(led, "mode", None)
+        if mode is not None:
+            return cls._enum_name(mode, "LED_")
+        # Compatibility for simple model doubles: a blinking output uses the
+        # BLINK mode; a static ON or OFF output uses DIGITAL mode.
+        state = cls._enum_name(led.state, "GPIO_")
+        return "BLINK" if state == "BLINK" else "DIGITAL"
 
     def _emit_uart(self, snapshot: TwinSnapshot) -> None:
         frame = StatusFrame(

@@ -10,7 +10,7 @@ from __future__ import annotations
 import threading
 import time
 
-from .config import EdgeType, GpioState, TimerState, TwinConfig
+from .config import EdgeType, GpioState, LedMode, TimerState, TwinConfig
 
 
 def duration_timer(component) -> None:
@@ -47,6 +47,7 @@ class Led:
     def __init__(self, name, state):
         self.name = name
         self.state = state
+        self.mode = LedMode.LED_BLINK
         self.output = GpioState.OFF
         self.stop_event = threading.Event()
         self.pause_event = threading.Event()
@@ -57,6 +58,7 @@ class Led:
         if duration == 0:
             self.stop_event.set()
             self.blink_duration = None
+            self.mode = LedMode.LED_DIGITAL
             self.state = GpioState.ON
             self.output = GpioState.ON
             return
@@ -72,6 +74,7 @@ class Led:
         self.stop_event.set()
         self.stop_event = threading.Event()
         event = self.stop_event
+        self.mode = LedMode.LED_BLINK
         self.state = GpioState.BLINK
         self.blink_duration = duration
 
@@ -120,6 +123,7 @@ class Led:
     def stop_blink(self):
         self.stop_event.set()
         self.blink_duration = None
+        self.mode = LedMode.LED_BLINK
         self.state = GpioState.OFF
         self.output = GpioState.OFF
 

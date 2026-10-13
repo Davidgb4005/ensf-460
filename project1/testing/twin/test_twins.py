@@ -216,7 +216,7 @@ class HardwareTwinTests(unittest.TestCase):
                     pb1=True,
                     pb2=False,
                     pb3=True,
-                    led1_state_code=3,
+                    led1_state_code=0,
                     led2_state_code=2,
                 )
             )
@@ -232,7 +232,7 @@ class HardwareTwinTests(unittest.TestCase):
         self.assertEqual((snapshot.pb1, snapshot.pb2, snapshot.pb3), (True, False, True))
         self.assertEqual(snapshot.led1_state, "BLINK")
         self.assertTrue(snapshot.led1_output)
-        self.assertEqual(snapshot.led2_state, "OFF")
+        self.assertEqual(snapshot.led2_state, "DIGITAL")
         self.assertFalse(snapshot.led2_output)
         self.assertTrue(any(event.kind is TwinEventKind.UART_MESSAGE for event in events))
 

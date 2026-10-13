@@ -77,9 +77,9 @@ class HardwareTwin:
             pb1=False,
             pb2=False,
             pb3=False,
-            led1_state="INVALID",
+            led1_state="UNINITIALIZED",
             led1_output=False,
-            led2_state="INVALID",
+            led2_state="UNINITIALIZED",
             led2_output=False,
         )
 

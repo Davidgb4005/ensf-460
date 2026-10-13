@@ -20,10 +20,10 @@ TIMER_STATES = {
 }
 
 LED_STATES = {
-    0: "INVALID",
-    1: "ON",
-    2: "OFF",
-    3: "BLINK",
+    0: "BLINK",
+    1: "PWM",
+    2: "DIGITAL",
+    3: "RESERVED",
 }
 
 

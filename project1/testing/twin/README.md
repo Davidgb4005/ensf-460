@@ -77,8 +77,8 @@ Packed flags:
 | 13–15 | Reserved; transmit as zero |
 
 Timer codes match the firmware enum: `0=IDLE`, `1=RUN`, `2=PAUSE`, and
-`3=ALARM`. LED codes preserve the current model: `1=ON`, `2=OFF`, and
-`3=BLINK`; zero is treated as `INVALID`.
+`3=ALARM`. The two-bit LED fields carry firmware LED modes: `0=BLINK`,
+`1=PWM`, and `2=DIGITAL`. Value `3` is reserved.
 
 The decoder accepts partial UART reads, finds the marker after unrelated bytes,
 rejects bad checksums, and resumes searching for the next valid frame.

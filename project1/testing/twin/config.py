@@ -19,6 +19,14 @@ class GpioState(Enum):
     BLINK = 3
 
 
+class LedMode(Enum):
+    """Values carried in each two-bit LED mode field on the UART."""
+
+    LED_BLINK = 0
+    LED_PWM = 1
+    LED_DIGITAL = 2
+
+
 class EdgeType(Enum):
     CONSUMED_EDGE = 0
     RISING_EDGE = 1

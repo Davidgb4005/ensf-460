@@ -76,9 +76,9 @@ class TwinSnapshot:
     pb1: bool
     pb2: bool
     pb3: bool
-    led1_state: str = "OFF"
+    led1_state: str = "BLINK"
     led1_output: bool = False
-    led2_state: str = "OFF"
+    led2_state: str = "BLINK"
     led2_output: bool = False
 
     def field_value(self, field_name: TwinField) -> Scalar:
