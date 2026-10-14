@@ -99,6 +99,7 @@ impl Tui {
             Some(false) => "MISMATCH",
             None => "WAITING",
         };
+
         let error = uart_error.unwrap_or("none");
         let uart_current = format!("{:?}", uart.current_state);
         let twin_current = format!("{:?}", twin.current_state);
@@ -141,8 +142,8 @@ impl Tui {
                 "PB2 (BCM 17): {}\r\n",
                 "PB3 (BCM 27): {}\r\n",
                 "RESET (BCM 6): {}\r\n\r\n",
-                "Uart    : Run StartTime :{:<6?} Alarm Start Time :{:<6?}\r\n",
-                "Digital : Run StartTime :{:<6?} Alarm Start Time :{:<6?}\r\n\r\n"
+                "uart    : Run starttime :{:<6} Alarm start time :{:<6} Duration :{:<6}\r\n",
+                "Digital : Run StartTime :{:<6} Alarm Start Time :{:<6} Duration :{:<6}\r\n\r\n",
             ),
             connection,
             comparison,
@@ -181,10 +182,13 @@ impl Tui {
             level(gpio.pb_2),
             level(gpio.pb_3),
             level(gpio.reset),
-            uart_run_timestamp,
-            uart_alarm_timestamp,
-            digital_run_timestamp,
-            digital_alarm_timestamp,
+            uart_run_timestamp.unwrap_or(0),
+            uart_alarm_timestamp.unwrap_or(0),
+            uart_run_timestamp.unwrap_or(0) - uart_alarm_timestamp.unwrap_or(0),
+            digital_run_timestamp.unwrap_or(0),
+            digital_alarm_timestamp.unwrap_or(0),
+            digital_alarm_timestamp.unwrap_or(0) - digital_run_timestamp.unwrap_or(0),
+
 
         )?;
 
