@@ -110,27 +110,27 @@ impl Tui {
             stdout,
             concat!(
                 "\x1b[2J\x1b[H",
-                "Timer test harness\n",
-                "==================\n",
-                "Press any key to reset; Ctrl-C exits\n",
-                "UART: {:<18} Comparison: {}\n",
-                "UART error: {}\n\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24} {:<24}\n\n",
-                "GPIO drive outputs\n",
-                "------------------\n",
-                "PB1 (BCM 4):  {}\n",
-                "PB2 (BCM 17): {}\n",
-                "PB3 (BCM 27): {}\n",
-                "RESET (BCM 6): {}\n\n",
+                "Timer test harness\r\n",
+                "==================\r\n",
+                "Press any key to reset; Ctrl-C exits\r\n",
+                "UART: {:<18} Comparison: {}\r\n",
+                "UART error: {}\r\n\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n",
+                "{:<18} {:<24} {:<24}\r\n\r\n",
+                "GPIO drive outputs\r\n",
+                "------------------\r\n",
+                "PB1 (BCM 4):  {}\r\n",
+                "PB2 (BCM 17): {}\r\n",
+                "PB3 (BCM 27): {}\r\n",
+                "RESET (BCM 6): {}\r\n\r\n",
             ),
             connection,
             comparison,
@@ -171,17 +171,17 @@ impl Tui {
             level(gpio.reset),
         )?;
 
-        writeln!(stdout, "State change log (last 10)")?;
-        writeln!(stdout, "--------------------------")?;
-        writeln!(
+        write!(stdout, "State change log (last 10)\r\n")?;
+        write!(stdout, "--------------------------\r\n")?;
+        write!(
             stdout,
-            "{:<13} {:<6} {}",
+            "{:<13} {:<6} {}\r\n",
             "Timestamp", "Source", "Transition"
         )?;
         for entry in &self.state_log {
-            writeln!(
+            write!(
                 stdout,
-                "{:<13} {:<6} {} -> {}",
+                "{:<13} {:<6} {} -> {}\r\n",
                 timestamp(entry.timestamp),
                 entry.source,
                 entry.previous,
