@@ -3,6 +3,12 @@ use std::collections::VecDeque;
 use std::io::{self, Write};
 use std::time::{Duration, Instant};
 
+const LOG_CAPACITY: usize = 20;
+const ANSI_CYAN: &str = "\x1b[36m";
+const ANSI_MAGENTA: &str = "\x1b[35m";
+const ANSI_WHITE: &str = "\x1b[37m";
+const ANSI_RESET: &str = "\x1b[0m";
+
 pub(crate) struct Tui {
     refresh_interval: Duration,
     next_draw: Instant,
@@ -23,7 +29,7 @@ impl Tui {
             refresh_interval,
             next_draw: Instant::now(),
             started_at: Instant::now(),
-            state_log: VecDeque::with_capacity(10),
+            state_log: VecDeque::with_capacity(LOG_CAPACITY),
         }
     }
 
@@ -53,7 +59,7 @@ impl Tui {
     }
 
     fn push_log_entry(&mut self, source: &'static str, previous: String, current: String) {
-        if self.state_log.len() == 10 {
+        if self.state_log.len() == LOG_CAPACITY {
             self.state_log.pop_front();
         }
         self.state_log.push_back(StateLogEntry {
@@ -171,7 +177,7 @@ impl Tui {
             level(gpio.reset),
         )?;
 
-        write!(stdout, "State change log (last 10)\r\n")?;
+        write!(stdout, "State change log (last {LOG_CAPACITY})\r\n")?;
         write!(stdout, "--------------------------\r\n")?;
         write!(
             stdout,
@@ -179,9 +185,14 @@ impl Tui {
             "Timestamp", "Source", "Transition"
         )?;
         for entry in &self.state_log {
+            let color = match entry.source {
+                "TWIN" => ANSI_CYAN,
+                "UART" => ANSI_MAGENTA,
+                _ => ANSI_WHITE,
+            };
             write!(
                 stdout,
-                "{:<13} {:<6} {} -> {}\r\n",
+                "{color}{:<13} {:<6} {} -> {}{ANSI_RESET}\r\n",
                 timestamp(entry.timestamp),
                 entry.source,
                 entry.previous,
@@ -204,7 +215,11 @@ fn timestamp(elapsed: Duration) -> String {
 }
 
 fn level(high: bool) -> &'static str {
-    if high { "HIGH" } else { "LOW" }
+    if high {
+        "HIGH"
+    } else {
+        "LOW"
+    }
 }
 
 fn button_bits(state: GpioOutputState) -> u8 {

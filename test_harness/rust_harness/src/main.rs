@@ -212,6 +212,18 @@ impl ControlGpio {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
 struct RawModeGuard;
 
 impl RawModeGuard {
@@ -251,14 +263,24 @@ impl TwinGpio {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let gpio = Gpio::new()?;
+
+    
     let mut control_gpio = ControlGpio::new(&gpio)?;
+
+
     let twin_gpio = TwinGpio::new(&gpio)?;
+
+
     let shared_twin_state = Arc::new(RwLock::new(TwinState {
         current_state: TimerStates::Idle,
         prev_state: TimerStates::Idle,
         ..TwinState::default()
     }));
+
+
     let (twin_transition_tx, twin_transition_rx) = mpsc::channel();
+
+
     let (reset_tx, reset_rx) = mpsc::channel();
 
     let twin_state_writer = Arc::clone(&shared_twin_state);
@@ -288,6 +310,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         &initial_twin_state,
         previous_gpio_outputs,
     )?;
+
+
+
+
+
+
+
+
+
+
+
 
     loop {
         if event::poll(Duration::ZERO)? {
@@ -423,6 +456,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #[derive(Default)]
 struct UartReader {
