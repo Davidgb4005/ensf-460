@@ -423,11 +423,9 @@ fn cycle_digital_twin(
                 if current_time >= emulator_state.deadline {
                     emulator_state.request_state = TimerStates::IdleToReset;
                 }
-            } 
-            else if digital_state.preset_time > 0{
-                    emulator_state.request_state = TimerStates::IdleToRun;
-            }
-            else{
+            } else if digital_state.preset_time > 0 {
+                emulator_state.request_state = TimerStates::IdleToRun;
+            } else {
                 emulator_state.request_state = TimerStates::IdleEntry;
             }
         }
@@ -466,11 +464,17 @@ fn cycle_digital_twin(
         TimerStates::RunTransition => {
             digital_state.led_1_state = LedState::Off;
             digital_state.led_2_state = LedState::Off;
-            emulator_state.request_state = if digital_state.elapsed_time == 0 {
-                TimerStates::RunToAlarm
-            } else {
-                TimerStates::RunToPause
-            };
+            if digital_state.elapsed_time == 0 {
+                emulator_state.request_state = TimerStates::RunToAlarm
+            } 
+            else if (buttons & 0x4 != 0) {
+                if current_time >= emulator_state.deadline {
+                    emulator_state.request_state = TimerStates::RunToClear;
+                }
+            }
+            else{
+                emulator_state.request_state = TimerStates::RunToPause;
+            }
         }
         TimerStates::RunToAlarm => emulator_state.request_state = TimerStates::AlarmEntry,
         TimerStates::RunToPause => emulator_state.request_state = TimerStates::PauseEntry,
@@ -487,8 +491,6 @@ fn cycle_digital_twin(
             }
         }
         TimerStates::PauseTransition => {
-            digital_state.led_1_state = LedState::Off;
-            digital_state.led_2_state = LedState::Off;
             if buttons & 0x4 != 0 {
                 if current_time >= emulator_state.deadline {
                     emulator_state.request_state = TimerStates::PauseToClear;
