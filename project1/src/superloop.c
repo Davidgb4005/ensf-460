@@ -50,7 +50,7 @@ static ring_buffer_s tx_buffer = {
     .error = ERROR_NONE,
 };
 
-static const uint16_t input[] = {11, 9, 10 , 15 , 16};
+static const uint16_t input[] = {11, 9, 10, 15, 16};
 static const uint16_t output[] = {13, 14};
 static char err_msg[128];
 
@@ -84,8 +84,6 @@ static uint16_t read_control_register(void)
            (push_button[1].state_bits.pb_current_state << 1) |
            (push_button[2].state_bits.pb_current_state << 2);
 }
-
-
 
 static int16_t clamp_preset_value(int16_t value)
 {
@@ -212,7 +210,8 @@ error_e superloop_setup(void)
 error_e superloop_loop(void)
 {
 
-    if(gpio_digital_read(16)){
+    if (gpio_digital_read(16))
+    {
         __asm__ volatile("reset");
     }
 
@@ -333,7 +332,8 @@ error_e superloop_loop(void)
         {
             request_state = TIMER_IDLE_TO_RUN;
         }
-        else{
+        else
+        {
             request_state = TIMER_IDLE_ENTRY;
         }
         break;
@@ -371,6 +371,7 @@ error_e superloop_loop(void)
     case TIMER_RUN:
         if (elapsed_value == 0 || (buttons & 0x4) != 0)
         {
+            delay_ms = CLEAR_DELAY_MS;
             request_state = TIMER_RUN_TRANSITION;
         }
         if (delay_elapsed(now))
@@ -382,11 +383,27 @@ error_e superloop_loop(void)
             selected_message = messages[UART_COUNT_FORMAT];
         }
         break;
+
     case TIMER_RUN_TRANSITION:
         led_off(&led[0]);
         led_off(&led[1]);
-        request_state = elapsed_value == 0 ? TIMER_RUN_TO_ALARM : TIMER_RUN_TO_PAUSE;
+        if (elapsed_value == 0)
+        {
+            request_state = TIMER_RUN_TO_ALARM;
+        }
+        else if (buttons & 0x4 != 0)
+        {
+            if (delay_elapsed(now))
+            {
+                request_state = TIMER_RUN_TO_CLEAR;
+            }
+        }
+        else
+        {
+            request_state = TIMER_RUN_TO_PAUSE;
+        }
         break;
+
     case TIMER_RUN_TO_ALARM:
         request_state = TIMER_ALARM_ENTRY;
         break;
@@ -405,7 +422,7 @@ error_e superloop_loop(void)
         selected_message = messages[UART_COUNT_PAUSED_FORMAT];
         break;
     case TIMER_PAUSE:
-        if ((buttons & 0x4u) != 0)
+        if ((buttons & 0x4) != 0)
         {
             request_state = TIMER_PAUSE_TRANSITION;
         }
@@ -413,7 +430,7 @@ error_e superloop_loop(void)
     case TIMER_PAUSE_TRANSITION:
         led_off(&led[0]);
         led_off(&led[1]);
-        if ((buttons & 0x4u) != 0)
+        if ((buttons & 0x4) != 0)
         {
             if (delay_elapsed(now))
             {
@@ -456,7 +473,7 @@ error_e superloop_loop(void)
         selected_message = messages[UART_ALARM_FORMAT];
         break;
     case TIMER_ALARM:
-        if ((buttons & 0x3u) != 0)
+        if ((buttons & 0x3) != 0)
         {
             request_state = TIMER_ALARM_TRANSITION;
         }

@@ -796,6 +796,7 @@ fn cycle_digital_twin(
         TimerStates::Run => {
             if digital_state.elapsed_time == 0 || buttons & 0x4 != 0 {
                 emulator_state.request_state = TimerStates::RunTransition;
+                emulator_state.delay = CLEAR_DELAY_MS;
             }
             if current_time >= emulator_state.deadline {
                 reset_deadline(current_time, emulator_state);
