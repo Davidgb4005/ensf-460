@@ -386,7 +386,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     {
                         control_gpio.trigger_decrement_second();
                     }
-                    else if key.code == KeyCode::Char('s')
+                    else if key.code == KeyCode::Char('S')
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_reset();
@@ -395,7 +395,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     {
                         control_gpio.trigger_start();
                     }
-                    else if key.code == KeyCode::Char('p')
+                    else if key.code == KeyCode::Char('P')
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_clear();
