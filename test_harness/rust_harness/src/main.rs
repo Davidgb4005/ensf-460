@@ -1,5 +1,7 @@
 mod tui;
 
+use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use rppal::gpio::{Gpio, InputPin, OutputPin};
 use serialport::SerialPort;
 use std::collections::VecDeque;
@@ -17,6 +19,8 @@ const PUSHBUTTON_3_INPUT: u8 = 24;
 const PUSHBUTTON_1_OUTPUT: u8 = 4;
 const PUSHBUTTON_2_OUTPUT: u8 = 17;
 const PUSHBUTTON_3_OUTPUT: u8 = 27;
+const RESET_OUTPUT: u8 = 6;
+const RESET_PULSE_MS: u64 = 50;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
 const COUNT_DELAY_MS: u32 = 1000;
@@ -160,10 +164,13 @@ pub(crate) struct GpioOutputState {
     pub(crate) pb_1: bool,
     pub(crate) pb_2: bool,
     pub(crate) pb_3: bool,
+    pub(crate) reset: bool,
 }
 
 struct ControlGpio {
     push_button_outputs: [OutputPin; 3],
+    reset_output: OutputPin,
+    reset_deadline: Option<Instant>,
 }
 
 impl ControlGpio {
@@ -174,7 +181,24 @@ impl ControlGpio {
                 gpio.get(PUSHBUTTON_2_OUTPUT)?.into_output_low(),
                 gpio.get(PUSHBUTTON_3_OUTPUT)?.into_output_low(),
             ],
+            reset_output: gpio.get(RESET_OUTPUT)?.into_output_low(),
+            reset_deadline: None,
         })
+    }
+
+    fn trigger_reset(&mut self) {
+        self.reset_output.set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+
+    fn update(&mut self) {
+        if self
+            .reset_deadline
+            .is_some_and(|deadline| Instant::now() >= deadline)
+        {
+            self.reset_output.set_low();
+            self.reset_deadline = None;
+        }
     }
 
     fn output_state(&self) -> GpioOutputState {
@@ -182,7 +206,23 @@ impl ControlGpio {
             pb_1: self.push_button_outputs[0].is_set_high(),
             pb_2: self.push_button_outputs[1].is_set_high(),
             pb_3: self.push_button_outputs[2].is_set_high(),
+            reset: self.reset_output.is_set_high(),
         }
+    }
+}
+
+struct RawModeGuard;
+
+impl RawModeGuard {
+    fn new() -> io::Result<Self> {
+        enable_raw_mode()?;
+        Ok(Self)
+    }
+}
+
+impl Drop for RawModeGuard {
+    fn drop(&mut self) {
+        let _ = disable_raw_mode();
     }
 }
 
@@ -210,7 +250,7 @@ impl TwinGpio {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let gpio = Gpio::new()?;
-    let control_gpio = ControlGpio::new(&gpio)?;
+    let mut control_gpio = ControlGpio::new(&gpio)?;
     let twin_gpio = TwinGpio::new(&gpio)?;
     let shared_twin_state = Arc::new(RwLock::new(TwinState {
         current_state: TimerStates::Idle,
@@ -218,9 +258,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         ..TwinState::default()
     }));
     let (twin_transition_tx, twin_transition_rx) = mpsc::channel();
+    let (reset_tx, reset_rx) = mpsc::channel();
 
     let twin_state_writer = Arc::clone(&shared_twin_state);
-    thread::spawn(move || run_digital_twin(twin_gpio, twin_state_writer, twin_transition_tx));
+    thread::spawn(move || {
+        run_digital_twin(twin_gpio, twin_state_writer, twin_transition_tx, reset_rx)
+    });
 
     let mut port = serialport::new(UART_PORT, UART_BAUD)
         .timeout(Duration::from_millis(10))
@@ -231,8 +274,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut uart_error = None;
     let mut tui = tui::Tui::new(Duration::from_millis(100));
     let mut previous_gpio_outputs = control_gpio.output_state();
+    let _raw_mode = RawModeGuard::new()?;
 
     loop {
+        if event::poll(Duration::ZERO)? {
+            if let Event::Key(key) = event::read()? {
+                if key.kind == KeyEventKind::Press {
+                    if key.code == KeyCode::Char('c')
+                        && key.modifiers.contains(KeyModifiers::CONTROL)
+                    {
+                        break;
+                    }
+                    control_gpio.trigger_reset();
+                    let _ = reset_tx.send(());
+                    tui.record_reset();
+                }
+            }
+        }
+        control_gpio.update();
+
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
                 if uart_connected {
@@ -267,7 +327,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .unwrap_or_else(|poisoned| poisoned.into_inner())
             .clone();
         let gpio_outputs = control_gpio.output_state();
-        if gpio_outputs != previous_gpio_outputs {
+        if gpio_outputs.pb_1 != previous_gpio_outputs.pb_1
+            || gpio_outputs.pb_2 != previous_gpio_outputs.pb_2
+            || gpio_outputs.pb_3 != previous_gpio_outputs.pb_3
+        {
             tui.record_button_change(previous_gpio_outputs, gpio_outputs);
             previous_gpio_outputs = gpio_outputs;
         }
@@ -283,6 +346,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         )?;
         thread::sleep(Duration::from_millis(1));
     }
+
+    Ok(())
 }
 
 #[derive(Default)]
@@ -374,12 +439,20 @@ impl EmulatorState {
             request_state: TimerStates::Idle,
         }
     }
+
+    fn reset() -> Self {
+        Self {
+            request_state: TimerStates::InitEntry,
+            ..Self::new()
+        }
+    }
 }
 
 fn run_digital_twin(
     gpio: TwinGpio,
     shared_state: Arc<RwLock<TwinState>>,
     transition_tx: mpsc::Sender<TwinState>,
+    reset_rx: mpsc::Receiver<()>,
 ) {
     let mut digital_state = TwinState {
         current_state: TimerStates::Idle,
@@ -389,6 +462,19 @@ fn run_digital_twin(
     let mut emulator_state = EmulatorState::new();
 
     loop {
+        if reset_rx.try_recv().is_ok() {
+            let previous_state = digital_state.current_state.clone();
+            digital_state = TwinState {
+                current_state: TimerStates::InitEntry,
+                prev_state: previous_state,
+                ..TwinState::default()
+            };
+            emulator_state = EmulatorState::reset();
+            if transition_tx.send(digital_state.clone()).is_err() {
+                return;
+            }
+        }
+
         let previous_state = digital_state.current_state.clone();
         cycle_digital_twin(&mut digital_state, &gpio, &mut emulator_state);
 

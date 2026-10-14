@@ -48,6 +48,10 @@ impl Tui {
         );
     }
 
+    pub(crate) fn record_reset(&mut self) {
+        self.push_log_entry("KEY", "Reset LOW".to_owned(), "Reset HIGH".to_owned());
+    }
+
     fn push_log_entry(&mut self, source: &'static str, previous: String, current: String) {
         if self.state_log.len() == 10 {
             self.state_log.pop_front();
@@ -108,6 +112,7 @@ impl Tui {
                 "\x1b[2J\x1b[H",
                 "Timer test harness\n",
                 "==================\n",
+                "Press any key to reset; Ctrl-C exits\n",
                 "UART: {:<18} Comparison: {}\n",
                 "UART error: {}\n\n",
                 "{:<18} {:<24} {:<24}\n",
@@ -124,7 +129,8 @@ impl Tui {
                 "------------------\n",
                 "PB1 (BCM 4):  {}\n",
                 "PB2 (BCM 17): {}\n",
-                "PB3 (BCM 27): {}\n\n",
+                "PB3 (BCM 27): {}\n",
+                "RESET (BCM 6): {}\n\n",
             ),
             connection,
             comparison,
@@ -162,6 +168,7 @@ impl Tui {
             level(gpio.pb_1),
             level(gpio.pb_2),
             level(gpio.pb_3),
+            level(gpio.reset),
         )?;
 
         writeln!(stdout, "State change log (last 10)")?;

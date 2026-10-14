@@ -1,2 +1,14 @@
+    Checking smallvec v1.16.3
+    Checking linux-raw-sys v0.12.1
+    Checking lock_api v0.4.14
+    Checking mio v1.2.4
+    Checking signal-hook-registry v1.4.8
+    Checking serialport v4.10.1
+    Checking signal-hook v0.3.18
+    Checking parking_lot_core v0.9.12
+    Checking signal-hook-mio v0.2.5
+    Checking parking_lot v0.12.5
+    Checking rustix v1.1.5
+    Checking crossterm v0.29.0
     Checking rust_harness v0.1.0 (/home/dave/ensf-460/test_harness/rust_harness)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.95s

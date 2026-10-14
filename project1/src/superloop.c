@@ -50,8 +50,8 @@ static ring_buffer_s tx_buffer = {
     .error = ERROR_NONE,
 };
 
-static const uint16_t input[] = {11, 9, 10};
-static const uint16_t output[] = {13, 14, 15, 16};
+static const uint16_t input[] = {11, 9, 10 , 15 , 16};
+static const uint16_t output[] = {13, 14};
 static const uint16_t state_output[] = {15, 16};
 static char err_msg[128];
 
@@ -253,6 +253,11 @@ error_e superloop_setup(void)
 
 error_e superloop_loop(void)
 {
+
+    if(gpio_digital_read(15)){
+        __builtin_reset();    
+    }
+
     const char *selected_message = NULL;
     uint16_t buttons;
     uint16_t now;
