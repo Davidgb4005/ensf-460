@@ -13,7 +13,7 @@
 #define ERROR_PRINT(fmt, ...)                                                         \
     do                                                                                \
     {                                                                                 \
-        snprintf(err_msg, sizeof(err_msg), "Line %d: " fmt, __LINE__, ##__VA_ARGS__); \
+        snprintf(err_msg, sizeof(err_msg), " %s,Line %d: " fmt,__FILE__, __LINE__, ##__VA_ARGS__); \
         uart_write_string(err_msg);                                                   \
     } while (0)
 
@@ -161,6 +161,7 @@ error_e superloop_setup(void)
 {
     AD1PCFG = 0xffff; // Disable AN11; enable RB13 digital input
 
+    ERROR_PRINT("Output Pin %u Setup Failed", output[i]);
     if (uart_init(&rx_buffer, &tx_buffer) == 0)
     {
         ERROR_PRINT("%s", "UART Setup Complete");
