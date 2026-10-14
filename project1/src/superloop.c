@@ -87,9 +87,6 @@ error_e superloop_loop(void)
 
         start_time = now;
         counter = 0;
-        push_button[0].state_bits.most_recent_edge = DEBOUNCE_NO_EDGE;
-        push_button[1].state_bits.most_recent_edge = DEBOUNCE_NO_EDGE;
-        push_button[2].state_bits.most_recent_edge = DEBOUNCE_NO_EDGE;
     }
 
     switch (state)
