@@ -24,8 +24,8 @@ const PUSHBUTTON_1_OUTPUT: u8 = 4;
 const PUSHBUTTON_2_OUTPUT: u8 = 17;
 const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6;
-const RESET_PULSE_MS: u64 = 3000;
-const CLEAR_PULSE_MS: u64 = 3000;
+const RESET_PULSE_MS: u64 = 3125;
+const CLEAR_PULSE_MS: u64 = 3125;
 const PULSE_MS: u64 = 200;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
@@ -353,7 +353,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                     if key.code == KeyCode::Char('r')
                     {
                         control_gpio.trigger_hard_reset();
-                        let _ = reset_tx.send(());
                         tui.record_reset();
                         let twin_snapshot = shared_twin_state
                             .read()
