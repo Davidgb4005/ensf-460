@@ -1,3 +1,4 @@
+mod event_log;
 mod tui;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
@@ -274,7 +275,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut uart_error = None;
     let mut tui = tui::Tui::new(Duration::from_millis(100));
     let mut previous_gpio_outputs = control_gpio.output_state();
+    let mut event_log = event_log::EventLogger::new("harness-events.log")?;
     let _raw_mode = RawModeGuard::new()?;
+
+    let initial_twin_state = shared_twin_state
+        .read()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .clone();
+    event_log.log(
+        "SESSION_START",
+        &uart_state,
+        &initial_twin_state,
+        previous_gpio_outputs,
+    )?;
 
     loop {
         if event::poll(Duration::ZERO)? {
@@ -288,6 +301,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                     control_gpio.trigger_reset();
                     let _ = reset_tx.send(());
                     tui.record_reset();
+                    let twin_snapshot = shared_twin_state
+                        .read()
+                        .unwrap_or_else(|poisoned| poisoned.into_inner())
+                        .clone();
+                    let gpio_outputs = control_gpio.output_state();
+                    event_log.log(
+                        "KEY_RESET: BCM 6 LOW -> HIGH",
+                        &uart_state,
+                        &twin_snapshot,
+                        gpio_outputs,
+                    )?;
+                    previous_gpio_outputs.reset = true;
                 }
             }
         }
@@ -295,8 +320,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
+                let mut transition_event = None;
                 if uart_connected {
                     if new_uart_state.current_state != uart_state.current_state {
+                        transition_event = Some(format!(
+                            "UART_STATE: {:?} -> {:?}",
+                            uart_state.current_state, new_uart_state.current_state
+                        ));
                         tui.record_state_change(
                             "UART",
                             &uart_state.current_state,
@@ -304,11 +334,28 @@ fn main() -> Result<(), Box<dyn Error>> {
                         );
                     }
                 } else if new_uart_state.current_state != new_uart_state.prev_state {
+                    transition_event = Some(format!(
+                        "UART_STATE: {:?} -> {:?}",
+                        new_uart_state.prev_state, new_uart_state.current_state
+                    ));
                     tui.record_state_change(
                         "UART",
                         &new_uart_state.prev_state,
                         &new_uart_state.current_state,
                     );
+                }
+
+                if let Some(event) = transition_event {
+                    let twin_snapshot = shared_twin_state
+                        .read()
+                        .unwrap_or_else(|poisoned| poisoned.into_inner())
+                        .clone();
+                    event_log.log(
+                        &event,
+                        &new_uart_state,
+                        &twin_snapshot,
+                        control_gpio.output_state(),
+                    )?;
                 }
                 uart_state = new_uart_state;
                 uart_connected = true;
@@ -320,6 +367,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         while let Ok(transition) = twin_transition_rx.try_recv() {
             tui.record_state_change("TWIN", &transition.prev_state, &transition.current_state);
+            let event = format!(
+                "TWIN_STATE: {:?} -> {:?}",
+                transition.prev_state, transition.current_state
+            );
+            event_log.log(
+                &event,
+                &uart_state,
+                &transition,
+                control_gpio.output_state(),
+            )?;
         }
 
         let twin_snapshot = shared_twin_state
@@ -332,7 +389,24 @@ fn main() -> Result<(), Box<dyn Error>> {
             || gpio_outputs.pb_3 != previous_gpio_outputs.pb_3
         {
             tui.record_button_change(previous_gpio_outputs, gpio_outputs);
-            previous_gpio_outputs = gpio_outputs;
+            let event = format!(
+                "GPIO_BUTTONS: {:03b} -> {:03b}",
+                gpio_button_bits(previous_gpio_outputs),
+                gpio_button_bits(gpio_outputs)
+            );
+            event_log.log(&event, &uart_state, &twin_snapshot, gpio_outputs)?;
+            previous_gpio_outputs.pb_1 = gpio_outputs.pb_1;
+            previous_gpio_outputs.pb_2 = gpio_outputs.pb_2;
+            previous_gpio_outputs.pb_3 = gpio_outputs.pb_3;
+        }
+        if gpio_outputs.reset != previous_gpio_outputs.reset {
+            let event = if gpio_outputs.reset {
+                "GPIO_RESET: LOW -> HIGH"
+            } else {
+                "GPIO_RESET: HIGH -> LOW"
+            };
+            event_log.log(event, &uart_state, &twin_snapshot, gpio_outputs)?;
+            previous_gpio_outputs.reset = gpio_outputs.reset;
         }
         let states_match = uart_connected.then_some(uart_state == twin_snapshot);
 
@@ -687,4 +761,8 @@ fn switch_state(on: bool) -> SwitchState {
     } else {
         SwitchState::Off
     }
+}
+
+fn gpio_button_bits(state: GpioOutputState) -> u8 {
+    (state.pb_1 as u8) | ((state.pb_2 as u8) << 1) | ((state.pb_3 as u8) << 2)
 }

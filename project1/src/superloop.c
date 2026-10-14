@@ -254,10 +254,7 @@ error_e superloop_setup(void)
 error_e superloop_loop(void)
 {
 
-    if(gpio_digital_read(15)){
-        for (int i = 0; i<5000 ; i++){
-            led_on(&led[2]);
-        }
+    if(gpio_digital_read(16)){
         __asm__ volatile("reset");
     }
 
