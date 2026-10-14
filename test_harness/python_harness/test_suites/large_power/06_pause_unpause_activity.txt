@@ -1,0 +1,19 @@
+# Power profile: repeated pause/unpause while timing.
+press pb1 1.30
+wait 1.60
+press pb1+pb2 0.20
+wait_until state RUN 2.00
+wait 1.00
+press pb3 0.20
+wait_until state PAUSE 2.00
+wait 2.00
+press pb3 0.20
+wait_until state RUN 2.00
+wait 1.00
+press pb3 0.20
+wait_until state PAUSE 2.00
+wait 2.00
+press pb3 0.20
+wait_until state RUN 2.00
+wait 2.00
+

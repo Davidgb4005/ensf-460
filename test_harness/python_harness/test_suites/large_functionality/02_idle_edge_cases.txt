@@ -1,0 +1,22 @@
+# Try invalid starts, decrement below zero, reset clear, then valid start.
+press pb1+pb2 0.20
+wait 0.70
+expect state IDLE
+expect preset 0
+press pb2+pb3 0.50
+wait 0.90
+expect preset 0
+press pb1 0.75
+wait 1.10
+expect_range preset 1 5
+press pb1+pb2 4.50
+wait 5.30
+expect state IDLE
+expect preset 0
+press pb1 0.35
+wait 0.70
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+wait_until state ALARM 5.00
+press pb2 0.20
+wait_until state IDLE 1.50

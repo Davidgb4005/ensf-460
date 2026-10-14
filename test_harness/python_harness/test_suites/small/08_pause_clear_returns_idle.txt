@@ -1,0 +1,10 @@
+# Holding PB3 in pause clears elapsed and returns to idle.
+press pb1 0.55
+wait 0.90
+press pb1+pb2 0.20
+wait_until state RUN 1.50
+press pb3 3.35
+wait_until state IDLE 5.00
+expect elapsed 0
+expect led1_state OFF
+

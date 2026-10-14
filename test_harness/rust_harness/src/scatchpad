@@ -1,0 +1,69 @@
+
+    match path_to_tests {
+        Some(path) => test_mode(path, port.as_mut()),
+        None => manual_mode(port.as_mut()),
+    }
+
+
+fn test_mode(path: String, port: &mut dyn SerialPort) {
+    println!("Test file: {path}");
+
+    match uart_read(port) {
+        Ok(Some(state)) => println!("{state:?}"),
+        Ok(None) => println!("No packet received"),
+        Err(e) => eprintln!("Serial error: {e}"),
+    }
+}
+
+fn manual_mode(port: &mut dyn SerialPort) {
+    loop {
+        match uart_read(port) {
+            Ok(Some(state)) => println!("{state:?}"),
+            Ok(None) => {}
+            Err(e) => {
+                eprintln!("Serial error: {e}");
+                break;
+            }
+        }
+    }
+}
+
+fn uart_read(port: &mut dyn SerialPort) -> Result<Option<TwinState>, io::Error> {
+    let mut buffer = [0u8; 128];
+    let mut packet = Vec::new();
+    let mut prev_byte = 0u8;
+
+    loop {
+        match port.read(&mut buffer) {
+            Ok(n) => {
+                for &byte in &buffer[..n] {
+                    if packet.is_empty() {
+                        if prev_byte == 0xAA && byte == 0x55 {
+                            packet.extend_from_slice(&[0xAA, 0x55]);
+                        }
+                    } else {
+                        packet.push(byte);
+
+                        if packet.len() == 10 {
+                            let data: [u8; 10] = packet.as_slice().try_into().unwrap();
+
+                            return Ok(decode_packet(&data));
+                        }
+                    }
+
+                    prev_byte = byte;
+                }
+            }
+
+            Err(ref e) if e.kind() == io::ErrorKind::TimedOut => {}
+
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+
+
+
+
+

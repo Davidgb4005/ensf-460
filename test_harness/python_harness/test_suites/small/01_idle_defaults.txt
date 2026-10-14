@@ -1,0 +1,7 @@
+# Idle starts clean.
+expect state IDLE
+expect preset 0
+expect elapsed 0
+expect led1_state OFF
+expect led2_state OFF
+

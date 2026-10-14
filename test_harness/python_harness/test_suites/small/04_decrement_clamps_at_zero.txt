@@ -1,0 +1,7 @@
+# PB1+PB3 decrements seconds, but preset must not go below zero.
+press pb1+pb3 0.45
+wait 0.80
+expect state IDLE
+expect preset 0
+expect elapsed 0
+
