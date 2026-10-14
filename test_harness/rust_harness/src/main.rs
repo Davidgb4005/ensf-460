@@ -237,9 +237,7 @@ impl ControlGpio {
     }
 
     fn update(&mut self) {
-        if self
-            .reset_deadline
-            .is_some_and(|deadline| Instant::now() >= deadline)
+        if self.reset_deadline.is_some_and(|deadline| Instant::now() >= deadline)
         {
             self.push_button_outputs[0].set_low();
             self.push_button_outputs[1].set_low();
@@ -420,8 +418,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 }
             }
+            else{
+            control_gpio.update();
+            }
         }
-        control_gpio.update();
 
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
