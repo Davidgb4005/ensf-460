@@ -118,7 +118,7 @@ impl Tui {
                 "\x1b[2J\x1b[H",
                 "Timer test harness\r\n",
                 "==================\r\n",
-                "Press any key to reset; Ctrl-C exits\r\n",
+                "↑ ↓ Increments, ↑ ↓ + Shift Fast, s To Start/Reset, P to Pause/Clear; Ctrl-C exits\r\n",
                 "UART: {:<18} Comparison: {}\r\n",
                 "UART error: {}\r\n\r\n",
                 "{:<18} {:<24} {:<24}\r\n",

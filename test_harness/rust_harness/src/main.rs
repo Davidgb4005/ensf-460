@@ -195,11 +195,44 @@ impl ControlGpio {
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
     }
 
+    fn trigger_incrment_second(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+    fn trigger_incrment_minute(&mut self) {
+        self.push_button_outputs[1].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+    fn trigger_decrement_second(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.push_button_outputs[2].set_high();
+        self.reset_output.set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+    fn trigger_decrement_minute(&mut self) {
+        self.push_button_outputs[1].set_high();
+        self.push_button_outputs[2].set_high();
+        self.reset_output.set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+    fn trigger_start(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.push_button_outputs[1].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+    fn trigger_pause(&mut self) {
+        self.push_button_outputs[2].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+
     fn update(&mut self) {
         if self
             .reset_deadline
             .is_some_and(|deadline| Instant::now() >= deadline)
         {
+            self.push_button_outputs[0].set_low();
+            self.push_button_outputs[1].set_low();
+            self.push_button_outputs[2].set_low();
             self.reset_output.set_low();
             self.reset_deadline = None;
         }
@@ -306,7 +339,37 @@ fn main() -> Result<(), Box<dyn Error>> {
                     {
                         break;
                     }
-                    control_gpio.trigger_reset();
+                    if key.code == KeyCode::Char('r')
+                    {
+                        control_gpio.trigger_reset();
+                    }
+                    if key.code == KeyCode::Up
+                    {
+                        control_gpio.trigger_incrment_second();
+                    }
+                    if key.code == KeyCode::Up
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        control_gpio.trigger_incrment_minute();
+                    }
+                    if key.code == KeyCode::Down
+                    {
+                        control_gpio.trigger_decrement_second();
+                    }
+                    if key.code == KeyCode::Down
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        control_gpio.trigger_decrement_minute();
+                    }
+                    if key.code == KeyCode::Char('s')
+                    {
+                        control_gpio.trigger_start();
+                    }
+                    if key.code == KeyCode::Char('p')
+                    {
+                        control_gpio.trigger_pause();
+                    }
+
                     let _ = reset_tx.send(());
                     tui.record_reset();
                     let twin_snapshot = shared_twin_state
