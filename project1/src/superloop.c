@@ -372,7 +372,7 @@ error_e superloop_loop(void)
             request_state = TIMER_IDLE_TO_RUN;
         }
         else{
-            request_state = TIMER_IDLE;
+            request_state = TIMER_IDLE_ENTRY;
         }
         break;
     case TIMER_IDLE_TO_RUN:

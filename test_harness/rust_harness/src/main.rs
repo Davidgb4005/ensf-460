@@ -5,7 +5,7 @@ use serialport::SerialPort;
 use std::collections::VecDeque;
 use std::error::Error;
 use std::io;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, mpsc};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -217,9 +217,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         prev_state: TimerStates::Idle,
         ..TwinState::default()
     }));
+    let (twin_transition_tx, twin_transition_rx) = mpsc::channel();
 
     let twin_state_writer = Arc::clone(&shared_twin_state);
-    thread::spawn(move || run_digital_twin(twin_gpio, twin_state_writer));
+    thread::spawn(move || run_digital_twin(twin_gpio, twin_state_writer, twin_transition_tx));
 
     let mut port = serialport::new(UART_PORT, UART_BAUD)
         .timeout(Duration::from_millis(10))
@@ -233,12 +234,31 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
+                if uart_connected {
+                    if new_uart_state.current_state != uart_state.current_state {
+                        tui.record_state_change(
+                            "UART",
+                            &uart_state.current_state,
+                            &new_uart_state.current_state,
+                        );
+                    }
+                } else if new_uart_state.current_state != new_uart_state.prev_state {
+                    tui.record_state_change(
+                        "UART",
+                        &new_uart_state.prev_state,
+                        &new_uart_state.current_state,
+                    );
+                }
                 uart_state = new_uart_state;
                 uart_connected = true;
                 uart_error = None;
             }
             Ok(None) => {}
             Err(error) => uart_error = Some(error.to_string()),
+        }
+
+        while let Ok(transition) = twin_transition_rx.try_recv() {
+            tui.record_state_change("TWIN", &transition.prev_state, &transition.current_state);
         }
 
         let twin_snapshot = shared_twin_state
@@ -351,7 +371,11 @@ impl EmulatorState {
     }
 }
 
-fn run_digital_twin(gpio: TwinGpio, shared_state: Arc<RwLock<TwinState>>) {
+fn run_digital_twin(
+    gpio: TwinGpio,
+    shared_state: Arc<RwLock<TwinState>>,
+    transition_tx: mpsc::Sender<TwinState>,
+) {
     let mut digital_state = TwinState {
         current_state: TimerStates::Idle,
         prev_state: TimerStates::Idle,
@@ -360,7 +384,15 @@ fn run_digital_twin(gpio: TwinGpio, shared_state: Arc<RwLock<TwinState>>) {
     let mut emulator_state = EmulatorState::new();
 
     loop {
+        let previous_state = digital_state.current_state.clone();
         cycle_digital_twin(&mut digital_state, &gpio, &mut emulator_state);
+
+        if digital_state.current_state != previous_state
+            && transition_tx.send(digital_state.clone()).is_err()
+        {
+            return;
+        }
+
         *shared_state
             .write()
             .unwrap_or_else(|poisoned| poisoned.into_inner()) = digital_state.clone();
@@ -466,13 +498,11 @@ fn cycle_digital_twin(
             digital_state.led_2_state = LedState::Off;
             if digital_state.elapsed_time == 0 {
                 emulator_state.request_state = TimerStates::RunToAlarm
-            } 
-            else if (buttons & 0x4 != 0) {
+            } else if buttons & 0x4 != 0 {
                 if current_time >= emulator_state.deadline {
                     emulator_state.request_state = TimerStates::RunToClear;
                 }
-            }
-            else{
+            } else {
                 emulator_state.request_state = TimerStates::RunToPause;
             }
         }

@@ -1,10 +1,20 @@
-use crate::{GpioOutputState, TwinState};
+use crate::{GpioOutputState, TimerStates, TwinState};
+use std::collections::VecDeque;
 use std::io::{self, Write};
 use std::time::{Duration, Instant};
 
 pub(crate) struct Tui {
     refresh_interval: Duration,
     next_draw: Instant,
+    started_at: Instant,
+    state_log: VecDeque<StateLogEntry>,
+}
+
+struct StateLogEntry {
+    timestamp: Duration,
+    source: &'static str,
+    previous: String,
+    current: String,
 }
 
 impl Tui {
@@ -12,7 +22,26 @@ impl Tui {
         Self {
             refresh_interval,
             next_draw: Instant::now(),
+            started_at: Instant::now(),
+            state_log: VecDeque::with_capacity(10),
         }
+    }
+
+    pub(crate) fn record_state_change(
+        &mut self,
+        source: &'static str,
+        previous: &TimerStates,
+        current: &TimerStates,
+    ) {
+        if self.state_log.len() == 10 {
+            self.state_log.pop_front();
+        }
+        self.state_log.push_back(StateLogEntry {
+            timestamp: self.started_at.elapsed(),
+            source,
+            previous: format!("{previous:?}"),
+            current: format!("{current:?}"),
+        });
     }
 
     pub(crate) fn draw(
@@ -79,7 +108,7 @@ impl Tui {
                 "------------------\n",
                 "PB1 (BCM 4):  {}\n",
                 "PB2 (BCM 17): {}\n",
-                "PB3 (BCM 27): {}\n",
+                "PB3 (BCM 27): {}\n\n",
             ),
             connection,
             comparison,
@@ -118,8 +147,37 @@ impl Tui {
             level(gpio.pb_2),
             level(gpio.pb_3),
         )?;
+
+        writeln!(stdout, "State change log (last 10)")?;
+        writeln!(stdout, "--------------------------")?;
+        writeln!(
+            stdout,
+            "{:<13} {:<6} {}",
+            "Timestamp", "Source", "Transition"
+        )?;
+        for entry in &self.state_log {
+            writeln!(
+                stdout,
+                "{:<13} {:<6} {} -> {}",
+                timestamp(entry.timestamp),
+                entry.source,
+                entry.previous,
+                entry.current,
+            )?;
+        }
         stdout.flush()
     }
+}
+
+fn timestamp(elapsed: Duration) -> String {
+    let total_seconds = elapsed.as_secs();
+    let hours = total_seconds / 3600;
+    let minutes = (total_seconds % 3600) / 60;
+    let seconds = total_seconds % 60;
+    format!(
+        "{hours:02}:{minutes:02}:{seconds:02}.{:03}",
+        elapsed.subsec_millis()
+    )
 }
 
 fn level(high: bool) -> &'static str {
