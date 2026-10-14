@@ -25,6 +25,8 @@ const PUSHBUTTON_2_OUTPUT: u8 = 17;
 const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6;
 const RESET_PULSE_MS: u64 = 50;
+const CLEAR_PULSE_MS: u64 = 50;
+const PULSE_MS: u64 = 50;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
 const COUNT_DELAY_MS: u32 = 1000;
@@ -190,39 +192,48 @@ impl ControlGpio {
         })
     }
 
-    fn trigger_reset(&mut self) {
+    fn trigger_hard_reset(&mut self) {
         self.reset_output.set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
 
     fn trigger_incrment_second(&mut self) {
         self.push_button_outputs[0].set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
     fn trigger_incrment_minute(&mut self) {
         self.push_button_outputs[1].set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
     fn trigger_decrement_second(&mut self) {
         self.push_button_outputs[0].set_high();
         self.push_button_outputs[2].set_high();
         self.reset_output.set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
     fn trigger_decrement_minute(&mut self) {
         self.push_button_outputs[1].set_high();
         self.push_button_outputs[2].set_high();
         self.reset_output.set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
     fn trigger_start(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.push_button_outputs[1].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_reset(&mut self) {
         self.push_button_outputs[0].set_high();
         self.push_button_outputs[1].set_high();
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
     }
     fn trigger_pause(&mut self) {
         self.push_button_outputs[2].set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_clear(&mut self) {
+        self.push_button_outputs[2].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(CLEAR_PULSE_MS));
     }
 
     fn update(&mut self) {
@@ -379,9 +390,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                     {
                         control_gpio.trigger_start();
                     }
+                    if key.code == KeyCode::Char('S')
+                    {
+                        control_gpio.trigger_start();
+                    }
                     if key.code == KeyCode::Char('p')
                     {
                         control_gpio.trigger_pause();
+                    }
+                    if key.code == KeyCode::Char('P')
+                    {
+                        control_gpio.trigger_clear();
                     }
 
                 }
