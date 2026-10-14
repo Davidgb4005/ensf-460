@@ -209,13 +209,11 @@ impl ControlGpio {
     fn trigger_decrement_second(&mut self) {
         self.push_button_outputs[0].set_high();
         self.push_button_outputs[2].set_high();
-        self.reset_output.set_high();
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
     fn trigger_decrement_minute(&mut self) {
         self.push_button_outputs[1].set_high();
         self.push_button_outputs[2].set_high();
-        self.reset_output.set_high();
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
     fn trigger_start(&mut self) {
