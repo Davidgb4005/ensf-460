@@ -367,9 +367,12 @@ error_e superloop_loop(void)
                 request_state = TIMER_IDLE_TO_RESET;
             }
         }
-        else
+        else if (preset_value > 0)
         {
             request_state = TIMER_IDLE_TO_RUN;
+        }
+        else{
+            request_state = TIMER_IDLE;
         }
         break;
     case TIMER_IDLE_TO_RUN:
@@ -390,6 +393,7 @@ error_e superloop_loop(void)
         request_state = TIMER_RESET_TRANSITION;
         selected_message = messages[UART_CLEAR_FORMAT];
         break;
+
     case TIMER_RESET_TRANSITION:
     case TIMER_RESET_TO_IDLE:
         request_state = TIMER_IDLE_ENTRY;

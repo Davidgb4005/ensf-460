@@ -41,6 +41,20 @@ impl Tui {
             None => "WAITING",
         };
         let error = uart_error.unwrap_or("none");
+        let uart_current = format!("{:?}", uart.current_state);
+        let twin_current = format!("{:?}", twin.current_state);
+        let uart_previous = format!("{:?}", uart.prev_state);
+        let twin_previous = format!("{:?}", twin.prev_state);
+        let uart_led_1 = format!("{:?}", uart.led_1_state);
+        let twin_led_1 = format!("{:?}", twin.led_1_state);
+        let uart_led_2 = format!("{:?}", uart.led_2_state);
+        let twin_led_2 = format!("{:?}", twin.led_2_state);
+        let uart_pb_1 = format!("{:?}", uart.pb_1_state);
+        let twin_pb_1 = format!("{:?}", twin.pb_1_state);
+        let uart_pb_2 = format!("{:?}", uart.pb_2_state);
+        let twin_pb_2 = format!("{:?}", twin.pb_2_state);
+        let uart_pb_3 = format!("{:?}", uart.pb_3_state);
+        let twin_pb_3 = format!("{:?}", twin.pb_3_state);
 
         let mut stdout = io::stdout().lock();
         write!(
@@ -52,13 +66,13 @@ impl Tui {
                 "UART: {:<18} Comparison: {}\n",
                 "UART error: {}\n\n",
                 "{:<18} {:<24} {:<24}\n",
-                "{:<18} {:<24?} {:<24?}\n",
-                "{:<18} {:<24?} {:<24?}\n",
-                "{:<18} {:<24?} {:<24?}\n",
-                "{:<18} {:<24?} {:<24?}\n",
-                "{:<18} {:<24?} {:<24?}\n",
-                "{:<18} {:<24?} {:<24?}\n",
-                "{:<18} {:<24?} {:<24?}\n",
+                "{:<18} {:<24} {:<24}\n",
+                "{:<18} {:<24} {:<24}\n",
+                "{:<18} {:<24} {:<24}\n",
+                "{:<18} {:<24} {:<24}\n",
+                "{:<18} {:<24} {:<24}\n",
+                "{:<18} {:<24} {:<24}\n",
+                "{:<18} {:<24} {:<24}\n",
                 "{:<18} {:<24} {:<24}\n",
                 "{:<18} {:<24} {:<24}\n\n",
                 "GPIO drive outputs\n",
@@ -74,26 +88,26 @@ impl Tui {
             "UART hardware",
             "Digital twin",
             "Current state",
-            uart.current_state,
-            twin.current_state,
+            uart_current,
+            twin_current,
             "Previous state",
-            uart.prev_state,
-            twin.prev_state,
+            uart_previous,
+            twin_previous,
             "LED 1",
-            uart.led_1_state,
-            twin.led_1_state,
+            uart_led_1,
+            twin_led_1,
             "LED 2",
-            uart.led_2_state,
-            twin.led_2_state,
+            uart_led_2,
+            twin_led_2,
             "Push button 1",
-            uart.pb_1_state,
-            twin.pb_1_state,
+            uart_pb_1,
+            twin_pb_1,
             "Push button 2",
-            uart.pb_2_state,
-            twin.pb_2_state,
+            uart_pb_2,
+            twin_pb_2,
             "Push button 3",
-            uart.pb_3_state,
-            twin.pb_3_state,
+            uart_pb_3,
+            twin_pb_3,
             "Preset seconds",
             uart.preset_time,
             twin.preset_time,

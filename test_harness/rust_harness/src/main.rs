@@ -423,8 +423,12 @@ fn cycle_digital_twin(
                 if current_time >= emulator_state.deadline {
                     emulator_state.request_state = TimerStates::IdleToReset;
                 }
-            } else {
-                emulator_state.request_state = TimerStates::IdleToRun;
+            } 
+            else if digital_state.elapsed_time > 0{
+                    emulator_state.request_state = TimerStates::IdleToRun;
+            }
+            else{
+                emulator_state.request_state = TimerStates::Idle;
             }
         }
         TimerStates::IdleToRun => {

@@ -1,7 +1,2 @@
-    Checking thiserror v2.0.21
-    Checking unescaper v0.1.10
-    Checking serialport v4.10.1
     Checking rust_harness v0.1.0 (/home/dave/ensf-460/test_harness/rust_harness)
-error: could not compile `rust_harness` (bin "rust_harness" test) due to 2 previous errors; 1 warning emitted
-warning: build failed, waiting for other jobs to finish...
-error: could not compile `rust_harness` (bin "rust_harness") due to 2 previous errors; 1 warning emitted
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
