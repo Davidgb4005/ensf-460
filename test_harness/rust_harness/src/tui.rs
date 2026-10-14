@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use std::io::{self, Write};
 use std::time::{Duration, Instant};
 
-const LOG_CAPACITY: usize = 20;
+const LOG_CAPACITY: usize = 17;
 const ANSI_CYAN: &str = "\x1b[36m";
 const ANSI_MAGENTA: &str = "\x1b[35m";
 const ANSI_WHITE: &str = "\x1b[37m";
