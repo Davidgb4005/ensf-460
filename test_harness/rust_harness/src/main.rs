@@ -366,6 +366,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     if key.code == KeyCode::Char('r')
                     {
+                        reset_tx.send(())?;
                         control_gpio.trigger_hard_reset();
                         tui.record_reset();
                         let twin_snapshot = shared_twin_state
