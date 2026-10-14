@@ -508,11 +508,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         if twin_snapshot.current_state.clone() != prev_digital_state {
             match twin_snapshot.current_state {
-                TimerStates::RunEntry => {
+                TimerStates::Run => {
                     digital_start_time = Some(now_ms());
                     digital_end_time = None;
                 }
-                TimerStates::AlarmEntry => digital_end_time = Some(now_ms()),
+                TimerStates::Alarm => digital_end_time = Some(now_ms()),
                 _ => {}
             }
 
