@@ -141,8 +141,8 @@ impl Tui {
                 "PB2 (BCM 17): {}\r\n",
                 "PB3 (BCM 27): {}\r\n",
                 "RESET (BCM 6): {}\r\n\r\n",
-                "Uart    : Run StartTime :{:<6} Alarm Start Time :{:<6}\r\n",
-                "Digital : Run StartTime :{:<6} Alarm Start Time :{:<6}\r\n\r\n"
+                "Uart    : Run StartTime :{:<6?} Alarm Start Time :{:<6?}\r\n",
+                "Digital : Run StartTime :{:<6?} Alarm Start Time :{:<6?}\r\n\r\n"
             ),
             connection,
             comparison,
@@ -181,10 +181,10 @@ impl Tui {
             level(gpio.pb_2),
             level(gpio.pb_3),
             level(gpio.reset),
-            uart_run_timestamp.unwrap(),
-            uart_alarm_timestamp.unwrap(),
-            digital_run_timestamp.unwrap(),
-            digital_alarm_timestamp.unwrap(),
+            uart_run_timestamp,
+            uart_alarm_timestamp,
+            digital_run_timestamp,
+            digital_alarm_timestamp,
 
         )?;
 
