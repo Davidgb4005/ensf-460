@@ -342,6 +342,20 @@ fn main() -> Result<(), Box<dyn Error>> {
                     if key.code == KeyCode::Char('r')
                     {
                         control_gpio.trigger_reset();
+                        let _ = reset_tx.send(());
+                        tui.record_reset();
+                        let twin_snapshot = shared_twin_state
+                            .read()
+                            .unwrap_or_else(|poisoned| poisoned.into_inner())
+                            .clone();
+                        let gpio_outputs = control_gpio.output_state();
+                        event_log.log(
+                            "KEY_RESET: BCM 6 LOW -> HIGH",
+                            &uart_state,
+                            &twin_snapshot,
+                            gpio_outputs,
+                        )?;
+                        previous_gpio_outputs.reset = true;
                     }
                     if key.code == KeyCode::Up
                     {
@@ -370,20 +384,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         control_gpio.trigger_pause();
                     }
 
-                    let _ = reset_tx.send(());
-                    tui.record_reset();
-                    let twin_snapshot = shared_twin_state
-                        .read()
-                        .unwrap_or_else(|poisoned| poisoned.into_inner())
-                        .clone();
-                    let gpio_outputs = control_gpio.output_state();
-                    event_log.log(
-                        "KEY_RESET: BCM 6 LOW -> HIGH",
-                        &uart_state,
-                        &twin_snapshot,
-                        gpio_outputs,
-                    )?;
-                    previous_gpio_outputs.reset = true;
                 }
             }
         }
