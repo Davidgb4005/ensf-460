@@ -78,6 +78,10 @@ impl Tui {
         uart_connected: bool,
         states_match: Option<bool>,
         uart_error: Option<&str>,
+        uart_run_timestamp:Option<u128>,
+        uart_alarm_timestamp:Option<u128>,
+        digital_run_timestamp:Option<u128>,
+        digital_alarm_timestamp:Option<u128>,
     ) -> io::Result<()> {
         let now = Instant::now();
         if now < self.next_draw {
@@ -137,6 +141,8 @@ impl Tui {
                 "PB2 (BCM 17): {}\r\n",
                 "PB3 (BCM 27): {}\r\n",
                 "RESET (BCM 6): {}\r\n\r\n",
+                "Uart    : Run StartTime :{:<6} Alarm Start Time :{:<6}\r\n",
+                "Digital : Run StartTime :{:<6} Alarm Start Time :{:<6}\r\n\r\n"
             ),
             connection,
             comparison,
@@ -175,6 +181,11 @@ impl Tui {
             level(gpio.pb_2),
             level(gpio.pb_3),
             level(gpio.reset),
+            uart_run_timestamp.unwrap(),
+            uart_alarm_timestamp.unwrap(),
+            digital_run_timestamp.unwrap(),
+            digital_alarm_timestamp.unwrap(),
+
         )?;
 
         write!(stdout, "State change log (last {LOG_CAPACITY})\r\n")?;

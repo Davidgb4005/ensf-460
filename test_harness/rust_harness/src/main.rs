@@ -6,6 +6,7 @@ use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
+use std::time::{SystemTime, UNIX_EPOCH};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use rppal::gpio::{Gpio, InputPin, OutputPin};
 use serialport::{SerialPort, new};
@@ -47,7 +48,7 @@ pub(crate) enum SwitchState {
     Off,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug,Copy, Clone, PartialEq, Eq)]
 pub(crate) enum TimerStates {
     #[default]
     InitEntry,
@@ -295,7 +296,12 @@ impl TwinGpio {
             | ((self.push_button_inputs[2].is_high() as u8) << 2)
     }
 }
-
+fn now_ms() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+}
 fn main() -> Result<(), Box<dyn Error>> {
     let gpio = Gpio::new()?;
 
@@ -340,6 +346,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         &initial_twin_state,
         previous_gpio_outputs,
     )?;
+
+
+    let mut digital_start_time: Option<u128> = None;
+    let mut digital_end_time: Option<u128> = None;
+    let mut uart_start_time: Option<u128> = None;
+    let mut uart_end_time: Option<u128> = None;
+    let mut prev_digital_state = initial_twin_state.current_state;
+    let mut prev_uart_state = uart_state.current_state;
 
     loop {
         if event::poll(Duration::ZERO)? {
@@ -491,6 +505,33 @@ fn main() -> Result<(), Box<dyn Error>> {
             previous_gpio_outputs.pb_2 = gpio_outputs.pb_2;
             previous_gpio_outputs.pb_3 = gpio_outputs.pb_3;
         }
+
+        if twin_snapshot.current_state.clone() != prev_digital_state {
+            match twin_snapshot.current_state {
+                TimerStates::RunEntry => {
+                    digital_start_time = Some(now_ms());
+                    digital_end_time = None;
+                }
+                TimerStates::AlarmEntry => digital_end_time = Some(now_ms()),
+                _ => {}
+            }
+
+            prev_digital_state = twin_snapshot.current_state;
+        }
+
+        if uart_state.current_state.clone() != prev_uart_state {
+            match uart_state.current_state {
+                TimerStates::RunEntry => {
+                    uart_start_time = Some(now_ms());
+                    uart_end_time = None;
+                }
+                TimerStates::AlarmEntry => uart_end_time = Some(now_ms()),
+                _ => {}
+            }
+
+            prev_uart_state = uart_state.current_state;
+        }
+
         if gpio_outputs.reset != previous_gpio_outputs.reset {
             let event = if gpio_outputs.reset {
                 "GPIO_RESET: LOW -> HIGH"
@@ -509,6 +550,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             uart_connected,
             states_match,
             uart_error.as_deref(),
+            uart_start_time,
+            uart_end_time,
+            digital_start_time,
+            digital_end_time,
         )?;
         thread::sleep(Duration::from_millis(1));
     }
