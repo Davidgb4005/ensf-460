@@ -391,7 +391,7 @@ error_e superloop_loop(void)
         {
             request_state = TIMER_RUN_TO_ALARM;
         }
-        else if (buttons & 0x4 != 0)
+        else if ((buttons & 0x4) != 0)
         {
             if (delay_elapsed(now))
             {
@@ -421,12 +421,14 @@ error_e superloop_loop(void)
         request_state = TIMER_PAUSE;
         selected_message = messages[UART_COUNT_PAUSED_FORMAT];
         break;
+
     case TIMER_PAUSE:
         if ((buttons & 0x4) != 0)
         {
             request_state = TIMER_PAUSE_TRANSITION;
         }
         break;
+
     case TIMER_PAUSE_TRANSITION:
         led_off(&led[0]);
         led_off(&led[1]);
