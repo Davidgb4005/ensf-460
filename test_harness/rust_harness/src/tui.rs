@@ -184,7 +184,7 @@ impl Tui {
             level(gpio.reset),
             uart_run_timestamp.unwrap_or(0),
             uart_alarm_timestamp.unwrap_or(0),
-            uart_run_timestamp.unwrap_or(0).saturating_sub(uart_alarm_timestamp.unwrap_or(0)),
+            uart_alarm_timestamp.unwrap_or(0).saturating_sub(uart_run_timestamp.unwrap_or(0)),
             digital_run_timestamp.unwrap_or(0),
             digital_alarm_timestamp.unwrap_or(0),
             digital_alarm_timestamp.unwrap_or(0).saturating_sub(digital_run_timestamp.unwrap_or(0)),
