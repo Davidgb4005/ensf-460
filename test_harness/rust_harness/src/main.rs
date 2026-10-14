@@ -352,7 +352,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     if key.code == KeyCode::Char('r')
                     {
-                        control_gpio.trigger_reset();
+                        control_gpio.trigger_hard_reset();
                         let _ = reset_tx.send(());
                         tui.record_reset();
                         let twin_snapshot = shared_twin_state
@@ -368,39 +368,41 @@ fn main() -> Result<(), Box<dyn Error>> {
                         )?;
                         previous_gpio_outputs.reset = true;
                     }
-                    if key.code == KeyCode::Up
-                    {
-                        control_gpio.trigger_incrment_second();
-                    }
-                    if key.code == KeyCode::Up
+                    else if key.code == KeyCode::Up
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_incrment_minute();
                     }
-                    if key.code == KeyCode::Down
+                    else if key.code == KeyCode::Up
                     {
-                        control_gpio.trigger_decrement_second();
+                        control_gpio.trigger_incrment_second();
                     }
-                    if key.code == KeyCode::Down
+                    else if key.code == KeyCode::Down
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_decrement_minute();
                     }
-                    if key.code == KeyCode::Char('s')
+                    else if key.code == KeyCode::Down
+                    {
+                        control_gpio.trigger_decrement_second();
+                    }
+                    else if key.code == KeyCode::Char('s')
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        control_gpio.trigger_reset();
+                    }
+                    else if key.code == KeyCode::Char('s')
                     {
                         control_gpio.trigger_start();
                     }
-                    if key.code == KeyCode::Char('S')
-                    {
-                        control_gpio.trigger_start();
-                    }
-                    if key.code == KeyCode::Char('p')
-                    {
-                        control_gpio.trigger_pause();
-                    }
-                    if key.code == KeyCode::Char('P')
+                    else if key.code == KeyCode::Char('p')
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_clear();
+                    }
+                    else if key.code == KeyCode::Char('p')
+                    {
+                        control_gpio.trigger_pause();
                     }
 
                 }
