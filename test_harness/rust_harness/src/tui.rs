@@ -33,14 +33,30 @@ impl Tui {
         previous: &TimerStates,
         current: &TimerStates,
     ) {
+        self.push_log_entry(source, format!("{previous:?}"), format!("{current:?}"));
+    }
+
+    pub(crate) fn record_button_change(
+        &mut self,
+        previous: GpioOutputState,
+        current: GpioOutputState,
+    ) {
+        self.push_log_entry(
+            "GPIO",
+            format!("Buttons {:03b}", button_bits(previous)),
+            format!("Buttons {:03b}", button_bits(current)),
+        );
+    }
+
+    fn push_log_entry(&mut self, source: &'static str, previous: String, current: String) {
         if self.state_log.len() == 10 {
             self.state_log.pop_front();
         }
         self.state_log.push_back(StateLogEntry {
             timestamp: self.started_at.elapsed(),
             source,
-            previous: format!("{previous:?}"),
-            current: format!("{current:?}"),
+            previous,
+            current,
         });
     }
 
@@ -182,4 +198,8 @@ fn timestamp(elapsed: Duration) -> String {
 
 fn level(high: bool) -> &'static str {
     if high { "HIGH" } else { "LOW" }
+}
+
+fn button_bits(state: GpioOutputState) -> u8 {
+    (state.pb_1 as u8) | ((state.pb_2 as u8) << 1) | ((state.pb_3 as u8) << 2)
 }

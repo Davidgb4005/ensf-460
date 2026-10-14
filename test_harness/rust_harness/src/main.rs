@@ -155,7 +155,7 @@ pub(crate) struct TwinState {
     pub(crate) elapsed_time: u16,
 }
 
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct GpioOutputState {
     pub(crate) pb_1: bool,
     pub(crate) pb_2: bool,
@@ -230,6 +230,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut uart_connected = false;
     let mut uart_error = None;
     let mut tui = tui::Tui::new(Duration::from_millis(100));
+    let mut previous_gpio_outputs = control_gpio.output_state();
 
     loop {
         match uart_reader.poll(port.as_mut()) {
@@ -266,6 +267,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .unwrap_or_else(|poisoned| poisoned.into_inner())
             .clone();
         let gpio_outputs = control_gpio.output_state();
+        if gpio_outputs != previous_gpio_outputs {
+            tui.record_button_change(previous_gpio_outputs, gpio_outputs);
+            previous_gpio_outputs = gpio_outputs;
+        }
         let states_match = uart_connected.then_some(uart_state == twin_snapshot);
 
         tui.draw(
