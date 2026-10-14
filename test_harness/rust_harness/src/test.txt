@@ -1,0 +1,4 @@
+ assert run
+ pb 2 5
+ wait 3
+ assert idle

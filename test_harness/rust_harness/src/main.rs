@@ -1,13 +1,17 @@
 mod event_log;
 mod tui;
 
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
+use std::path::Path;
+
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
+use std::time::{SystemTime, UNIX_EPOCH};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use rppal::gpio::{Gpio, InputPin, OutputPin};
-use serialport::SerialPort;
+use serialport::{SerialPort, new};
 use std::collections::VecDeque;
 use std::error::Error;
-use std::io;
 use std::sync::{Arc, RwLock, mpsc};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -21,7 +25,9 @@ const PUSHBUTTON_1_OUTPUT: u8 = 4;
 const PUSHBUTTON_2_OUTPUT: u8 = 17;
 const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6;
-const RESET_PULSE_MS: u64 = 50;
+const RESET_PULSE_MS: u64 = 3125;
+const CLEAR_PULSE_MS: u64 = 3125;
+const PULSE_MS: u64 = 200;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
 const COUNT_DELAY_MS: u32 = 1000;
@@ -42,7 +48,7 @@ pub(crate) enum SwitchState {
     Off,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug,Copy, Clone, PartialEq, Eq)]
 pub(crate) enum TimerStates {
     #[default]
     InitEntry,
@@ -187,9 +193,46 @@ impl ControlGpio {
         })
     }
 
-    fn trigger_reset(&mut self) {
+    fn trigger_hard_reset(&mut self) {
         self.reset_output.set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+
+    fn trigger_incrment_second(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_incrment_minute(&mut self) {
+        self.push_button_outputs[1].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_decrement_second(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.push_button_outputs[2].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_decrement_minute(&mut self) {
+        self.push_button_outputs[1].set_high();
+        self.push_button_outputs[2].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_start(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.push_button_outputs[1].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_reset(&mut self) {
+        self.push_button_outputs[0].set_high();
+        self.push_button_outputs[1].set_high();
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(RESET_PULSE_MS));
+    }
+    fn trigger_pause(&mut self) {
+        self.push_button_outputs[2].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+    }
+    fn trigger_clear(&mut self) {
+        self.push_button_outputs[2].set_high();
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(CLEAR_PULSE_MS));
     }
 
     fn update(&mut self) {
@@ -197,6 +240,9 @@ impl ControlGpio {
             .reset_deadline
             .is_some_and(|deadline| Instant::now() >= deadline)
         {
+            self.push_button_outputs[0].set_low();
+            self.push_button_outputs[1].set_low();
+            self.push_button_outputs[2].set_low();
             self.reset_output.set_low();
             self.reset_deadline = None;
         }
@@ -248,17 +294,27 @@ impl TwinGpio {
             | ((self.push_button_inputs[2].is_high() as u8) << 2)
     }
 }
-
+fn now_ms() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+}
 fn main() -> Result<(), Box<dyn Error>> {
     let gpio = Gpio::new()?;
+
     let mut control_gpio = ControlGpio::new(&gpio)?;
+
     let twin_gpio = TwinGpio::new(&gpio)?;
+
     let shared_twin_state = Arc::new(RwLock::new(TwinState {
         current_state: TimerStates::Idle,
         prev_state: TimerStates::Idle,
         ..TwinState::default()
     }));
+
     let (twin_transition_tx, twin_transition_rx) = mpsc::channel();
+
     let (reset_tx, reset_rx) = mpsc::channel();
 
     let twin_state_writer = Arc::clone(&shared_twin_state);
@@ -289,6 +345,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         previous_gpio_outputs,
     )?;
 
+
+    let mut digital_start_time: Option<u128> = None;
+    let mut digital_end_time: Option<u128> = None;
+    let mut uart_start_time: Option<u128> = None;
+    let mut uart_end_time: Option<u128> = None;
+    let mut prev_digital_state = initial_twin_state.current_state;
+    let mut prev_uart_state = uart_state.current_state;
+
     loop {
         if event::poll(Duration::ZERO)? {
             if let Event::Key(key) = event::read()? {
@@ -298,21 +362,61 @@ fn main() -> Result<(), Box<dyn Error>> {
                     {
                         break;
                     }
-                    control_gpio.trigger_reset();
-                    let _ = reset_tx.send(());
-                    tui.record_reset();
-                    let twin_snapshot = shared_twin_state
-                        .read()
-                        .unwrap_or_else(|poisoned| poisoned.into_inner())
-                        .clone();
-                    let gpio_outputs = control_gpio.output_state();
-                    event_log.log(
-                        "KEY_RESET: BCM 6 LOW -> HIGH",
-                        &uart_state,
-                        &twin_snapshot,
-                        gpio_outputs,
-                    )?;
-                    previous_gpio_outputs.reset = true;
+                    if key.code == KeyCode::Char('r')
+                    {
+                        reset_tx.send(())?;
+                        control_gpio.trigger_hard_reset();
+                        tui.record_reset();
+                        let twin_snapshot = shared_twin_state
+                            .read()
+                            .unwrap_or_else(|poisoned| poisoned.into_inner())
+                            .clone();
+                        let gpio_outputs = control_gpio.output_state();
+                        event_log.log(
+                            "KEY_RESET: BCM 6 LOW -> HIGH",
+                            &uart_state,
+                            &twin_snapshot,
+                            gpio_outputs,
+                        )?;
+                        previous_gpio_outputs.reset = true;
+                    }
+                    else if key.code == KeyCode::Up
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        control_gpio.trigger_incrment_minute();
+                    }
+                    else if key.code == KeyCode::Up
+                    {
+                        control_gpio.trigger_incrment_second();
+                    }
+                    else if key.code == KeyCode::Down
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        control_gpio.trigger_decrement_minute();
+                    }
+                    else if key.code == KeyCode::Down
+                    {
+                        control_gpio.trigger_decrement_second();
+                    }
+                    else if key.code == KeyCode::Char('S')
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        control_gpio.trigger_reset();
+                    }
+                    else if key.code == KeyCode::Char('s')
+                    {
+                        control_gpio.trigger_start();
+                    }
+                    else if key.code == KeyCode::Char('P')
+                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    {
+                        control_gpio.trigger_clear();
+                    }
+                    else if key.code == KeyCode::Char('p')
+                    {
+                        control_gpio.trigger_pause();
+                    }
+
                 }
             }
         }
@@ -383,6 +487,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .read()
             .unwrap_or_else(|poisoned| poisoned.into_inner())
             .clone();
+
         let gpio_outputs = control_gpio.output_state();
         if gpio_outputs.pb_1 != previous_gpio_outputs.pb_1
             || gpio_outputs.pb_2 != previous_gpio_outputs.pb_2
@@ -399,6 +504,33 @@ fn main() -> Result<(), Box<dyn Error>> {
             previous_gpio_outputs.pb_2 = gpio_outputs.pb_2;
             previous_gpio_outputs.pb_3 = gpio_outputs.pb_3;
         }
+
+        if twin_snapshot.current_state.clone() != prev_digital_state {
+            match twin_snapshot.current_state {
+                TimerStates::Run => {
+                    digital_start_time = Some(now_ms());
+                    digital_end_time = None;
+                }
+                TimerStates::Alarm => digital_end_time = Some(now_ms()),
+                _ => {}
+            }
+
+            prev_digital_state = twin_snapshot.current_state;
+        }
+
+        if uart_state.current_state.clone() != prev_uart_state {
+            match uart_state.current_state {
+                TimerStates::RunEntry => {
+                    uart_start_time = Some(now_ms());
+                    uart_end_time = None;
+                }
+                TimerStates::AlarmEntry => uart_end_time = Some(now_ms()),
+                _ => {}
+            }
+
+            prev_uart_state = uart_state.current_state;
+        }
+
         if gpio_outputs.reset != previous_gpio_outputs.reset {
             let event = if gpio_outputs.reset {
                 "GPIO_RESET: LOW -> HIGH"
@@ -417,12 +549,151 @@ fn main() -> Result<(), Box<dyn Error>> {
             uart_connected,
             states_match,
             uart_error.as_deref(),
+            uart_start_time,
+            uart_end_time,
+            digital_start_time,
+            digital_end_time,
         )?;
         thread::sleep(Duration::from_millis(1));
     }
 
     Ok(())
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TimerState {
+    Idle,
+    Run,
+    Pause,
+    Alarm,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Button {
+    Pb1,
+    Pb2,
+    Pb3,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum TestCommand {
+    AssertState(TimerState),
+    PressButton { button: Button, duration: Duration },
+    Wait(Duration),
+    Reset,
+}
+
+fn parse_test_file(path: impl AsRef<Path>) -> io::Result<Vec<TestCommand>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let mut commands = Vec::new();
+
+    for (line_index, line) in reader.lines().enumerate() {
+        let line_number = line_index + 1;
+        let line = line?;
+        let line = line.trim();
+
+        // Ignore empty lines and comments.
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+
+        let command = parse_command(line).map_err(|message| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("line {line_number}: {message}"),
+            )
+        })?;
+
+        commands.push(command);
+    }
+
+    Ok(commands)
+}
+
+fn parse_command(line: &str) -> Result<TestCommand, String> {
+    let mut tokens = line.split_whitespace();
+
+    let command = tokens.next().ok_or_else(|| "missing command".to_owned())?;
+
+    let parsed = match command {
+        "assert" => {
+            let state = parse_state(next_token(&mut tokens, "state")?)?;
+            TestCommand::AssertState(state)
+        }
+
+        "pb" => {
+            let button = parse_button(next_token(&mut tokens, "button number")?)?;
+
+            let seconds = next_token(&mut tokens, "press duration")?
+                .parse::<u64>()
+                .map_err(|_| "button duration must be an integer".to_owned())?;
+
+            TestCommand::PressButton {
+                button,
+                duration: Duration::from_secs(seconds),
+            }
+        }
+
+        "wait" => {
+            let seconds = next_token(&mut tokens, "wait duration")?
+                .parse::<u64>()
+                .map_err(|_| "wait duration must be an integer".to_owned())?;
+
+            TestCommand::Wait(Duration::from_secs(seconds))
+        }
+
+        "reset" => TestCommand::Reset,
+
+        unknown => {
+            return Err(format!("unknown command `{unknown}`"));
+        }
+    };
+
+    if let Some(extra) = tokens.next() {
+        return Err(format!("unexpected argument `{extra}`"));
+    }
+
+    Ok(parsed)
+}
+
+fn next_token<'a>(
+    tokens: &mut impl Iterator<Item = &'a str>,
+    expected: &str,
+) -> Result<&'a str, String> {
+    tokens.next().ok_or_else(|| format!("missing {expected}"))
+}
+
+fn parse_state(token: &str) -> Result<TimerState, String> {
+    match token {
+        "idle" => Ok(TimerState::Idle),
+        "run" => Ok(TimerState::Run),
+        "pause" => Ok(TimerState::Pause),
+        "alarm" => Ok(TimerState::Alarm),
+        _ => Err(format!("unknown timer state `{token}`")),
+    }
+}
+
+fn parse_button(token: &str) -> Result<Button, String> {
+    match token {
+        "1" => Ok(Button::Pb1),
+        "2" => Ok(Button::Pb2),
+        "3" => Ok(Button::Pb3),
+        _ => Err(format!("invalid button `{token}`; expected 1, 2, or 3")),
+    }
+}
+
+fn smain() -> Result<(), Box<dyn std::error::Error>> {
+    let commands = parse_test_file("test.txt")?;
+
+    for command in commands {
+        println!("{command:?}");
+    }
+
+    Ok(())
+}
+
+fn consume_test_file(path: String, control_gpio: ControlGpio) {}
 
 #[derive(Default)]
 struct UartReader {
@@ -652,6 +923,7 @@ fn cycle_digital_twin(
         TimerStates::Run => {
             if digital_state.elapsed_time == 0 || buttons & 0x4 != 0 {
                 emulator_state.request_state = TimerStates::RunTransition;
+                emulator_state.delay = CLEAR_DELAY_MS;
             }
             if current_time >= emulator_state.deadline {
                 reset_deadline(current_time, emulator_state);

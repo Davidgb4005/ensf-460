@@ -3,6 +3,12 @@ use std::collections::VecDeque;
 use std::io::{self, Write};
 use std::time::{Duration, Instant};
 
+const LOG_CAPACITY: usize = 10;
+const ANSI_CYAN: &str = "\x1b[36m";
+const ANSI_MAGENTA: &str = "\x1b[35m";
+const ANSI_WHITE: &str = "\x1b[37m";
+const ANSI_RESET: &str = "\x1b[0m";
+
 pub(crate) struct Tui {
     refresh_interval: Duration,
     next_draw: Instant,
@@ -23,7 +29,7 @@ impl Tui {
             refresh_interval,
             next_draw: Instant::now(),
             started_at: Instant::now(),
-            state_log: VecDeque::with_capacity(10),
+            state_log: VecDeque::with_capacity(LOG_CAPACITY),
         }
     }
 
@@ -53,7 +59,7 @@ impl Tui {
     }
 
     fn push_log_entry(&mut self, source: &'static str, previous: String, current: String) {
-        if self.state_log.len() == 10 {
+        if self.state_log.len() == LOG_CAPACITY {
             self.state_log.pop_front();
         }
         self.state_log.push_back(StateLogEntry {
@@ -72,6 +78,10 @@ impl Tui {
         uart_connected: bool,
         states_match: Option<bool>,
         uart_error: Option<&str>,
+        uart_run_timestamp:Option<u128>,
+        uart_alarm_timestamp:Option<u128>,
+        digital_run_timestamp:Option<u128>,
+        digital_alarm_timestamp:Option<u128>,
     ) -> io::Result<()> {
         let now = Instant::now();
         if now < self.next_draw {
@@ -89,6 +99,7 @@ impl Tui {
             Some(false) => "MISMATCH",
             None => "WAITING",
         };
+
         let error = uart_error.unwrap_or("none");
         let uart_current = format!("{:?}", uart.current_state);
         let twin_current = format!("{:?}", twin.current_state);
@@ -112,7 +123,7 @@ impl Tui {
                 "\x1b[2J\x1b[H",
                 "Timer test harness\r\n",
                 "==================\r\n",
-                "Press any key to reset; Ctrl-C exits\r\n",
+                "↑ ↓ Increments, ↑ ↓ + Shift Fast, s/S To Start/Reset, p/P to Pause/Clear; Ctrl-C exits\r\n",
                 "UART: {:<18} Comparison: {}\r\n",
                 "UART error: {}\r\n\r\n",
                 "{:<18} {:<24} {:<24}\r\n",
@@ -131,6 +142,8 @@ impl Tui {
                 "PB2 (BCM 17): {}\r\n",
                 "PB3 (BCM 27): {}\r\n",
                 "RESET (BCM 6): {}\r\n\r\n",
+                "uart    : Run starttime :{:<6} Alarm start time :{:<6} Duration :{:<9}\r\n",
+                "Digital : Run StartTime :{:<6} Alarm Start Time :{:<6} Duration :{:<9}\r\n\r\n",
             ),
             connection,
             comparison,
@@ -169,9 +182,17 @@ impl Tui {
             level(gpio.pb_2),
             level(gpio.pb_3),
             level(gpio.reset),
+            uart_run_timestamp.unwrap_or(0),
+            uart_alarm_timestamp.unwrap_or(0),
+            uart_alarm_timestamp.unwrap_or(0).saturating_sub(uart_run_timestamp.unwrap_or(0)),
+            digital_run_timestamp.unwrap_or(0),
+            digital_alarm_timestamp.unwrap_or(0),
+            digital_alarm_timestamp.unwrap_or(0).saturating_sub(digital_run_timestamp.unwrap_or(0)),
+
+
         )?;
 
-        write!(stdout, "State change log (last 10)\r\n")?;
+        write!(stdout, "State change log (last {LOG_CAPACITY})\r\n")?;
         write!(stdout, "--------------------------\r\n")?;
         write!(
             stdout,
@@ -179,9 +200,14 @@ impl Tui {
             "Timestamp", "Source", "Transition"
         )?;
         for entry in &self.state_log {
+            let color = match entry.source {
+                "TWIN" => ANSI_CYAN,
+                "UART" => ANSI_MAGENTA,
+                _ => ANSI_WHITE,
+            };
             write!(
                 stdout,
-                "{:<13} {:<6} {} -> {}\r\n",
+                "{color}{:<13} {:<6} {} -> {}{ANSI_RESET}\r\n",
                 timestamp(entry.timestamp),
                 entry.source,
                 entry.previous,
@@ -204,7 +230,11 @@ fn timestamp(elapsed: Duration) -> String {
 }
 
 fn level(high: bool) -> &'static str {
-    if high { "HIGH" } else { "LOW" }
+    if high {
+        "HIGH"
+    } else {
+        "LOW"
+    }
 }
 
 fn button_bits(state: GpioOutputState) -> u8 {

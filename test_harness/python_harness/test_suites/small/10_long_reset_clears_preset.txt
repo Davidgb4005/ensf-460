@@ -1,9 +1,0 @@
-# Holding PB1+PB2 through reset_delay clears preset instead of starting.
-press pb1 0.45
-wait 0.80
-expect_range preset 1 3
-press pb1+pb2 4.00
-wait 4.80
-expect state IDLE
-expect preset 0
-expect elapsed 0
