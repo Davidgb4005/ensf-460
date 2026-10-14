@@ -27,7 +27,8 @@ const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6;
 const RESET_PULSE_MS: u64 = 3125;
 const CLEAR_PULSE_MS: u64 = 3125;
-const PULSE_MS: u64 = 200;
+const INCREMENT_PULSE_MS : u64 = 350;
+const PULSE_MS: u64 = 100;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
 const COUNT_DELAY_MS: u32 = 1000;
@@ -200,21 +201,21 @@ impl ControlGpio {
 
     fn trigger_incrment_second(&mut self) {
         self.push_button_outputs[0].set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(INCREMENT_PULSE_MS));
     }
     fn trigger_incrment_minute(&mut self) {
         self.push_button_outputs[1].set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(INCREMENT_PULSE_MS));
     }
     fn trigger_decrement_second(&mut self) {
         self.push_button_outputs[0].set_high();
         self.push_button_outputs[2].set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(INCREMENT_PULSE_MS));
     }
     fn trigger_decrement_minute(&mut self) {
         self.push_button_outputs[1].set_high();
         self.push_button_outputs[2].set_high();
-        self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
+        self.reset_deadline = Some(Instant::now() + Duration::from_millis(INCREMENT_PULSE_MS));
     }
     fn trigger_start(&mut self) {
         self.push_button_outputs[0].set_high();
