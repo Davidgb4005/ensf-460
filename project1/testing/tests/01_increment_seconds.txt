@@ -1,7 +1,0 @@
-name Increment preset seconds
-
-allow preset 300ms
-allow pb1 250ms
-
-hold pb1 400ms
-wait 600ms

@@ -108,38 +108,38 @@ void __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 }
 
 error_e uart_send_state(const test_rig_data_s *data)
-  {
-      uint16_t flags =
-            ((data->bits.state_code     & 0x07u) << 0)
-          | ((data->bits.prev_state_code & 0x07u) << 3)
-          | ((data->bits.pb_1            & 0x01u) << 6)
-          | ((data->bits.pb_2            & 0x01u) << 7)
-          | ((data->bits.pb_3            & 0x01u) << 8)
-          | ((data->bits.led_1_state     & 0x03u) << 9)
-          | ((data->bits.led_2_state     & 0x03u) << 11);
+{
+    uint8_t gpio_flags =
+          ((data->gpio.led_1_state & 0x03u) << 0)
+        | ((data->gpio.led_2_state & 0x03u) << 2)
+        | ((data->gpio.pb_1        & 0x01u) << 4)
+        | ((data->gpio.pb_2        & 0x01u) << 5)
+        | ((data->gpio.pb_3        & 0x01u) << 6);
+    uint16_t state_flags =
+          ((data->states.state_code      & 0x1fu) << 0)
+        | ((data->states.prev_state_code & 0x1fu) << 5);
+    uint8_t payload[7] = {
+        (uint8_t)data->elapsed_seconds,
+        (uint8_t)(data->elapsed_seconds >> 8),
+        (uint8_t)data->preset_seconds,
+        (uint8_t)(data->preset_seconds >> 8),
+        gpio_flags,
+        (uint8_t)state_flags,
+        (uint8_t)(state_flags >> 8),
+    };
+    uint8_t checksum = 0;
 
-      uint8_t payload[6] = {
-          (uint8_t)(data->elapsed_seconds),
-          (uint8_t)(data->elapsed_seconds >> 8),
-          (uint8_t)(data->preset_seconds),
-          (uint8_t)(data->preset_seconds >> 8),
-          (uint8_t)(flags),
-          (uint8_t)(flags >> 8),
-      };
+    uart_write_char(0xAAu);
+    uart_write_char(0x55u);
 
-      uint8_t checksum = 0;
+    for (size_t i = 0; i < sizeof(payload); i++)
+    {
+        uart_write_char(payload[i]);
+        checksum = (uint8_t)(checksum + payload[i]);
+    }
 
-      uart_write_char((char)0xAA);
-      uart_write_char((char)0x55);
-
-      for (size_t i = 0; i < sizeof(payload); i++) {
-          uart_write_char((char)payload[i]);
-          checksum = (uint8_t)(checksum + payload[i]);
-      }
-
-      uart_write_char((char)checksum);
-
-      return ERROR_NONE; // Replace with your success value
+    uart_write_char(checksum);
+    return ERROR_NONE;
 }
 
 
@@ -162,9 +162,9 @@ error_e uart_send_message(const char *msg, uint16_t elapsed_value,uint16_t prese
 
     uint16_t numbers[] = {value / 60, value % 60};
 
-    int i = 0;
-    int j = 0;
-    int n = 0;
+    size_t i = 0;
+    size_t j = 0;
+    size_t n = 0;
 
     while (cursor[i] != '\0' && j < sizeof(tmp_buffer) - 3)
     {
