@@ -65,10 +65,10 @@ static led_s led[2] = {
     {.led_pin = 14, .mode = LED_BLINK, .blink_delay = 250},
 };
 
-volatile timer_state_e state = TIMER_IDLE;
+volatile timer_state_e state = TIMER_INIT;
 volatile uint16_t elapsed_value;
 
-static timer_state_e request_state = TIMER_IDLE;
+static timer_state_e request_state = TIMER_INIT;
 static int16_t preset_value;
 static uint16_t counter;
 static uint16_t prev_buttons;
@@ -162,6 +162,8 @@ static test_led_state_e led_state(const led_s *target)
 
 error_e superloop_setup(void)
 {
+    AD1PCFG = 0xffff; // Disable AN11; enable RB13 digital input
+
     if (uart_init(&rx_buffer, &tx_buffer) == 0)
     {
         ERROR_PRINT("%s", "UART Setup Complete");
@@ -211,10 +213,6 @@ error_e superloop_loop(void)
 {
 
     if(gpio_digital_read(16)){
-        gpio_digital_write(15,1);
-        for (int i = 0; i<5000 ; i++){
-            led_on(&led[2]);
-        }
         __asm__ volatile("reset");
     }
 
