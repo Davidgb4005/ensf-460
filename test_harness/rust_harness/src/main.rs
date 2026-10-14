@@ -252,7 +252,7 @@ impl TwinGpio {
     }
 }
 
-fn smain() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let gpio = Gpio::new()?;
 
     let mut control_gpio = ControlGpio::new(&gpio)?;
@@ -556,7 +556,7 @@ fn parse_button(token: &str) -> Result<Button, String> {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn smain() -> Result<(), Box<dyn std::error::Error>> {
     let commands = parse_test_file("test.txt")?;
 
     for command in commands {
