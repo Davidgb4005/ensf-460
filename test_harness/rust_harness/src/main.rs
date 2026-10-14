@@ -424,7 +424,7 @@ fn cycle_digital_twin(
                     emulator_state.request_state = TimerStates::IdleToReset;
                 }
             } 
-            else if digital_state.elapsed_time > 0{
+            else if digital_state.preset_time > 0{
                     emulator_state.request_state = TimerStates::IdleToRun;
             }
             else{
