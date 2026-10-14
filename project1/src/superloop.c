@@ -138,7 +138,6 @@ static void led_pause(led_s *target)
     target->mode = LED_BLINK;
     target->st_bits.enabled = 1;
     target->st_bits.paused = 1;
-    target->st_bits.output = 0;
 }
 
 static test_led_state_e led_state(const led_s *target)
@@ -385,8 +384,6 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_RUN_TRANSITION:
-        led_off(&led[0]);
-        led_off(&led[1]);
         if (elapsed_value == 0)
         {
             request_state = TIMER_RUN_TO_ALARM;
@@ -430,8 +427,6 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_PAUSE_TRANSITION:
-        led_off(&led[0]);
-        led_off(&led[1]);
         if ((buttons & 0x4) != 0)
         {
             if (delay_elapsed(now))
