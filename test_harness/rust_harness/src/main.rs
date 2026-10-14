@@ -353,6 +353,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut prev_uart_state = uart_state.current_state;
 
     loop {
+        control_gpio.update();
         if event::poll(Duration::ZERO)? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
@@ -418,11 +419,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 }
             }
-            else{
-            control_gpio.update();
-            }
         }
-
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
                 let mut transition_event = None;
