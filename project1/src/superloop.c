@@ -52,7 +52,6 @@ static ring_buffer_s tx_buffer = {
 
 static const uint16_t input[] = {11, 9, 10 , 15 , 16};
 static const uint16_t output[] = {13, 14};
-static const uint16_t state_output[] = {15, 16};
 static char err_msg[128];
 
 static debounce_s push_button[3] = {
@@ -86,49 +85,7 @@ static uint16_t read_control_register(void)
            (push_button[2].state_bits.pb_current_state << 2);
 }
 
-static uint16_t state_output_code(timer_state_e current_state)
-{
-    switch (current_state)
-    {
-    case TIMER_INIT_ENTRY:
-    case TIMER_INIT:
-    case TIMER_INIT_TRANSITION:
-    case TIMER_INIT_TO_RESET:
-        return 0x0u;
 
-    case TIMER_RUN_ENTRY:
-    case TIMER_RUN:
-    case TIMER_RUN_TRANSITION:
-    case TIMER_RUN_TO_ALARM:
-    case TIMER_RUN_TO_PAUSE:
-    case TIMER_RUN_TO_CLEAR:
-        return 0x1u;
-
-    case TIMER_PAUSE_ENTRY:
-    case TIMER_PAUSE:
-    case TIMER_PAUSE_TRANSITION:
-    case TIMER_PAUSE_TO_RUN:
-    case TIMER_PAUSE_TO_CLEAR:
-        return 0x2u;
-
-    case TIMER_ALARM_ENTRY:
-    case TIMER_ALARM:
-    case TIMER_ALARM_TRANSITION:
-    case TIMER_ALARM_TO_IDLE:
-        return 0x3u;
-
-    default:
-        return 0x0u;
-    }
-}
-
-static void write_state_outputs(timer_state_e current_state)
-{
-    uint16_t state_bits = state_output_code(current_state);
-
-    gpio_digital_write(state_output[0], state_bits & 0x1u);
-    gpio_digital_write(state_output[1], (state_bits >> 1) & 0x1u);
-}
 
 static int16_t clamp_preset_value(int16_t value)
 {
@@ -247,7 +204,6 @@ error_e superloop_setup(void)
     led_off(&led[1]);
     start_time = timer_millis();
     state_send_time = start_time;
-    write_state_outputs(state);
     return ERROR_NONE;
 }
 
@@ -255,6 +211,10 @@ error_e superloop_loop(void)
 {
 
     if(gpio_digital_read(16)){
+        gpio_digital_write(15,1);
+        for (int i = 0; i<5000 ; i++){
+            led_on(&led[2]);
+        }
         __asm__ volatile("reset");
     }
 
@@ -282,7 +242,6 @@ error_e superloop_loop(void)
     {
         prev_state = state;
         state = request_state;
-        write_state_outputs(state);
         state_changed = 1;
 
         start_time = now;
