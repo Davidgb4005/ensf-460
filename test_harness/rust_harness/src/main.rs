@@ -428,7 +428,7 @@ fn cycle_digital_twin(
                     emulator_state.request_state = TimerStates::IdleToRun;
             }
             else{
-                emulator_state.request_state = TimerStates::Idle;
+                emulator_state.request_state = TimerStates::IdleEntry;
             }
         }
         TimerStates::IdleToRun => {
