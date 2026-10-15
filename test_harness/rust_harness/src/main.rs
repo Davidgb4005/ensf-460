@@ -355,7 +355,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         if event::poll(Duration::ZERO)? {
             if let Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
+                if key.kind == KeyEventKind::Repeat {
                     if key.code == KeyCode::Char('c')
                         && key.modifiers.contains(KeyModifiers::CONTROL)
                     {
