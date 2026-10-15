@@ -27,7 +27,7 @@ const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6;
 const RESET_PULSE_MS: u64 = 3125;
 const CLEAR_PULSE_MS: u64 = 3125;
-const INCREMENT_PULSE_MS : u64 = 350;
+const INCREMENT_PULSE_MS : u64 = 450;
 const PULSE_MS: u64 = 100;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
@@ -353,7 +353,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut prev_uart_state = uart_state.current_state;
 
     loop {
-        control_gpio.update();
         if event::poll(Duration::ZERO)? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
@@ -420,6 +419,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
+        control_gpio.update();
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
                 let mut transition_event = None;
