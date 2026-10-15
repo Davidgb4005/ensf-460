@@ -1,3 +1,118 @@
+#include <xc.h>
+#include <stdint.h>
+#include "uart.h"
+#include "stdlib.h"
+#include "stdio.h"
+
+#define FCY         4000000UL
+#define BAUD_RATE   500000
+#define ECHO_ENABLE 1
+
+ring_buffer_s *rx_buffer;
+ring_buffer_s *tx_buffer;
+
+
+const char *messages[] = {
+    LINE_CLEAR("CNT %m : %s"),
+    LINE_CLEAR("CNT %m : %s {PAUSED}"),
+    LINE_CLEAR("FIN 00m : 00s - ALARM"),
+    LINE_CLEAR("SET %m : %s"),
+    LINE_CLEAR("2026 ENSF 460 L01 - Group 06"),
+    LINE_CLEAR("CLR 00m : 00s")
+};
+
+
+uint16_t uart_init(ring_buffer_s *uart_rx_buffer, ring_buffer_s *uart_tx_buffer)
+{
+    U2MODE = 0;
+    U2STA = 0;
+
+    U2MODEbits.BRGH = 1;
+    U2BRG = (FCY / (4UL * BAUD_RATE)) - 1;
+
+    U2STAbits.URXISEL = 0;
+    IFS1bits.U2RXIF = 0;
+    IEC1bits.U2RXIE = 1;
+
+    U2MODEbits.UARTEN = 1;
+    U2STAbits.UTXEN = 1;
+
+    rx_buffer = uart_rx_buffer;
+    tx_buffer = uart_tx_buffer;
+
+    return 0;
+}
+
+error_e uart_int_to_ascii(uint16_t data, uint8_t *buffer)
+{
+    sprintf((char *)buffer, "%u", data);
+    return ERROR_NONE;
+}
+
+error_e uart_write_char(uint8_t data)
+{
+    while (U2STAbits.UTXBF);
+    U2TXREG = data;
+    return ERROR_NONE;
+}
+
+error_e uart_write_string(const char *data)
+{
+    while (*data)
+    {
+        uart_write_char((uint8_t)*data++);
+    }
+    uart_write_char('\r');
+    uart_write_char('\n');
+    return ERROR_NONE;
+}
+
+uint8_t uart_read_char(void)
+{
+    while (!ring_buffer_data_available(rx_buffer));
+    return ring_buffer_dequeue_char(rx_buffer);
+}
+
+error_e uart_send_buffer(void)
+{
+    while (ring_buffer_data_available(tx_buffer))
+    {
+        uart_write_char(ring_buffer_dequeue_char(tx_buffer));
+    }
+    return ERROR_NONE;
+}
+
+#if 1
+void __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
+{
+    if (U2STAbits.OERR)
+    {
+        U2STAbits.OERR = 0;
+    }
+
+    while (U2STAbits.URXDA)
+    {
+        uint8_t c = U2RXREG;
+        ring_buffer_enqueue_char(rx_buffer, c);
+#if ECHO_ENABLE
+        if (!U2STAbits.UTXBF)
+        {
+            if (c == '\r')
+            {
+                U2TXREG = c;
+                U2TXREG = '\n';
+            }
+            else
+            {
+                U2TXREG = c;
+            }
+        }
+#endif
+    }
+
+    IFS1bits.U2RXIF = 0;
+}
+
 error_e uart_send_state(const test_rig_data_s *data)
 {
     uint8_t gpio_flags =
@@ -28,7 +143,6 @@ error_e uart_send_state(const test_rig_data_s *data)
         uart_write_char(payload[i]);
         checksum = (uint8_t)(checksum + payload[i]);
     }
-
     uart_write_char(checksum);
     return ERROR_NONE;
 }
@@ -72,10 +186,8 @@ error_e uart_send_message(const char *msg, uint16_t elapsed_value,uint16_t prese
         {
             tmp_buffer[j++] = cursor[i];
         }
-
         i++;
     }
-
     tmp_buffer[j] = '\0';
     uart_write_string(tmp_buffer);
     prev_elapsed = elapsed_value;
