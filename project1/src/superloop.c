@@ -25,34 +25,12 @@
 #define STATE_SEND_DELAY_MS 125
 #define FAST_BLINK_MS 250;
 
-static uint8_t rx_data[BUFFER_SIZE];
-static uint8_t tx_data[BUFFER_SIZE];
-static ring_buffer_s rx_buffer = {
-    .buffer = rx_data,
-    .read_ptr = rx_data,
-    .write_ptr = rx_data,
-    .size = BUFFER_SIZE,
-    .data_available = 0,
-    .string_available = 0,
-    .error = ERROR_NONE,
-};
-
-static ring_buffer_s tx_buffer = {
-    .buffer = tx_data,
-    .read_ptr = tx_data,
-    .write_ptr = tx_data,
-    .size = BUFFER_SIZE,
-    .data_available = 0,
-    .string_available = 0,
-    .error = ERROR_NONE,
-};
-
 static const uint16_t input[] = {11, 9, 10, 15, 16};
 static const uint16_t output[] = {13, 14};
 static char err_msg[128];
 
-static timer_state_e state = TIMER_INIT;
-static volatile uint16_t elapsed_value;
+volatile timer_state_e state = TIMER_INIT;
+volatile uint16_t elapsed_value;
 
 static timer_state_e request_state = TIMER_INIT;
 static int16_t preset_value;
@@ -210,7 +188,6 @@ error_e superloop_loop(void)
         state = request_state;
         start_time = now;
         counter = 0;
-        sendTestRigData();
     }
     else if (prev_preset_value != preset_value || elapsed_value != prev_elapsed_value){
         prev_preset_value = preset_value;

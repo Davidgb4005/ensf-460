@@ -47,11 +47,4 @@ typedef enum
 extern const char *messages[];
 
 error_e uart_send_state(const test_rig_data_s *data);
-uint16_t uart_init(ring_buffer_s *uart_rx_buffer, ring_buffer_s *uart_tx_buffer);
-error_e uart_write_char(uint8_t data);
-error_e uart_write_string(const char *data);
-uint8_t uart_read_char(void);
-error_e uart_send_buffer(void);
-error_e uart_int_to_ascii(uint16_t data, uint8_t *buffer);
-error_e uart_send_message(const char *msg, uint16_t elapsed_value, uint16_t preset_value);
 #endif
