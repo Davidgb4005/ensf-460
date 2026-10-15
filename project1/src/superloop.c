@@ -27,43 +27,9 @@
 #define COUNT_DELAY_MS 1000
 #define STATE_SEND_DELAY_MS 125
 
-static uint8_t rx_data[BUFFER_SIZE];
-static uint8_t tx_data[BUFFER_SIZE];
-
-static ring_buffer_s rx_buffer = {
-    .buffer = rx_data,
-    .read_ptr = rx_data,
-    .write_ptr = rx_data,
-    .size = BUFFER_SIZE,
-    .data_available = 0,
-    .string_available = 0,
-    .error = ERROR_NONE,
-};
-
-static ring_buffer_s tx_buffer = {
-    .buffer = tx_data,
-    .read_ptr = tx_data,
-    .write_ptr = tx_data,
-    .size = BUFFER_SIZE,
-    .data_available = 0,
-    .string_available = 0,
-    .error = ERROR_NONE,
-};
-
 static const uint16_t input[] = {11, 9, 10, 15, 16};
 static const uint16_t output[] = {13, 14};
 static char err_msg[128];
-
-static debounce_s push_button[3] = {
-    {.pin = 11, .debounce_delay = DEBOUNCE_DELAY},
-    {.pin = 9, .debounce_delay = DEBOUNCE_DELAY},
-    {.pin = 10, .debounce_delay = DEBOUNCE_DELAY},
-};
-
-static led_s led[2] = {
-    {.led_pin = 13, .mode = LED_BLINK, .blink_delay = 1000},
-    {.led_pin = 14, .mode = LED_BLINK, .blink_delay = 250},
-};
 
 volatile timer_state_e state = TIMER_INIT;
 volatile uint16_t elapsed_value;
@@ -243,9 +209,6 @@ error_e superloop_loop(void)
 
         start_time = now;
         counter = 0;
-        push_button[0].state_bits.most_recent_edge = DEBOUNCE_NO_EDGE;
-        push_button[1].state_bits.most_recent_edge = DEBOUNCE_NO_EDGE;
-        push_button[2].state_bits.most_recent_edge = DEBOUNCE_NO_EDGE;
     }
 
     switch (state)
