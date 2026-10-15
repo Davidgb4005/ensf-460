@@ -1,6 +1,8 @@
 mod event_log;
 mod tui;
-
+mod dgital_twin;
+mod gpio;
+mod test_runner;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
