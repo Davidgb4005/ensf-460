@@ -1,9 +1,0 @@
-# Commands:
-#   press <pb1|pb2|pb3|pb1+pb2|pb1,pb2> <seconds>
-#   wait <seconds>
-
-press pb1 4
-wait 1
-wait .125
-press pb2 1
-press pb1 1
