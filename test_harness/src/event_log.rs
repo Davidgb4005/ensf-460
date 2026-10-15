@@ -1,4 +1,4 @@
-use crate::{GpioOutputState, TwinState};
+use crate::state::{GpioOutputState, TwinState};
 use std::fs::{File, OpenOptions};
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
