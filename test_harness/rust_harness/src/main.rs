@@ -416,7 +416,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        control_gpio.update();
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
                 let mut transition_event = None;
@@ -550,6 +549,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             digital_end_time,
         )?;
         thread::sleep(Duration::from_millis(1));
+        control_gpio.update();
     }
 
     Ok(())
