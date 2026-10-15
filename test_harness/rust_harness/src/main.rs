@@ -409,7 +409,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     } else if key.code == KeyCode::Char('p') {
                         control_gpio.trigger_pause();
                     }
-                } else if key.kind == KeyEventKind::Release
+                } 
             }
         }
         match uart_reader.poll(port.as_mut()) {
