@@ -428,7 +428,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         control_gpio.reset();
                     }
 
-                }
+                
             }
         }
         control_gpio.update();
