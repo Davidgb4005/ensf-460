@@ -5,7 +5,7 @@
 #include "stdio.h"
 
 #define FCY         4000000UL
-#define BAUD_RATE   9600UL
+#define BAUD_RATE   500000
 #define ECHO_ENABLE 1
 
 ring_buffer_s *rx_buffer;
@@ -21,19 +21,25 @@ const char *messages[] = {
     LINE_CLEAR("CLR 00m : 00s")
 };
 
+
 uint16_t uart_init(ring_buffer_s *uart_rx_buffer, ring_buffer_s *uart_tx_buffer)
 {
     U2MODE = 0;
     U2STA = 0;
+
     U2MODEbits.BRGH = 1;
     U2BRG = (FCY / (4UL * BAUD_RATE)) - 1;
+
     U2STAbits.URXISEL = 0;
     IFS1bits.U2RXIF = 0;
     IEC1bits.U2RXIE = 1;
+
     U2MODEbits.UARTEN = 1;
     U2STAbits.UTXEN = 1;
+
     rx_buffer = uart_rx_buffer;
     tx_buffer = uart_tx_buffer;
+
     return 0;
 }
 
@@ -137,7 +143,6 @@ error_e uart_send_state(const test_rig_data_s *data)
         uart_write_char(payload[i]);
         checksum = (uint8_t)(checksum + payload[i]);
     }
-
     uart_write_char(checksum);
     return ERROR_NONE;
 }
@@ -181,10 +186,8 @@ error_e uart_send_message(const char *msg, uint16_t elapsed_value,uint16_t prese
         {
             tmp_buffer[j++] = cursor[i];
         }
-
         i++;
     }
-
     tmp_buffer[j] = '\0';
     uart_write_string(tmp_buffer);
     prev_elapsed = elapsed_value;
