@@ -17,7 +17,7 @@ use std::time::{Duration, Instant};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const UART_PORT: &str = "/dev/ttyAMA0";
-const UART_BAUD: u32 = 9600;
+const UART_BAUD: u32 = 500000;
 const PUSHBUTTON_1_INPUT: u8 = 22;
 const PUSHBUTTON_2_INPUT: u8 = 23;
 const PUSHBUTTON_3_INPUT: u8 = 24;
