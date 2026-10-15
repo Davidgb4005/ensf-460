@@ -13,7 +13,7 @@
 #define ERROR_PRINT(fmt, ...)                                                         \
     do                                                                                \
     {                                                                                 \
-        snprintf(err_msg, sizeof(err_msg), "Line %d: " fmt, __LINE__, ##__VA_ARGS__); \
+        snprintf(err_msg, sizeof(err_msg), " %s,Line %d: " fmt,__FILE__, __LINE__, ##__VA_ARGS__); \
         uart_write_string(err_msg);                                                   \
     } while (0)
 
@@ -49,6 +49,128 @@ static uint16_t read_control_register(void)
     return push_button[0].state_bits.pb_current_state |
            (push_button[1].state_bits.pb_current_state << 1) |
            (push_button[2].state_bits.pb_current_state << 2);
+}
+
+static int16_t clamp_preset_value(int16_t value)
+{
+    if (value > MAX_PRESET_VALUE)
+    {
+        return MAX_PRESET_VALUE;
+    }
+    if (value < MIN_PRESET_VALUE)
+    {
+        return MIN_PRESET_VALUE;
+    }
+    return value;
+}
+
+static uint16_t delay_elapsed(uint16_t now)
+{
+    if ((uint16_t)(now - start_time) >= delay_ms)
+    {
+        start_time = now;
+        return 1;
+    }
+    return 0;
+}
+
+static void led_off(led_s *target)
+{
+    target->mode = LED_DIGITAL;
+    target->st_bits.enabled = 0;
+    target->st_bits.paused = 0;
+    target->st_bits.output = 0;
+}
+
+static void led_on(led_s *target)
+{
+    target->mode = LED_DIGITAL;
+    target->st_bits.enabled = 1;
+    target->st_bits.paused = 0;
+    target->st_bits.output = 1;
+}
+
+static void led_blink(led_s *target)
+{
+    target->mode = LED_BLINK;
+    target->st_bits.enabled = 1;
+    target->st_bits.paused = 0;
+    target->st_bits.output = 0;
+    target->prev_time = timer_millis();
+}
+
+static void led_pause(led_s *target)
+{
+    target->mode = LED_BLINK;
+    target->st_bits.enabled = 1;
+    target->st_bits.paused = 1;
+}
+
+static test_led_state_e led_state(const led_s *target)
+{
+    if (!target->st_bits.enabled)
+    {
+        return TEST_LED_OFF;
+    }
+    if (target->st_bits.paused)
+    {
+        return TEST_LED_PAUSE;
+    }
+    if (target->mode == LED_BLINK)
+    {
+        return TEST_LED_BLINK;
+    }
+    return target->st_bits.output ? TEST_LED_ON : TEST_LED_OFF;
+}
+
+error_e superloop_setup(void)
+{
+    AD1PCFG = 0xffff; // Disable AN11; enable RB13 digital input
+
+    ERROR_PRINT("Output Pin %u Setup Failed", output[i]);
+    if (uart_init(&rx_buffer, &tx_buffer) == 0)
+    {
+        ERROR_PRINT("%s", "UART Setup Complete");
+    }
+
+    if (timer2_init() == 0)
+    {
+        ERROR_PRINT("%s", "Timer 2 Setup Complete");
+    }
+    else
+    {
+        ERROR_PRINT("%s", "Timer 2 Setup Failed");
+    }
+
+    for (uint16_t i = 0; i < ARRAY_COUNT(input); i++)
+    {
+        if (gpio_pin_mode(input[i], GPIO_INPUT_PULLDOWN) == ERROR_NONE)
+        {
+            ERROR_PRINT("Input Pin %u Setup Complete", input[i]);
+        }
+        else
+        {
+            ERROR_PRINT("Input Pin %u Setup Failed", input[i]);
+        }
+    }
+
+    for (uint16_t i = 0; i < ARRAY_COUNT(output); i++)
+    {
+        if (gpio_pin_mode(output[i], GPIO_OUTPUT) == ERROR_NONE)
+        {
+            ERROR_PRINT("Output Pin %u Setup Complete", output[i]);
+        }
+        else
+        {
+            ERROR_PRINT("Output Pin %u Setup Failed", output[i]);
+        }
+    }
+
+    led_off(&led[0]);
+    led_off(&led[1]);
+    start_time = timer_millis();
+    state_send_time = start_time;
+    return ERROR_NONE;
 }
 
 error_e superloop_loop(void)
