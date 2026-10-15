@@ -360,6 +360,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut prev_uart_state = uart_state.current_state;
 
     loop {
+        control_gpio.update();
         if event::poll(Duration::ZERO)? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
@@ -409,11 +410,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         control_gpio.trigger_pause();
                     }
                 } else if key.kind == KeyEventKind::Release
-                    && (key.code == KeyCode::Up || key.code == KeyCode::Down)
-                {
-                    println!("Its Here");
-                    control_gpio.reset();
-                }
             }
         }
         match uart_reader.poll(port.as_mut()) {
@@ -549,7 +545,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             digital_end_time,
         )?;
         thread::sleep(Duration::from_millis(1));
-        control_gpio.update();
     }
 
     Ok(())
