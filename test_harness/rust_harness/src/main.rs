@@ -27,7 +27,7 @@ const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6;
 const RESET_PULSE_MS: u64 = 3125;
 const CLEAR_PULSE_MS: u64 = 3125;
-const INCREMENT_PULSE_MS : u64 = 450;
+const INCREMENT_PULSE_MS : u64 = 600;
 const PULSE_MS: u64 = 100;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
@@ -246,7 +246,13 @@ impl ControlGpio {
             self.reset_deadline = None;
         }
     }
-
+    fn reset(&mut self) {
+        self.push_button_outputs[0].set_low();
+        self.push_button_outputs[1].set_low();
+        self.push_button_outputs[2].set_low();
+        self.reset_output.set_low();
+        self.reset_deadline = None;
+    }
     fn output_state(&self) -> GpioOutputState {
         GpioOutputState {
             pb_1: self.push_button_outputs[0].is_set_high(),
@@ -355,7 +361,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         if event::poll(Duration::ZERO)? {
             if let Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Repeat {
+                if key.kind == KeyEventKind::Press {
                     if key.code == KeyCode::Char('c')
                         && key.modifiers.contains(KeyModifiers::CONTROL)
                     {
@@ -414,6 +420,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                     else if key.code == KeyCode::Char('p')
                     {
                         control_gpio.trigger_pause();
+                    }
+
+                }
+                else if key.kind == KeyEventKind::Release && 
+                        (key.code == KeyCode::Up || key.code == KeyCode::Down){
+                        control_gpio.reset();
                     }
 
                 }
