@@ -6,15 +6,15 @@ use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
-use std::time::{SystemTime, UNIX_EPOCH};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use rppal::gpio::{Gpio, InputPin, OutputPin};
 use serialport::{SerialPort, new};
 use std::collections::VecDeque;
 use std::error::Error;
 use std::sync::{Arc, RwLock, mpsc};
-use std::thread;
+use std::{println, thread};
 use std::time::{Duration, Instant};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const UART_PORT: &str = "/dev/ttyAMA0";
 const UART_BAUD: u32 = 9600;
@@ -27,7 +27,7 @@ const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6;
 const RESET_PULSE_MS: u64 = 3125;
 const CLEAR_PULSE_MS: u64 = 3125;
-const INCREMENT_PULSE_MS : u64 = 600;
+const INCREMENT_PULSE_MS: u64 = 600;
 const PULSE_MS: u64 = 100;
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
@@ -49,7 +49,7 @@ pub(crate) enum SwitchState {
     Off,
 }
 
-#[derive(Default, Debug,Copy, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq)]
 pub(crate) enum TimerStates {
     #[default]
     InitEntry,
@@ -237,7 +237,9 @@ impl ControlGpio {
     }
 
     fn update(&mut self) {
-        if self.reset_deadline.is_some_and(|deadline| Instant::now() >= deadline)
+        if self
+            .reset_deadline
+            .is_some_and(|deadline| Instant::now() >= deadline)
         {
             self.push_button_outputs[0].set_low();
             self.push_button_outputs[1].set_low();
@@ -350,7 +352,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         previous_gpio_outputs,
     )?;
 
-
     let mut digital_start_time: Option<u128> = None;
     let mut digital_end_time: Option<u128> = None;
     let mut uart_start_time: Option<u128> = None;
@@ -367,8 +368,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     {
                         break;
                     }
-                    if key.code == KeyCode::Char('r')
-                    {
+                    if key.code == KeyCode::Char('r') {
                         reset_tx.send(())?;
                         control_gpio.trigger_hard_reset();
                         tui.record_reset();
@@ -384,51 +384,36 @@ fn main() -> Result<(), Box<dyn Error>> {
                             gpio_outputs,
                         )?;
                         previous_gpio_outputs.reset = true;
-                    }
-                    else if key.code == KeyCode::Up
-                        && key.modifiers.contains(KeyModifiers::SHIFT)
+                    } else if key.code == KeyCode::Up && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_incrment_minute();
-                    }
-                    else if key.code == KeyCode::Up
-                    {
+                    } else if key.code == KeyCode::Up {
                         control_gpio.trigger_incrment_second();
-                    }
-                    else if key.code == KeyCode::Down
+                    } else if key.code == KeyCode::Down
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_decrement_minute();
-                    }
-                    else if key.code == KeyCode::Down
-                    {
+                    } else if key.code == KeyCode::Down {
                         control_gpio.trigger_decrement_second();
-                    }
-                    else if key.code == KeyCode::Char('S')
+                    } else if key.code == KeyCode::Char('S')
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_reset();
-                    }
-                    else if key.code == KeyCode::Char('s')
-                    {
+                    } else if key.code == KeyCode::Char('s') {
                         control_gpio.trigger_start();
-                    }
-                    else if key.code == KeyCode::Char('P')
+                    } else if key.code == KeyCode::Char('P')
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
                         control_gpio.trigger_clear();
-                    }
-                    else if key.code == KeyCode::Char('p')
-                    {
+                    } else if key.code == KeyCode::Char('p') {
                         control_gpio.trigger_pause();
                     }
-
+                } else if key.kind == KeyEventKind::Release
+                    && (key.code == KeyCode::Up || key.code == KeyCode::Down)
+                {
+                    println!("Its Here");
+                    control_gpio.reset();
                 }
-                else if key.kind == KeyEventKind::Release && 
-                        (key.code == KeyCode::Up || key.code == KeyCode::Down){
-                        control_gpio.reset();
-                    }
-
-                
             }
         }
         control_gpio.update();
