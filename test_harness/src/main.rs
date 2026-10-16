@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut previous_gpio_outputs = control_gpio.output_state();
     let mut event_log = event_log::EventLogger::new("harness-events.log")?;
     let _raw_mode = RawModeGuard::new()?;
-    let mut run_started : bool;
+    let mut run_started : u8;
 
     let initial_twin_state = shared_twin_state
         .read()

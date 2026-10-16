@@ -107,8 +107,8 @@ impl ControlGpio {
     pub(crate)fn trigger_ping_low(&mut self) {
         self.testing_output.set_low();
     }
-    pub(crate)fn read_testing(&mut self) -> bool {
-        self.testing_input.is_high();
+    pub(crate)fn read_testing(&mut self) -> u8 {
+        self.testing_input.is_high() as u8;
     }
     
     pub(crate)fn output_state(&self) -> GpioOutputState {
