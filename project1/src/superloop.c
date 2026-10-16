@@ -125,11 +125,11 @@ static uint16_t send_delay_elapsed(uint16_t now)
     return 0;
 }
 uint16_t dummy;
-#if 1
+#if 0
 #define LED_1 _LATB9
 #define LED_2 _LATA6
 #endif
-#if 0
+#if 1
 #define LED_1 dummy
 #define LED_2 dummy
 #endif
