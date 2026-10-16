@@ -4,7 +4,7 @@ use rppal::gpio::{Gpio, InputPin, OutputPin};
 use std::time::{Duration, Instant};
 use crate::state::{GpioOutputState};
 
-const TESTING_PIN_OUTPUT:u8 = 5,
+const TESTING_PIN_OUTPUT:u8 = 5;
 const PUSHBUTTON_1_INPUT: u8 = 22;
 const PUSHBUTTON_2_INPUT: u8 = 23;
 const PUSHBUTTON_3_INPUT: u8 = 24;
