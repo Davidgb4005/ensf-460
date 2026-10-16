@@ -29,7 +29,7 @@ uint16_t timer2_init(void)
     T2CONbits.TGATE = 0;
     T2CONbits.TCKPS = 0x00;
     TMR2 = 0;
-    PR2 = 14590;
+    PR2 = 16439;
     _T2IP = 4;
     _T2IF = 0;
     _T2IE = 1;
