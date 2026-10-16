@@ -241,7 +241,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     digital_end_time = None;
                 }
                 TimerStates::Alarm => digital_end_time = Some(now_ms()),
-                _ => {}
+                _ => {control_gpio.reset()}
             }
 
             prev_digital_state = twin_snapshot.current_state;
