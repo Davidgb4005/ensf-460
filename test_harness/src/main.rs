@@ -239,13 +239,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                 TimerStates::Run => {
                     digital_start_time = Some(now_ms());
                     digital_end_time = None;
-                    control_gpio.trigger_ping();
+                    control_gpio.trigger_ping_high();
                 }
                 TimerStates::Alarm => {
                     digital_end_time = Some(now_ms());
-                    control_gpio.trigger_ping();
+                    control_gpio.trigger_ping_high();
                 }
-                _ => {}
+                _ => {
+                    control_gpio.trigger_ping_low();
+                }
             }
 
             prev_digital_state = twin_snapshot.current_state;
