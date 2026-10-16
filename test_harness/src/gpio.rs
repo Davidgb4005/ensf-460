@@ -35,7 +35,7 @@ impl ControlGpio {
             ],
             reset_output: gpio.get(RESET_OUTPUT)?.into_output_low(),
             testing_output: gpio.get(TESTING_PIN_OUTPUT)?.into_output_low(),
-            testing_output: gpio.get(TESTING_PIN_OUTPUT)?.into_input_pulldown(),
+            testing_input: gpio.get(TESTING_PIN_OUTPUT)?.into_input_pulldown(),
             reset_deadline: None,
         })
     }
@@ -107,7 +107,7 @@ impl ControlGpio {
     pub(crate)fn trigger_ping_low(&mut self) {
         self.testing_output.set_low();
     }
-    pub(crate)fn read_testing(&mut self) -> Bool {
+    pub(crate)fn read_testing(&mut self) -> bool {
         self.testing_input.is_high();
     }
     
