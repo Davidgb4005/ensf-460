@@ -18,7 +18,7 @@ const INCREMENT_PULSE_MS: u64 = 425;
 const PULSE_MS: u64 = 100;
 
 pub(crate) struct ControlGpio {
-    push_button_outputs: [OutputPin; 3],
+    push_button_outputs: [OutputPin; 4],
     reset_output: OutputPin,
     testing_output: OutputPin,
     reset_deadline: Option<Instant>,
