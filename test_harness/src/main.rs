@@ -235,13 +235,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             previous_gpio_outputs.pb_3 = gpio_outputs.pb_3;
         }
 
-        if control_gpio.read_testing() && run_started == 0{
+        if control_gpio.read_testing() == 1 && run_started == 0{
                     run_started = 1;
                     digital_start_time = Some(now_ms());
                     digital_end_time = None;
                     control_gpio.trigger_ping_high();
             }
-        else if !control_gpio.read_testing() && run_started == 1{
+        else if control_gpio.read_testing() == 0 && run_started == 1{
                     run_started = 0;
                     digital_end_time = Some(now_ms());
                     control_gpio.trigger_ping_high();
