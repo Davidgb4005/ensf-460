@@ -248,8 +248,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         
 
-        if digital_start_time.current_state.clone() != prev_digital_state {
-            match digital_state.current_state {
+        if twin_snapshot.current_state.clone() != prev_digital_state {
+            match twin_snapshot.current_state {
                 TimerStates::RunEntry => {
                     digital_start_time = Some(now_ms());
                     digital_end_time = None;
@@ -258,7 +258,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => {}
             }
 
-            prev_digital_state = digital_state.current_state;
+            prev_digital_state = twin_snapshot.current_state;
         }
 
         if gpio_outputs.reset != previous_gpio_outputs.reset {
