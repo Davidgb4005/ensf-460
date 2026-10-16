@@ -62,7 +62,6 @@ impl ControlGpio {
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(INCREMENT_PULSE_MS));
     }
     pub(crate)fn trigger_start(&mut self) {
-        self.testing_output.set_high();
         self.push_button_outputs[0].set_high();
         self.push_button_outputs[1].set_high();
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));

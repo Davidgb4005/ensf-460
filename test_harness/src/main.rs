@@ -239,6 +239,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 TimerStates::Run => {
                     digital_start_time = Some(now_ms());
                     digital_end_time = None;
+                    control_gpio.trigger_ping();
                 }
                 TimerStates::Alarm => {
                     digital_end_time = Some(now_ms());
