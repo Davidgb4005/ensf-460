@@ -244,12 +244,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         else if control_gpio.read_testing() == 0 && run_started == 1{
                     run_started = 0;
                     digital_end_time = Some(now_ms());
-                    control_gpio.trigger_ping_high();
+                    control_gpio.trigger_ping_low();
         }
         
-        else{
-            control_gpio.trigger_ping_low();
-        }
 
         if uart_state.current_state.clone() != prev_uart_state {
             match uart_state.current_state {
