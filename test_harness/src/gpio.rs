@@ -4,15 +4,15 @@ use rppal::gpio::{Gpio, InputPin, OutputPin};
 use std::time::{Duration, Instant};
 use crate::state::{GpioOutputState};
 
-const TESTING_PIN_OUTPUT:u8 = 5;
-const TESTING_PIN_INPUT:u8 = 13;
+const TESTING_PIN_OUTPUT:u8 = 5; // This is to trigger the PPK/Logic Analyzer
+const TESTING_PIN_INPUT:u8 = 13; // This is GPIO for start/alarm timing sycnronization with the physical twin
 const PUSHBUTTON_1_INPUT: u8 = 22;
 const PUSHBUTTON_2_INPUT: u8 = 23;
 const PUSHBUTTON_3_INPUT: u8 = 24;
 const PUSHBUTTON_1_OUTPUT: u8 = 4;
 const PUSHBUTTON_2_OUTPUT: u8 = 17;
 const PUSHBUTTON_3_OUTPUT: u8 = 27;
-const RESET_OUTPUT: u8 = 6;
+const RESET_OUTPUT: u8 = 6; //This sends the reset signal to the physical twin
 const RESET_PULSE_MS: u64 = 3125;
 const CLEAR_PULSE_MS: u64 = 3125;
 const INCREMENT_PULSE_MS: u64 = 425;
