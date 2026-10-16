@@ -1,11 +1,10 @@
 /**
- * File:   main.c
- * Author: UPDATE THIS WITH YOUR GROUP MEMBER NAMES OR POTENTIALLY LOSE POINTS
- *
- * Created on: USE THE INFORMATION FROM THE HEADER MPLAB X IDE GENERATES FOR YOU
+ * File:    main.c
+ * Authors: David Burgoin, Moyo Ogunjobi, Jacob Plourde
  */
 
 #if 1
+
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
 #pragma config BSS = OFF                // Boot segment Protect (No boot program Flash segment)
@@ -15,8 +14,9 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = 0b111              // Oscillator Select (Fast RC oscillator (FRC))
+#pragma config FNOSC = FRC              // Oscillator Select (Fast RC oscillator (FRC))
 #pragma config IESO = OFF               // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
+
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
 #pragma config OSCIOFNC = OFF           // CLKO Enable Configuration bit (CLKO output disabled; pin functions as port I/O)
@@ -46,20 +46,24 @@
 #pragma config RTCOSC = SOSC            // RTCC Reference Clock Select bit (RTCC uses SOSC as reference clock)
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = ON             // Deep Sleep Watchdog Timer Enable bit (DSWDT enabled)
+
 #endif
 
+
+#include <xc.h>
+
+#include "system.h"
 #include "superloop.h"
-#include "xc.h"
+
 
 int main(void) {
-	CLKDIVbits.RCDIV = 0b000;
-	superloop_setup();
-	while(1){
-		superloop_loop();
-	}
-  return 0;
+    set_core_clock(FREQ_8_MHZ);
+
+    superloop_setup();
+
+    while(1){
+        superloop_loop();
+    }
+
+    return 0;
 }
-
-
-
-
