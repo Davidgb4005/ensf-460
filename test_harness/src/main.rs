@@ -240,8 +240,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     digital_start_time = Some(now_ms());
                     digital_end_time = None;
                 }
-                TimerStates::Alarm => digital_end_time = Some(now_ms()),
-                _ => {control_gpio.trigger_ping()}
+                TimerStates::Alarm => {
+                    digital_end_time = Some(now_ms());
+                    control_gpio.trigger_ping();
+                }
+                _ => {}
             }
 
             prev_digital_state = twin_snapshot.current_state;
