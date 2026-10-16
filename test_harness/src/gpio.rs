@@ -18,7 +18,7 @@ const INCREMENT_PULSE_MS: u64 = 425;
 const PULSE_MS: u64 = 100;
 
 pub(crate) struct ControlGpio {
-    push_button_outputs: [OutputPin; 4],
+    push_button_outputs: [OutputPin; 3],
     reset_output: OutputPin,
     testing_output: OutputPin,
     reset_deadline: Option<Instant>,
@@ -33,7 +33,7 @@ impl ControlGpio {
                 gpio.get(PUSHBUTTON_3_OUTPUT)?.into_output_low(),
             ],
             reset_output: gpio.get(RESET_OUTPUT)?.into_output_low(),
-            testing_output: gpio.get(RESET_OUTPUT)?.into_output_low(),
+            testing_output: gpio.get(TESTING_PIN_OUTPUT)?.into_output_low(),
             reset_deadline: None,
         })
     }
@@ -62,7 +62,7 @@ impl ControlGpio {
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(INCREMENT_PULSE_MS));
     }
     pub(crate)fn trigger_start(&mut self) {
-        self.push_button_outputs[3].set_high();
+        self.testing_output.set_high();
         self.push_button_outputs[0].set_high();
         self.push_button_outputs[1].set_high();
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
@@ -89,7 +89,7 @@ impl ControlGpio {
             self.push_button_outputs[0].set_low();
             self.push_button_outputs[1].set_low();
             self.push_button_outputs[2].set_low();
-            self.push_button_outputs[3].set_low();
+            self.testing_output.set_low();
             self.reset_output.set_low();
             self.reset_deadline = None;
         }
