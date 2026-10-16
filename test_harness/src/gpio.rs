@@ -108,7 +108,7 @@ impl ControlGpio {
         self.testing_output.set_low();
     }
     pub(crate)fn read_testing(&mut self) -> Bool {
-        self.testing_input.is_set_high();
+        self.testing_input.is_high();
     }
     
     pub(crate)fn output_state(&self) -> GpioOutputState {
