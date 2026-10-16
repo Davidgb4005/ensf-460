@@ -88,7 +88,6 @@ impl ControlGpio {
             self.push_button_outputs[0].set_low();
             self.push_button_outputs[1].set_low();
             self.push_button_outputs[2].set_low();
-            self.testing_output.set_low();
             self.reset_output.set_low();
             self.reset_deadline = None;
         }
@@ -97,7 +96,6 @@ impl ControlGpio {
         self.push_button_outputs[0].set_low();
         self.push_button_outputs[1].set_low();
         self.push_button_outputs[2].set_low();
-        self.testing_output.set_low();
         self.reset_output.set_low();
         self.reset_deadline = None;
     }

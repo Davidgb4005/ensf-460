@@ -246,11 +246,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                     control_gpio.trigger_ping_high();
                 }
                 _ => {
-                    control_gpio.trigger_ping_low();
                 }
             }
 
             prev_digital_state = twin_snapshot.current_state;
+        }
+        else{
+            control_gpio.trigger_ping_low();
         }
 
         if uart_state.current_state.clone() != prev_uart_state {
