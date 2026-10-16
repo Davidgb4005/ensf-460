@@ -80,7 +80,6 @@ uint16_t timer_millis(void);
         if (U2MODEbits.UARTEN)                  \
             while (!U2STAbits.TRMT)             \
                 ;                               \
-        T3CONbits.TON = 0;                      \
         CLKDIVbits.RCDIV = 0;                   \
         __builtin_write_OSCCONH(0b001);         \
         __builtin_write_OSCCONL(OSCCON | 0x01); \
@@ -118,7 +117,6 @@ uint16_t timer_millis(void);
         if (U2MODEbits.UARTEN)                  \
             while (!U2STAbits.TRMT)             \
                 ;                               \
-        T3CONbits.TON = 0;                      \
         __builtin_write_OSCCONH(0b000);         \
         __builtin_write_OSCCONL(OSCCON | 0x01); \
         while (OSCCONbits.OSWEN)                \
@@ -145,6 +143,35 @@ uint16_t timer_millis(void);
         ENABLE8MHZ();                           \
     } while (0)
 #endif
+#define SET31KHZ()                             \
+    do                                          \
+    {                                           \
+        while (!U2STAbits.TRMT)                 \
+            ;                                   \
+        T3CONbits.TON = 0;                      \
+        __builtin_write_OSCCONH(0b101);         \
+        __builtin_write_OSCCONL(OSCCON | 0x01); \
+        while (OSCCONbits.OSWEN)                \
+            ;                                   \
+        T2CONbits.TON = 1;                      \
+    } while (0)
+#define SET8MHZ()                               \
+    do                                          \
+    {                                           \
+        if (U2MODEbits.UARTEN)                  \
+            while (!U2STAbits.TRMT)             \
+                ;                               \
+        T2CONbits.TON = 0;                      \
+        __builtin_write_OSCCONH(0b000);         \
+        __builtin_write_OSCCONL(OSCCON | 0x01); \
+        while (OSCCONbits.OSWEN)                \
+            ;                                   \
+        U2BRG = 1;                              \
+        TMR3 = 0;                               \
+        PR3 = 3999;                             \
+        IFS0bits.T3IF = 0;                      \
+        T3CONbits.TON = 1;                      \
+    } while (0)
+#endif
 //For 8 mhz TMR2 == 14617
 //for 32mhz u 11800
-#endif

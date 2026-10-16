@@ -125,11 +125,11 @@ static uint16_t send_delay_elapsed(uint16_t now)
     return 0;
 }
 uint16_t dummy;
-#if 0
+#if 1
 #define LED_1 _LATB9
 #define LED_2 _LATA6
 #endif
-#if 1
+#if 0
 #define LED_1 dummy
 #define LED_2 dummy
 #endif
@@ -152,7 +152,8 @@ error_e superloop_setup(void)
     {
         ERROR_PRINT("%s", "Timer 2 Setup Failed");
     }
-    _TRISB13 = 1;
+    _TRISB12 = 0;
+    _TRISB14 = 1;
     _TRISB9 = 0;
     _TRISB7 = 1;
     _TRISB4 = 1;
@@ -181,6 +182,7 @@ error_e superloop_setup(void)
 }
 static uint16_t prev_preset_value = 0;
 static uint16_t prev_elapsed_value = 0;
+volatile uint16_t buttons;
 error_e superloop_loop(void)
 {
 
@@ -191,11 +193,9 @@ error_e superloop_loop(void)
     }
 
     const char *selected_message = NULL;
-    uint16_t buttons;
     uint16_t now;
 
     now = timer_millis();
-    buttons = _RB7 | _RB4 << 1 | _RA4 << 2;
 
     if (buttons != prev_buttons)
     {
@@ -342,20 +342,19 @@ error_e superloop_loop(void)
         break;
     case TIMER_RUN:
         LED_2 = 0;
+        _LATB12 = 1;
         if (elapsed_value == 0 || (buttons & 0x4) != 0)
         {
+            _LATB12 = 0;
             delay_ms = CLEAR_DELAY_MS;
             request_state = TIMER_RUN_TRANSITION;
         }
         if (delay_elapsed(now))
         {
-            LED_2 = !LED_2;
+            LED_1 = !LED_1;
         }
         selected_message = messages[UART_COUNT_FORMAT];
-        if (elapsed_value > 1)
-        {
-            IDLE31KHZ();
-        }
+        IDLE31KHZ();
         break;
 
     case TIMER_RUN_TRANSITION:
@@ -450,9 +449,15 @@ error_e superloop_loop(void)
         }
         if ((buttons & 0x3) != 0)
         {
+            SET8MHZ();
             request_state = TIMER_ALARM_TRANSITION;
         }
-        IDLE31KHZ();
+        if (elapsed_value < 1){
+            IDLE31KHZ();
+        }
+        else{
+            SET31KHZ();
+        }
         break;
     case TIMER_ALARM_TRANSITION:
         LED_1 = 0;
@@ -472,6 +477,7 @@ error_e superloop_loop(void)
         uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
     }
     return ERROR_NONE;
+    elapsed_value = clamp_preset_value(elapsed_value);
 }
 
 void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)
@@ -482,6 +488,8 @@ void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)
     {
         __asm__ volatile("reset");
     }
+
+    buttons = _RB7 | _RB4 << 1 | _RA4 << 2;
     (void)dummy_a;
     (void)dummy_b;
 
