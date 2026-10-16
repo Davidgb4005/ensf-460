@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 use crate::state::{GpioOutputState};
 
 const TESTING_PIN_OUTPUT:u8 = 5;
+const TESTING_PIN_INPUT:u8 = 13;
 const PUSHBUTTON_1_INPUT: u8 = 22;
 const PUSHBUTTON_2_INPUT: u8 = 23;
 const PUSHBUTTON_3_INPUT: u8 = 24;
@@ -35,7 +36,7 @@ impl ControlGpio {
             ],
             reset_output: gpio.get(RESET_OUTPUT)?.into_output_low(),
             testing_output: gpio.get(TESTING_PIN_OUTPUT)?.into_output_low(),
-            testing_input: gpio.get(TESTING_PIN_OUTPUT)?.into_input_pulldown(),
+            testing_input: gpio.get(TESTING_PIN_INPUT)?.into_input_pulldown(),
             reset_deadline: None,
         })
     }
