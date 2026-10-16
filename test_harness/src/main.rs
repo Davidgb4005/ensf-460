@@ -246,7 +246,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     digital_end_time = Some(now_ms());
                     control_gpio.trigger_ping_high();
         }
-        }
+        
         else{
             control_gpio.trigger_ping_low();
         }
