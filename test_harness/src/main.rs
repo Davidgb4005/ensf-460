@@ -237,28 +237,28 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         if control_gpio.read_testing() == 1 && run_started == 0{
                     run_started = 1;
-                    digital_start_time = Some(now_ms());
-                    digital_end_time = None;
+                    uart_start_time = Some(now_ms());
+                    uart_end_time = None;
                     control_gpio.trigger_ping_high();
             }
         else if control_gpio.read_testing() == 0 && run_started == 1{
                     run_started = 0;
-                    digital_end_time = Some(now_ms());
+                    uart_end_time = Some(now_ms());
                     control_gpio.trigger_ping_low();
         }
         
 
-        if uart_state.current_state.clone() != prev_uart_state {
-            match uart_state.current_state {
+        if digital_start_time.current_state.clone() != prev_digital_state {
+            match digital_state.current_state {
                 TimerStates::RunEntry => {
-                    uart_start_time = Some(now_ms());
-                    uart_end_time = None;
+                    digital_start_time = Some(now_ms());
+                    digital_end_time = None;
                 }
-                TimerStates::AlarmEntry => uart_end_time = Some(now_ms()),
+                TimerStates::AlarmEntry => digital_end_time = Some(now_ms()),
                 _ => {}
             }
 
-            prev_uart_state = uart_state.current_state;
+            prev_digital_state = digital_state.current_state;
         }
 
         if gpio_outputs.reset != previous_gpio_outputs.reset {
