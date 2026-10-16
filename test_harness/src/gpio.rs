@@ -21,6 +21,7 @@ pub(crate) struct ControlGpio {
     push_button_outputs: [OutputPin; 3],
     reset_output: OutputPin,
     testing_output: OutputPin,
+    testing_input: InputPin,
     reset_deadline: Option<Instant>,
 }
 
@@ -34,6 +35,7 @@ impl ControlGpio {
             ],
             reset_output: gpio.get(RESET_OUTPUT)?.into_output_low(),
             testing_output: gpio.get(TESTING_PIN_OUTPUT)?.into_output_low(),
+            testing_output: gpio.get(TESTING_PIN_OUTPUT)?.into_input_pulldown(),
             reset_deadline: None,
         })
     }
@@ -104,6 +106,9 @@ impl ControlGpio {
     }
     pub(crate)fn trigger_ping_low(&mut self) {
         self.testing_output.set_low();
+    }
+    pub(crate)fn read_testing(&mut self) -> Bool {
+        self.testing_input.is_set_high();
     }
     
     pub(crate)fn output_state(&self) -> GpioOutputState {

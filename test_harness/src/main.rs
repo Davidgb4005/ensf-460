@@ -79,6 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut previous_gpio_outputs = control_gpio.output_state();
     let mut event_log = event_log::EventLogger::new("harness-events.log")?;
     let _raw_mode = RawModeGuard::new()?;
+    let mut run_started : Bool;
 
     let initial_twin_state = shared_twin_state
         .read()
@@ -234,22 +235,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             previous_gpio_outputs.pb_3 = gpio_outputs.pb_3;
         }
 
-        if twin_snapshot.current_state.clone() != prev_digital_state {
-            match twin_snapshot.current_state {
-                TimerStates::Run => {
+        if control_gpio.read_testing() && !run_started{
+                    run_started = true;
                     digital_start_time = Some(now_ms());
                     digital_end_time = None;
                     control_gpio.trigger_ping_high();
-                }
-                TimerStates::Alarm => {
+            }
+        else if !control_gpio.read_testing() && run_started{
+                    run_started = false;
                     digital_end_time = Some(now_ms());
                     control_gpio.trigger_ping_high();
-                }
-                _ => {
-                }
-            }
-
-            prev_digital_state = twin_snapshot.current_state;
+        }
         }
         else{
             control_gpio.trigger_ping_low();
