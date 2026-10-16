@@ -102,7 +102,7 @@ impl ControlGpio {
         self.reset_output.set_low();
         self.reset_deadline = None;
     }
-    pub(crate)fn reset(&mut self) {
+    pub(crate)fn trigger_ping(&mut self) {
         self.testing_output.set_high();
     }
     
