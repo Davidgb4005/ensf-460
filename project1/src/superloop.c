@@ -132,6 +132,7 @@ uint16_t dummy;
 #if 1
 #define LED_1 dummy
 #define LED_2 dummy
+#define OUTPUT_CONTROL 0
 #endif
 error_e superloop_setup(void)
 {
@@ -342,7 +343,7 @@ error_e superloop_loop(void)
         break;
     case TIMER_RUN:
         LED_2 = 0;
-        _LATB12 = 1;
+        _LATB12 = OUTPUT_CONTROL;
         if (elapsed_value == 0 || (buttons & 0x4) != 0)
         {
             _LATB12 = 0;
