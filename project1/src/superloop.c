@@ -204,6 +204,7 @@ error_e superloop_loop(void)
         start_time = now;
     }
 
+    elapsed_value = clamp_preset_value(elapsed_value);
     if (request_state != state)
     {
         prev_state = state;
@@ -212,13 +213,13 @@ error_e superloop_loop(void)
         counter = 0;
         sendTestRigData();
     }
-    else if (prev_preset_value != preset_value || elapsed_value != prev_elapsed_value){
+    else if (prev_preset_value != preset_value || elapsed_value != prev_elapsed_value)
+    {
         prev_preset_value = preset_value;
         prev_elapsed_value = elapsed_value;
         sendTestRigData();
     }
-    preset_value = clamp_preset_value(preset_value);
-    
+
     switch (state)
     {
     case TIMER_INIT_ENTRY:
@@ -332,7 +333,9 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_RUN_ENTRY:
-
+        T2CONbits.TON = 0;
+        TMR2 = 0;
+        IFS0bits.T2IF = 0;
         delay_ms = COUNT_DELAY_MS;
         request_state = TIMER_RUN;
         selected_message = messages[UART_COUNT_FORMAT];
@@ -347,10 +350,12 @@ error_e superloop_loop(void)
         if (delay_elapsed(now))
         {
             LED_2 = !LED_2;
-            elapsed_value--;
         }
         selected_message = messages[UART_COUNT_FORMAT];
-        IDLE31KHZ();
+        if (elapsed_value > 1)
+        {
+            IDLE31KHZ();
+        }
         break;
 
     case TIMER_RUN_TRANSITION:
@@ -462,7 +467,8 @@ error_e superloop_loop(void)
         request_state = TIMER_INIT_ENTRY;
         break;
     }
-    if (selected_message != NULL){
+    if (selected_message != NULL)
+    {
         uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
     }
     return ERROR_NONE;
