@@ -102,6 +102,9 @@ impl ControlGpio {
         self.reset_output.set_low();
         self.reset_deadline = None;
     }
+    pub(crate)fn reset(&mut self) {
+        self.testing_output.set_high();
+    }
     
     pub(crate)fn output_state(&self) -> GpioOutputState {
         GpioOutputState {
