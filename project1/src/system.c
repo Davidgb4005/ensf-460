@@ -7,7 +7,7 @@
 
 uint16_t core_clock_khz = 8000;
 
-void set_core_clock(enum core_clock_freq freq) {
+void set_core_clock(core_clock_freq_e freq) {
     // Set clock speed
     SRbits.IPL = 7;
     CLKDIVbits.RCDIV = 0;
