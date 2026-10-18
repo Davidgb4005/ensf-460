@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{mpsc::Sender, Arc, Mutex, RwLock};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
@@ -164,10 +164,11 @@ pub(crate) fn run_test(
     path: impl AsRef<Path>,
     control_gpio: Arc<Mutex<ControlGpio>>,
     uart_state: Arc<RwLock<TwinState>>,
+    twin_reset: Sender<()>,
 ) -> io::Result<JoinHandle<()>> {
     let test = parse_test_file(path)?;
     Ok(thread::spawn(move || {
-        if let Err(error) = execute_test(&test, &control_gpio, &uart_state) {
+        if let Err(error) = execute_test(&test, &control_gpio, &uart_state, &twin_reset) {
             eprintln!("test `{}` failed: {error}", test.name);
         } else {
             println!("test `{}` completed", test.name);
@@ -179,12 +180,13 @@ fn execute_test(
     test: &TestDefinition,
     control_gpio: &Arc<Mutex<ControlGpio>>,
     uart_state: &Arc<RwLock<TwinState>>,
+    twin_reset: &Sender<()>,
 ) -> Result<(), String> {
     let mut tcp = open_connection().map_err(|error| format!("TCP connection failed: {error}"))?;
     start_test(&mut tcp, &test.name)
         .map_err(|error| format!("could not start power capture: {error}"))?;
 
-    let result = execute_commands(&test.commands, control_gpio, uart_state);
+    let result = execute_commands(&test.commands, control_gpio, uart_state, twin_reset);
     let complete_result = test_complete(&mut tcp)
         .map_err(|error| format!("could not complete power capture: {error}"));
     result.and(complete_result)
@@ -194,6 +196,7 @@ fn execute_commands(
     commands: &[ParsedCommand],
     control_gpio: &Arc<Mutex<ControlGpio>>,
     uart_state: &Arc<RwLock<TwinState>>,
+    twin_reset: &Sender<()>,
 ) -> Result<(), String> {
     for command in commands {
         match command.command {
@@ -216,6 +219,9 @@ fn execute_commands(
                 }
             }
             Command::Reset => {
+                twin_reset
+                    .send(())
+                    .map_err(|error| format!("could not reset digital twin: {error}"))?;
                 control_gpio
                     .lock()
                     .unwrap_or_else(|poisoned| poisoned.into_inner())

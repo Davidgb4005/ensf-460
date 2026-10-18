@@ -87,6 +87,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 path,
                 Arc::clone(&control_gpio),
                 Arc::clone(&shared_uart_state),
+                reset_tx.clone(),
             )
         })
         .transpose()?;

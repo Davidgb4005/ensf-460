@@ -66,6 +66,7 @@ static test_rig_data_s test_rig_data;
 static uint16_t send_delay_ms = 250;
 static uint16_t send_start_time;
 
+volatile uint16_t buttons;
 static int16_t clamp_preset_value(int16_t value)
 {
     if (value > MAX_PRESET_VALUE)
@@ -88,9 +89,9 @@ void sendTestRigData()
     test_rig_data.states.prev_state_code = (uint16_t)prev_state;
     test_rig_data.gpio.led_1_state = _RB9;
     test_rig_data.gpio.led_2_state = _RA6;
-    test_rig_data.gpio.pb_1 = _RB7;
-    test_rig_data.gpio.pb_2 = _RB4;
-    test_rig_data.gpio.pb_3 = _RA4;
+    test_rig_data.gpio.pb_1 = (buttons & 0x1) >0;
+    test_rig_data.gpio.pb_2 = (buttons & 0x2) >0;
+    test_rig_data.gpio.pb_3 = (buttons & 0x4) > 0;
     uart_send_state(&test_rig_data);
 }
 static uint16_t sleep_counter = 0;
@@ -128,7 +129,7 @@ uint16_t dummy;
 #if 1
 #define LED_1 _LATB9
 #define LED_2 _LATA6
-#define OUTPUT_CONTROL 1 
+#define OUTPUT_CONTROL 1
 #endif
 #if 0
 #define LED_1 dummy
@@ -184,7 +185,6 @@ error_e superloop_setup(void)
 }
 static uint16_t prev_preset_value = 0;
 static uint16_t prev_elapsed_value = 0;
-volatile uint16_t buttons;
 error_e superloop_loop(void)
 {
 
@@ -290,6 +290,7 @@ error_e superloop_loop(void)
             selected_message = messages[UART_INFO_FORMAT];
             break;
         default:
+            sendTestRigData();
             Sleep();
             break;
         }
@@ -345,6 +346,7 @@ error_e superloop_loop(void)
     case TIMER_RUN:
         LED_2 = 0;
         _LATB12 = OUTPUT_CONTROL;
+        sendTestRigData();
         if (elapsed_value == 0 || (buttons & 0x4) != 0)
         {
             _LATB12 = 0;
@@ -398,6 +400,7 @@ error_e superloop_loop(void)
         {
             request_state = TIMER_PAUSE_TRANSITION;
         }
+        sendTestRigData();
         Sleep();
         break;
 
@@ -454,10 +457,13 @@ error_e superloop_loop(void)
             SET8MHZ();
             request_state = TIMER_ALARM_TRANSITION;
         }
-        if (elapsed_value < 1){
+        sendTestRigData();
+        if (elapsed_value < 1)
+        {
             IDLE31KHZ();
         }
-        else{
+        else
+        {
             SET31KHZ();
         }
         break;
@@ -478,8 +484,8 @@ error_e superloop_loop(void)
     {
         uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
     }
-    return ERROR_NONE;
     elapsed_value = clamp_preset_value(elapsed_value);
+    return ERROR_NONE;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)
