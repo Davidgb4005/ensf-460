@@ -12,23 +12,26 @@
 
 static volatile rx_buffer_s rx_buf;
 
+typedef struct uart_brg_s {
+    uint16_t brg;
+    uint16_t brgh;
+} uart_brg_s;
+
 /**
  * Calculates and returns the BRG value for a given baud rate.
  *
  * Uses global system clock frequency.
  */
-static uint16_t uart_calculate_brg(uint32_t baud);
+static uart_brg_s uart_calculate_brg(uint32_t baud);
 
-void uart_init(uint32_t baud) { 
+void uart_init(uint32_t baud) {
     uart_disable();
 
     // Default to 8-bit data, no parity, one stop bit
     U2MODEbits.PDSEL = 0x0;
     U2MODEbits.STSEL = 0;
 
-    // Use low baud rate mode
-    U2MODEbits.BRGH = 0;
-    U2BRG = uart_calculate_brg(baud);
+    uart_update_baud(baud);
 
     // Enable receive interrupt
     U2STAbits.URXISEL = 00;
@@ -37,15 +40,23 @@ void uart_init(uint32_t baud) {
     uart_enable();
 }
 
-void uart_update_baud(uint32_t baud) { 
-    uart_disable();
+void uart_update_baud(uint32_t baud) {
+    uint16_t on = U2MODEbits.UARTEN;
 
-    U2BRG = uart_calculate_brg(baud);
+    if (on) uart_disable();
 
-    uart_enable();
+    uart_brg_s val = uart_calculate_brg(baud);
+
+    U2BRG = val.brg;
+    U2MODEbits.BRGH = val.brgh;
+
+    if (on) uart_enable();
 }
 
 void uart_disable(void) {
+    // Flush stdout first in case printf() is used.
+    fflush(stdout);
+
     // Disable transmission
     U2STAbits.UTXEN = 0;
 
@@ -114,9 +125,25 @@ write(int file, char *ptr, int len) {
     return len;
 }
 
-static uint16_t uart_calculate_brg(uint32_t baud) {
-    const uint32_t freq = ((uint32_t)core_clock_khz * 1000) / 2;
-    const uint16_t brg = (uint16_t)((uint32_t)freq / (16UL * baud)) - 1;
+static uart_brg_s uart_calculate_brg(uint32_t baud) {
+    const uint32_t fcy = ((uint32_t)core_clock_khz * 1000UL) / 2;
+    uart_brg_s ret;
+    
+    uint32_t div16 = (fcy + (8UL * baud)) / (16UL * baud);
+    uint32_t div4  = (fcy + (2UL * baud)) / (4UL * baud);
 
-    return brg;
+    // Only use the BRGH = 0 value when the result is sufficiently large (>15)
+    if (div16 >= 16 && div16 <= UINT16_MAX - 1) {
+        ret.brg = (uint16_t)(div16 - 1);
+        ret.brgh = 0;
+    }
+    else {
+        // Clamp div4 to 1 so that it doesnt underflow
+        if (div4 < 1) div4 = 1;
+
+        ret.brg = (uint16_t)(div4 - 1);
+        ret.brgh = 1;
+    }
+
+    return ret;
 }
