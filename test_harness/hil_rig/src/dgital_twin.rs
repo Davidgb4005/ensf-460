@@ -1,9 +1,8 @@
-
-use std::time::{Duration, Instant};
-use crate::state::{TimerStates,TwinState,LedState,SwitchState,GpioOutputState};
-use crate::gpio::{TwinGpio};
-use std::sync::{Arc, RwLock, mpsc};
+use crate::gpio::TwinGpio;
+use crate::state::{GpioOutputState, LedState, SwitchState, TimerStates, TwinState};
+use std::sync::{mpsc, Arc, RwLock};
 use std::thread;
+use std::time::{Duration, Instant};
 
 const REPEAT_DELAY_MS: u32 = 400;
 const CLEAR_DELAY_MS: u32 = 3000;
@@ -29,7 +28,7 @@ impl EmulatorState {
 
     fn reset() -> Self {
         Self {
-            request_state: TimerStates::InitEntry,
+            request_state: TimerStates::Init,
             ..Self::new()
         }
     }
@@ -50,16 +49,12 @@ pub(crate) fn run_digital_twin(
 
     loop {
         if reset_rx.try_recv().is_ok() {
-            let previous_state = digital_state.current_state.clone();
             digital_state = TwinState {
-                current_state: TimerStates::InitEntry,
-                prev_state: previous_state,
+                current_state: TimerStates::Init,
+                prev_state: TimerStates::Idle,
                 ..TwinState::default()
             };
             emulator_state = EmulatorState::reset();
-            if transition_tx.send(digital_state.clone()).is_err() {
-                return;
-            }
         }
 
         let previous_state = digital_state.current_state.clone();
@@ -95,7 +90,14 @@ fn cycle_digital_twin(
         reset_deadline(current_time, emulator_state);
     }
 
-    if emulator_state.request_state != digital_state.current_state {
+    // The hardware requests PAUSE_TRANSITION and then sleeps while PB3 is
+    // still held. It cannot enter the requested state until the release edge
+    // wakes it, so hold the digital twin in PAUSE for the same interval.
+    let pause_waiting_for_release = digital_state.current_state == TimerStates::Pause
+        && emulator_state.request_state == TimerStates::PauseTransition
+        && buttons & 0x4 != 0;
+
+    if emulator_state.request_state != digital_state.current_state && !pause_waiting_for_release {
         digital_state.prev_state = digital_state.current_state.clone();
         digital_state.current_state = emulator_state.request_state.clone();
         reset_deadline(current_time, emulator_state);
