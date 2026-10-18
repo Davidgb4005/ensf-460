@@ -11,8 +11,8 @@ void set_core_clock(core_clock_freq_e freq) {
     // Set clock speed
     SRbits.IPL = 7;
     CLKDIVbits.RCDIV = 0;
-    __builtin_write_OSCCONH(_COSC | freq);
-    __builtin_write_OSCCONL(0x01);
+    __builtin_write_OSCCONH(freq);
+    __builtin_write_OSCCONL(OSCCONL | 0x01);
     while(OSCCONbits.OSWEN==1) (void)0;
     SRbits.IPL = 0;
 
