@@ -1,34 +1,74 @@
 #include <xc.h>
-#include <p24F16KA101.h>
 
 #include <stdint.h>
 #include <stdio.h>
-#include "xc.h"
-#include "debounce.h"
-#include "gpio.h"
-#include "led.h"
+
+#include "superloop.h"
+#include "system.h"
 #include "timer.h"
 #include "uart.h"
 
-#define ERROR_PRINT(fmt, ...)                                                         \
-    do                                                                                \
-    {                                                                                 \
-        snprintf(err_msg, sizeof(err_msg), " %s,Line %d: " fmt,__FILE__, __LINE__, ##__VA_ARGS__); \
-        uart_write_string(err_msg);                                                   \
+
+//Default Bauds For UART
+#define BAUD8MHZ 500000UL
+#define BAUD500KHZ 57600UL
+#define BAUD32KHZ 300UL
+
+#define CLOCK_8MHZ 8000000UL
+#define CLOCK_500KHZ 500000UL
+#define CLOCK_32KHZ 32000UL
+
+#ifndef DEFAULT_CLOCK_HZ
+#define DEFAULT_CLOCK_HZ CLOCK_8MHZ
+#endif
+
+#if DEFAULT_CLOCK_HZ >= CLOCK_8MHZ
+#define DEFAULT_CORE_CLOCK FREQ_8_MHZ
+#define DEFAULT_BAUD BAUD8MHZ
+#elif DEFAULT_CLOCK_HZ == CLOCK_500KHZ
+#define DEFAULT_CORE_CLOCK FREQ_500_KHZ
+#define DEFAULT_BAUD BAUD500KHZ
+#elif DEFAULT_CLOCK_HZ == CLOCK_32KHZ
+#define DEFAULT_CORE_CLOCK FREQ_32_KHZ
+#define DEFAULT_BAUD BAUD32KHZ
+#else
+#error "DEFAULT_CLOCK_HZ must be 8000000, 500000, or 32000"
+#endif
+
+#define UART_BRG_VALUE(clock_hz, baud) \
+    (((clock_hz) / 2UL / (4UL * (baud))) - 1UL)
+
+#define IDLE_LOW_POWER()                    \
+    do                                      \
+    {                                       \
+        set_core_clock(FREQ_32_KHZ);        \
+        Idle();                             \
+        set_core_clock(default_core_clock); \
     } while (0)
 
-#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
-#define BUFFER_SIZE 32
-#define DEBOUNCE_DELAY 0
-#define MAX_PRESET_VALUE 3599
-#define MIN_PRESET_VALUE 0
-#define REPEAT_DELAY_MS 400
-#define CLEAR_DELAY_MS 3000
-#define COUNT_DELAY_MS 1000
-#define STATE_SEND_DELAY_MS 125
+#define ERROR_PRINT(fmt, ...)                                                                       \
+    do                                                                                              \
+    {                                                                                               \
+        snprintf(err_msg, sizeof(err_msg), " %s,Line %d: " fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
+        uart_write_string(err_msg);                                                                 \
+    } while (0)
 
-static const uint16_t input[] = {11, 9, 10, 15, 16};
-static const uint16_t output[] = {13, 14};
+
+#define MAX_PRESET_VALUE 3599 // 59:99 max time as assigment
+#define MIN_PRESET_VALUE 0
+#define REPEAT_DELAY_MS 400 // set time will incmreent every 400 ms pb 1/2 or pb 1/3 2/3 are held
+#define CLEAR_DELAY_MS 3000 // how long PB 1 and PB2 need to be held in idle to reset or PB 3 in pause to clear
+#define COUNT_DELAY_MS 1000 // how fast led 1 blinks in run
+#define FAST_BLINK_MS 250 // how fast led 2 blinks in ALARM
+#define HARDWARE_OUTPUTS_ENABLED 0 //Set to 0 To Ttest lower power mode disables LED and sync bits
+
+/*Waiting on these function from the UART module
+void uart_init();
+void uart_write_string(const char);
+void uart_send_message(const char, uint16_t, uint16_t);
+*/
+
+static const core_clock_freq_e default_core_clock = DEFAULT_CORE_CLOCK;
 static char err_msg[128];
 
 volatile timer_state_e state = TIMER_INIT;
@@ -40,16 +80,12 @@ static uint16_t counter;
 static uint16_t prev_buttons;
 static uint16_t start_time;
 static uint16_t delay_ms = REPEAT_DELAY_MS;
-static uint16_t state_send_time;
 static timer_state_e prev_state = TIMER_IDLE;
 static test_rig_data_s test_rig_data;
+static int16_t prev_preset_value;
+static uint16_t prev_elapsed_value;
 
-static uint16_t read_control_register(void)
-{
-    return push_button[0].state_bits.pb_current_state |
-           (push_button[1].state_bits.pb_current_state << 1) |
-           (push_button[2].state_bits.pb_current_state << 2);
-}
+static volatile uint16_t buttons;
 
 static int16_t clamp_preset_value(int16_t value)
 {
@@ -64,6 +100,20 @@ static int16_t clamp_preset_value(int16_t value)
     return value;
 }
 
+static void send_test_rig_data(void)
+{
+    test_rig_data.elapsed_seconds = elapsed_value;
+    test_rig_data.preset_seconds = (uint16_t)preset_value;
+    test_rig_data.states.state_code = (uint16_t)state;
+    test_rig_data.states.prev_state_code = (uint16_t)prev_state;
+    test_rig_data.gpio.led_1_state = _RB9;
+    test_rig_data.gpio.led_2_state = _RA6;
+    test_rig_data.gpio.pb_1 = (buttons & 0x1u) != 0u;
+    test_rig_data.gpio.pb_2 = (buttons & 0x2u) != 0u;
+    test_rig_data.gpio.pb_3 = (buttons & 0x4u) != 0u;
+    uart_send_state(&test_rig_data);
+}
+
 static uint16_t delay_elapsed(uint16_t now)
 {
     if ((uint16_t)(now - start_time) >= delay_ms)
@@ -74,125 +124,60 @@ static uint16_t delay_elapsed(uint16_t now)
     return 0;
 }
 
-static void led_off(led_s *target)
+#if HARDWARE_OUTPUTS_ENABLED
+#define LED_1 _LATB9
+#define LED_2 _LATA6
+#define OUTPUT_CONTROL 1
+#else
+static uint16_t dummy_output;
+#define LED_1 dummy_output
+#define LED_2 dummy_output
+#define OUTPUT_CONTROL 0
+#endif
+
+void superloop_setup(void)
 {
-    target->mode = LED_DIGITAL;
-    target->st_bits.enabled = 0;
-    target->st_bits.paused = 0;
-    target->st_bits.output = 0;
-}
+    AD1PCFG = 0xffff;
 
-static void led_on(led_s *target)
-{
-    target->mode = LED_DIGITAL;
-    target->st_bits.enabled = 1;
-    target->st_bits.paused = 0;
-    target->st_bits.output = 1;
-}
+    set_core_clock(default_core_clock);
+    uart_init();
+    U2MODEbits.BRGH = 1;
+    U2BRG = (uint16_t)UART_BRG_VALUE(DEFAULT_CLOCK_HZ, DEFAULT_BAUD);
+    ERROR_PRINT("%s", "UART Setup Complete");
 
-static void led_blink(led_s *target)
-{
-    target->mode = LED_BLINK;
-    target->st_bits.enabled = 1;
-    target->st_bits.paused = 0;
-    target->st_bits.output = 0;
-    target->prev_time = timer_millis();
-}
+    timer2_init();
+    ERROR_PRINT("%s", "Timer 2 Setup Complete");
 
-static void led_pause(led_s *target)
-{
-    target->mode = LED_BLINK;
-    target->st_bits.enabled = 1;
-    target->st_bits.paused = 1;
-}
+    _TRISB12 = 0;
+    _LATB12 = 0;
+    _TRISB14 = 1;
+    _TRISB9 = 0;
+    _TRISB7 = 1;
+    _TRISB4 = 1;
+    _TRISA4 = 1;
+    _TRISA6 = 0;
 
-static test_led_state_e led_state(const led_s *target)
-{
-    if (!target->st_bits.enabled)
-    {
-        return TEST_LED_OFF;
-    }
-    if (target->st_bits.paused)
-    {
-        return TEST_LED_PAUSE;
-    }
-    if (target->mode == LED_BLINK)
-    {
-        return TEST_LED_BLINK;
-    }
-    return target->st_bits.output ? TEST_LED_ON : TEST_LED_OFF;
-}
+    CNEN1bits.CN0IE = 1;
+    CNEN1bits.CN1IE = 1;
+    CNEN2bits.CN23IE = 1;
+    CNEN1bits.CN13IE = 1;
 
-error_e superloop_setup(void)
-{
-    AD1PCFG = 0xffff; // Disable AN11; enable RB13 digital input
+    CNPD1bits.CN0PDE = 1;
+    CNPD1bits.CN1PDE = 1;
+    CNPD2bits.CN23PDE = 1;
+    CNPD1bits.CN13PDE = 1;
 
-    ERROR_PRINT("Output Pin %u Setup Failed", output[i]);
-    if (uart_init(&rx_buffer, &tx_buffer) == 0)
-    {
-        ERROR_PRINT("%s", "UART Setup Complete");
-    }
+    IPC4bits.CNIP = 2;
+    IFS1bits.CNIF = 0;
+    IEC1bits.CNIE = 1;
 
-    if (timer2_init() == 0)
-    {
-        ERROR_PRINT("%s", "Timer 2 Setup Complete");
-    }
-    else
-    {
-        ERROR_PRINT("%s", "Timer 2 Setup Failed");
-    }
-
-    for (uint16_t i = 0; i < ARRAY_COUNT(input); i++)
-    {
-        if (gpio_pin_mode(input[i], GPIO_INPUT_PULLDOWN) == ERROR_NONE)
-        {
-            ERROR_PRINT("Input Pin %u Setup Complete", input[i]);
-        }
-        else
-        {
-            ERROR_PRINT("Input Pin %u Setup Failed", input[i]);
-        }
-    }
-
-    for (uint16_t i = 0; i < ARRAY_COUNT(output); i++)
-    {
-        if (gpio_pin_mode(output[i], GPIO_OUTPUT) == ERROR_NONE)
-        {
-            ERROR_PRINT("Output Pin %u Setup Complete", output[i]);
-        }
-        else
-        {
-            ERROR_PRINT("Output Pin %u Setup Failed", output[i]);
-        }
-    }
-
-    led_off(&led[0]);
-    led_off(&led[1]);
     start_time = timer_millis();
-    state_send_time = start_time;
-    return ERROR_NONE;
 }
 
-error_e superloop_loop(void)
+void superloop_loop(void)
 {
-
-    if (gpio_digital_read(16))
-    {
-        __asm__ volatile("reset");
-    }
-
     const char *selected_message = NULL;
-    uint16_t buttons;
-    uint16_t now;
-    uint16_t state_changed = 0;
-
-    for (uint16_t i = 0; i < ARRAY_COUNT(push_button); i++)
-    {
-        debounce_read(&push_button[i]);
-    }
-
-    now = timer_millis();
-    buttons = read_control_register();
+    uint16_t now = timer_millis();
 
     if (buttons != prev_buttons)
     {
@@ -201,21 +186,27 @@ error_e superloop_loop(void)
         start_time = now;
     }
 
+    elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
     if (request_state != state)
     {
         prev_state = state;
         state = request_state;
-        state_changed = 1;
-
         start_time = now;
         counter = 0;
+        send_test_rig_data();
+    }
+    else if (prev_preset_value != preset_value || prev_elapsed_value != elapsed_value)
+    {
+        prev_preset_value = preset_value;
+        prev_elapsed_value = elapsed_value;
+        send_test_rig_data();
     }
 
     switch (state)
     {
     case TIMER_INIT_ENTRY:
-        led_off(&led[0]);
-        led_off(&led[1]);
+        LED_1 = 0;
+        LED_2 = 0;
         request_state = TIMER_INIT;
         break;
     case TIMER_INIT:
@@ -229,14 +220,14 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_IDLE_ENTRY:
-        led_off(&led[0]);
-        led_off(&led[1]);
         delay_ms = REPEAT_DELAY_MS;
         request_state = TIMER_IDLE;
         selected_message = messages[UART_SET_FORMAT];
         break;
 
     case TIMER_IDLE:
+        LED_1 = 0;
+        LED_2 = 0;
         switch (buttons)
         {
         case 0x1:
@@ -279,6 +270,8 @@ error_e superloop_loop(void)
             selected_message = messages[UART_INFO_FORMAT];
             break;
         default:
+            send_test_rig_data();
+            Sleep();
             break;
         }
         break;
@@ -309,8 +302,6 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_RESET_ENTRY:
-        led_off(&led[0]);
-        led_off(&led[1]);
         request_state = TIMER_RESET;
         break;
     case TIMER_RESET:
@@ -318,33 +309,39 @@ error_e superloop_loop(void)
         request_state = TIMER_RESET_TRANSITION;
         selected_message = messages[UART_CLEAR_FORMAT];
         break;
-
     case TIMER_RESET_TRANSITION:
     case TIMER_RESET_TO_IDLE:
         request_state = TIMER_IDLE_ENTRY;
         break;
 
     case TIMER_RUN_ENTRY:
-        led_blink(&led[0]);
-        led_off(&led[1]);
+        LED_1 = 0;
+        LED_2 = 0;
+        _LATB12 = OUTPUT_CONTROL;
         delay_ms = COUNT_DELAY_MS;
         request_state = TIMER_RUN;
         selected_message = messages[UART_COUNT_FORMAT];
         break;
     case TIMER_RUN:
-        if (elapsed_value == 0 || (buttons & 0x4) != 0)
+        LED_2 = 0;
+        _LATB12 = OUTPUT_CONTROL;
+        send_test_rig_data();
+        if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
+            _LATB12 = 0;
             delay_ms = CLEAR_DELAY_MS;
             request_state = TIMER_RUN_TRANSITION;
         }
         if (delay_elapsed(now))
         {
+            LED_1 = !LED_1;
             if (elapsed_value > 0)
             {
                 elapsed_value--;
             }
             selected_message = messages[UART_COUNT_FORMAT];
         }
+        IDLE_LOW_POWER();
         break;
 
     case TIMER_RUN_TRANSITION:
@@ -352,7 +349,7 @@ error_e superloop_loop(void)
         {
             request_state = TIMER_RUN_TO_ALARM;
         }
-        else if ((buttons & 0x4) != 0)
+        else if ((buttons & 0x4u) != 0u)
         {
             if (delay_elapsed(now))
             {
@@ -364,7 +361,6 @@ error_e superloop_loop(void)
             request_state = TIMER_RUN_TO_PAUSE;
         }
         break;
-
     case TIMER_RUN_TO_ALARM:
         request_state = TIMER_ALARM_ENTRY;
         break;
@@ -376,22 +372,20 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_PAUSE_ENTRY:
-        led_pause(&led[0]);
-        led_off(&led[1]);
         delay_ms = CLEAR_DELAY_MS;
         request_state = TIMER_PAUSE;
         selected_message = messages[UART_COUNT_PAUSED_FORMAT];
         break;
-
     case TIMER_PAUSE:
-        if ((buttons & 0x4) != 0)
+        if ((buttons & 0x4u) != 0u)
         {
             request_state = TIMER_PAUSE_TRANSITION;
         }
+        send_test_rig_data();
+        Sleep();
         break;
-
     case TIMER_PAUSE_TRANSITION:
-        if ((buttons & 0x4) != 0)
+        if ((buttons & 0x4u) != 0u)
         {
             if (delay_elapsed(now))
             {
@@ -411,8 +405,8 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_CLEAR_ENTRY:
-        led_off(&led[0]);
-        led_off(&led[1]);
+        LED_1 = 0;
+        LED_2 = 0;
         request_state = TIMER_CLEAR;
         break;
     case TIMER_CLEAR:
@@ -428,20 +422,28 @@ error_e superloop_loop(void)
         break;
 
     case TIMER_ALARM_ENTRY:
-        led_on(&led[0]);
-        led_blink(&led[1]);
-        request_state = TIMER_ALARM;
+        LED_1 = 1;
+        LED_2 = 0;
+        delay_ms = FAST_BLINK_MS;
         selected_message = messages[UART_ALARM_FORMAT];
+        request_state = TIMER_ALARM;
         break;
     case TIMER_ALARM:
-        if ((buttons & 0x3) != 0)
+        LED_1 = 1;
+        if (delay_elapsed(now))
+        {
+            LED_2 = !LED_2;
+        }
+        if ((buttons & 0x3u) != 0u)
         {
             request_state = TIMER_ALARM_TRANSITION;
         }
+        send_test_rig_data();
+        IDLE_LOW_POWER();
         break;
     case TIMER_ALARM_TRANSITION:
-        led_off(&led[0]);
-        led_off(&led[1]);
+        LED_1 = 0;
+        LED_2 = 0;
         request_state = TIMER_ALARM_TO_IDLE;
         break;
     case TIMER_ALARM_TO_IDLE:
@@ -453,32 +455,28 @@ error_e superloop_loop(void)
         break;
     }
 
-    preset_value = clamp_preset_value(preset_value);
-
-    for (uint16_t i = 0; i < ARRAY_COUNT(led); i++)
-    {
-        led_update(&led[i]);
-    }
-
-    if (state_changed || (uint16_t)(now - state_send_time) >= STATE_SEND_DELAY_MS)
-    {
-        state_send_time = now;
-        test_rig_data.elapsed_seconds = elapsed_value;
-        test_rig_data.preset_seconds = (uint16_t)preset_value;
-        test_rig_data.states.state_code = (uint16_t)state;
-        test_rig_data.states.prev_state_code = (uint16_t)prev_state;
-        test_rig_data.gpio.led_1_state = led_state(&led[0]);
-        test_rig_data.gpio.led_2_state = led_state(&led[1]);
-        test_rig_data.gpio.pb_1 = push_button[0].state_bits.pb_current_state;
-        test_rig_data.gpio.pb_2 = push_button[1].state_bits.pb_current_state;
-        test_rig_data.gpio.pb_3 = push_button[2].state_bits.pb_current_state;
-        uart_send_state(&test_rig_data);
-    }
-
     if (selected_message != NULL)
     {
         uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
     }
 
-    return ERROR_NONE;
+    preset_value = clamp_preset_value(preset_value);
+    elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
+}
+
+void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)
+{
+    volatile uint16_t dummy_a = PORTA;
+    volatile uint16_t dummy_b = PORTB;
+
+    if (PORTBbits.RB13)
+    {
+        __asm__ volatile("reset");
+    }
+
+    buttons = (uint16_t)_RB7 | ((uint16_t)_RB4 << 1) | ((uint16_t)_RA4 << 2);
+
+    (void)dummy_a;
+    (void)dummy_b;
+    IFS1bits.CNIF = 0;
 }
