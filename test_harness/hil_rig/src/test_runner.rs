@@ -21,7 +21,7 @@ enum Command {
 struct ParsedCommand {
     command: Command,
     duration: Option<Duration>,
-    push_button: Option<u8>,
+    push_buttons: Vec<u8>,
     expected_state: Option<TimerStates>,
 }
 
@@ -37,43 +37,57 @@ impl ParsedCommand {
         let command = tokens.next().ok_or_else(|| "missing command".to_owned())?;
 
         let parsed = match command {
-            // `press 5 2` holds push button 2 for five seconds.
+            // `press 5000 2 1` holds push buttons 2 and 1 together for 5000 ms.
             "press" => {
-                let seconds = parse_seconds(next_token(&mut tokens, "press duration")?)?;
-                let push_button = next_token(&mut tokens, "push button number")?
-                    .parse::<u8>()
-                    .map_err(|_| "push button must be 1, 2, or 3".to_owned())?;
-                if !(1..=3).contains(&push_button) {
-                    return Err(format!(
-                        "invalid push button {push_button}; expected 1, 2, or 3"
-                    ));
+                let milliseconds =
+                    parse_milliseconds(next_token(&mut tokens, "press duration in milliseconds")?)?;
+                let mut push_buttons = Vec::new();
+                for token in tokens.by_ref() {
+                    let push_button = token
+                        .parse::<u8>()
+                        .map_err(|_| "push button must be 1, 2, or 3".to_owned())?;
+                    if !(1..=3).contains(&push_button) {
+                        return Err(format!(
+                            "invalid push button {push_button}; expected 1, 2, or 3"
+                        ));
+                    }
+                    if push_buttons.contains(&push_button) {
+                        return Err(format!(
+                            "push button {push_button} was listed more than once"
+                        ));
+                    }
+                    push_buttons.push(push_button);
+                }
+                if push_buttons.is_empty() {
+                    return Err("missing push button number".to_owned());
                 }
                 Self {
                     command: Command::Press,
-                    duration: Some(Duration::from_secs(seconds)),
-                    push_button: Some(push_button),
+                    duration: Some(Duration::from_millis(milliseconds)),
+                    push_buttons,
                     expected_state: None,
                 }
             }
             "wait" => {
-                let seconds = parse_seconds(next_token(&mut tokens, "wait duration")?)?;
+                let milliseconds =
+                    parse_milliseconds(next_token(&mut tokens, "wait duration in milliseconds")?)?;
                 Self {
                     command: Command::Wait,
-                    duration: Some(Duration::from_secs(seconds)),
-                    push_button: None,
+                    duration: Some(Duration::from_millis(milliseconds)),
+                    push_buttons: Vec::new(),
                     expected_state: None,
                 }
             }
             "assert" => Self {
                 command: Command::Assert,
                 duration: None,
-                push_button: None,
+                push_buttons: Vec::new(),
                 expected_state: Some(parse_state(next_token(&mut tokens, "timer state")?)?),
             },
             "reset" => Self {
                 command: Command::Reset,
                 duration: None,
-                push_button: None,
+                push_buttons: Vec::new(),
                 expected_state: None,
             },
             unknown => return Err(format!("unknown command `{unknown}`")),
@@ -93,10 +107,10 @@ fn next_token<'a>(
     tokens.next().ok_or_else(|| format!("missing {expected}"))
 }
 
-fn parse_seconds(token: &str) -> Result<u64, String> {
+fn parse_milliseconds(token: &str) -> Result<u64, String> {
     token
         .parse::<u64>()
-        .map_err(|_| "duration must be a non-negative integer in seconds".to_owned())
+        .map_err(|_| "duration must be a non-negative integer in milliseconds".to_owned())
 }
 
 fn parse_state(token: &str) -> Result<TimerStates, String> {
@@ -185,10 +199,9 @@ fn execute_commands(
         match command.command {
             Command::Wait => thread::sleep(command.duration.expect("wait duration was parsed")),
             Command::Press => {
-                let button = command.push_button.expect("push button was parsed");
-                set_button(control_gpio, button, true)?;
+                set_buttons(control_gpio, &command.push_buttons, true)?;
                 thread::sleep(command.duration.expect("press duration was parsed"));
-                set_button(control_gpio, button, false)?;
+                set_buttons(control_gpio, &command.push_buttons, false)?;
             }
             Command::Assert => {
                 let expected = command.expected_state.expect("assert state was parsed");
@@ -213,15 +226,18 @@ fn execute_commands(
     Ok(())
 }
 
-fn set_button(
+fn set_buttons(
     control_gpio: &Arc<Mutex<ControlGpio>>,
-    push_button: u8,
+    push_buttons: &[u8],
     pressed: bool,
 ) -> Result<(), String> {
-    control_gpio
+    let mut control_gpio = control_gpio
         .lock()
-        .unwrap_or_else(|poisoned| poisoned.into_inner())
-        .set_push_button(push_button, pressed)
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    for &push_button in push_buttons {
+        control_gpio.set_push_button(push_button, pressed)?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -230,10 +246,17 @@ mod tests {
 
     #[test]
     fn press_uses_duration_then_push_button_number() {
-        let parsed = ParsedCommand::parse("press 5 2").unwrap();
+        let parsed = ParsedCommand::parse("press 5000 2").unwrap();
         assert_eq!(parsed.command, Command::Press);
-        assert_eq!(parsed.duration, Some(Duration::from_secs(5)));
-        assert_eq!(parsed.push_button, Some(2));
+        assert_eq!(parsed.duration, Some(Duration::from_millis(5000)));
+        assert_eq!(parsed.push_buttons, vec![2]);
+    }
+
+    #[test]
+    fn press_accepts_multiple_push_buttons() {
+        let parsed = ParsedCommand::parse("press 5000 2 1").unwrap();
+        assert_eq!(parsed.duration, Some(Duration::from_millis(5000)));
+        assert_eq!(parsed.push_buttons, vec![2, 1]);
     }
 
     #[test]
@@ -243,10 +266,16 @@ mod tests {
     }
 
     #[test]
+    fn rejects_duplicate_push_buttons() {
+        let error = ParsedCommand::parse("press 5 2 2").unwrap_err();
+        assert!(error.contains("listed more than once"));
+    }
+
+    #[test]
     fn parses_wait_assert_and_reset() {
         assert_eq!(
-            ParsedCommand::parse("wait 3").unwrap().duration,
-            Some(Duration::from_secs(3))
+            ParsedCommand::parse("wait 250").unwrap().duration,
+            Some(Duration::from_millis(250))
         );
         assert_eq!(
             ParsedCommand::parse("assert run").unwrap().expected_state,

@@ -1,3 +1,11 @@
 test_script_1
-press 5 2
-wait 3
+press 2000 1
+press 250 2 1
+wait 10000
+press 1000 2
+wait 5000
+press 250 3
+wait 5000
+press 250 3
+wait 5000
+press 5000 3
