@@ -80,6 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut event_log = event_log::EventLogger::new("harness-events.log")?;
     let _raw_mode = RawModeGuard::new()?;
     let mut run_started : u8 = 0;
+    let test_cancellation = Arc::new(test_runner::TestCancellation::new());
     let test_thread = std::env::args_os()
         .nth(1)
         .map(|path| {
@@ -88,6 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Arc::clone(&control_gpio),
                 Arc::clone(&shared_uart_state),
                 reset_tx.clone(),
+                Arc::clone(&test_cancellation),
             )
         })
         .transpose()?;
@@ -116,6 +118,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     if key.code == KeyCode::Char('c')
                         && key.modifiers.contains(KeyModifiers::CONTROL)
                     {
+                        test_cancellation.cancel();
                         break;
                     }
                     if key.code == KeyCode::Char('r') {

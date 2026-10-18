@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
-use std::sync::{mpsc::Sender, Arc, Mutex, RwLock};
+use std::sync::{mpsc::Sender, Arc, Condvar, Mutex, RwLock};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
@@ -29,6 +29,50 @@ struct ParsedCommand {
 struct TestDefinition {
     name: String,
     commands: Vec<ParsedCommand>,
+}
+
+pub(crate) struct TestCancellation {
+    cancelled: Mutex<bool>,
+    wake: Condvar,
+}
+
+impl TestCancellation {
+    pub(crate) fn new() -> Self {
+        Self {
+            cancelled: Mutex::new(false),
+            wake: Condvar::new(),
+        }
+    }
+
+    pub(crate) fn cancel(&self) {
+        *self
+            .cancelled
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner()) = true;
+        self.wake.notify_all();
+    }
+
+    fn is_cancelled(&self) -> bool {
+        *self
+            .cancelled
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    fn wait(&self, duration: Duration) -> bool {
+        let cancelled = self
+            .cancelled
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if *cancelled {
+            return true;
+        }
+        let (cancelled, _) = self
+            .wake
+            .wait_timeout_while(cancelled, duration, |cancelled| !*cancelled)
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        *cancelled
+    }
 }
 
 impl ParsedCommand {
@@ -165,10 +209,17 @@ pub(crate) fn run_test(
     control_gpio: Arc<Mutex<ControlGpio>>,
     uart_state: Arc<RwLock<TwinState>>,
     twin_reset: Sender<()>,
+    cancellation: Arc<TestCancellation>,
 ) -> io::Result<JoinHandle<()>> {
     let test = parse_test_file(path)?;
     Ok(thread::spawn(move || {
-        if let Err(error) = execute_test(&test, &control_gpio, &uart_state, &twin_reset) {
+        if let Err(error) = execute_test(
+            &test,
+            &control_gpio,
+            &uart_state,
+            &twin_reset,
+            &cancellation,
+        ) {
             eprintln!("test `{}` failed: {error}", test.name);
         } else {
             println!("test `{}` completed", test.name);
@@ -181,12 +232,19 @@ fn execute_test(
     control_gpio: &Arc<Mutex<ControlGpio>>,
     uart_state: &Arc<RwLock<TwinState>>,
     twin_reset: &Sender<()>,
+    cancellation: &TestCancellation,
 ) -> Result<(), String> {
     let mut tcp = open_connection().map_err(|error| format!("TCP connection failed: {error}"))?;
     start_test(&mut tcp, &test.name)
         .map_err(|error| format!("could not start power capture: {error}"))?;
 
-    let result = execute_commands(&test.commands, control_gpio, uart_state, twin_reset);
+    let result = execute_commands(
+        &test.commands,
+        control_gpio,
+        uart_state,
+        twin_reset,
+        cancellation,
+    );
     let complete_result = test_complete(&mut tcp)
         .map_err(|error| format!("could not complete power capture: {error}"));
     result.and(complete_result)
@@ -197,14 +255,26 @@ fn execute_commands(
     control_gpio: &Arc<Mutex<ControlGpio>>,
     uart_state: &Arc<RwLock<TwinState>>,
     twin_reset: &Sender<()>,
+    cancellation: &TestCancellation,
 ) -> Result<(), String> {
     for command in commands {
+        if cancellation.is_cancelled() {
+            return Err("test cancelled".to_owned());
+        }
         match command.command {
-            Command::Wait => thread::sleep(command.duration.expect("wait duration was parsed")),
+            Command::Wait => {
+                if cancellation.wait(command.duration.expect("wait duration was parsed")) {
+                    return Err("test cancelled".to_owned());
+                }
+            }
             Command::Press => {
                 set_buttons(control_gpio, &command.push_buttons, true)?;
-                thread::sleep(command.duration.expect("press duration was parsed"));
+                let cancelled =
+                    cancellation.wait(command.duration.expect("press duration was parsed"));
                 set_buttons(control_gpio, &command.push_buttons, false)?;
+                if cancelled {
+                    return Err("test cancelled".to_owned());
+                }
             }
             Command::Assert => {
                 let expected = command.expected_state.expect("assert state was parsed");
@@ -275,6 +345,19 @@ mod tests {
     fn rejects_duplicate_push_buttons() {
         let error = ParsedCommand::parse("press 5 2 2").unwrap_err();
         assert!(error.contains("listed more than once"));
+    }
+
+    #[test]
+    fn cancellation_interrupts_a_wait() {
+        let cancellation = Arc::new(TestCancellation::new());
+        let worker_cancellation = Arc::clone(&cancellation);
+        let started = std::time::Instant::now();
+        let worker = thread::spawn(move || worker_cancellation.wait(Duration::from_secs(5)));
+
+        cancellation.cancel();
+
+        assert!(worker.join().unwrap());
+        assert!(started.elapsed() < Duration::from_secs(1));
     }
 
     #[test]
