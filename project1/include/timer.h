@@ -1,45 +1,23 @@
-#ifndef PIC24_TIMER_H
-#define PIC24_TIMER_H
+#ifndef _TIMER_H
+#define _TIMER_H
+
+#include "system.h"
 
 #include <stdint.h>
 
-typedef enum
-{
-    TIMER_INIT_ENTRY,
-    TIMER_INIT,
-    TIMER_INIT_TRANSITION,
-    TIMER_INIT_TO_RESET,
-    TIMER_IDLE_ENTRY,
-    TIMER_IDLE,
-    TIMER_IDLE_TRANSITION,
-    TIMER_IDLE_TO_RUN,
-    TIMER_IDLE_TO_RESET,
-    TIMER_RESET_ENTRY,
-    TIMER_RESET,
-    TIMER_RESET_TRANSITION,
-    TIMER_RESET_TO_IDLE,
-    TIMER_RUN_ENTRY,
-    TIMER_RUN,
-    TIMER_RUN_TRANSITION,
-    TIMER_RUN_TO_ALARM,
-    TIMER_RUN_TO_PAUSE,
-    TIMER_RUN_TO_CLEAR,
-    TIMER_PAUSE_ENTRY,
-    TIMER_PAUSE,
-    TIMER_PAUSE_TRANSITION,
-    TIMER_PAUSE_TO_RUN,
-    TIMER_PAUSE_TO_CLEAR,
-    TIMER_CLEAR_ENTRY,
-    TIMER_CLEAR,
-    TIMER_CLEAR_TRANSITION,
-    TIMER_CLEAR_TO_IDLE,
-    TIMER_ALARM_ENTRY,
-    TIMER_ALARM,
-    TIMER_ALARM_TRANSITION,
-    TIMER_ALARM_TO_IDLE,
-} timer_state_e;
+typedef struct delay_s {
+    uint32_t start;
+} delay_s;
 
-uint16_t timer2_init(void);
-uint16_t timer_millis(void);
+
+int timer_init(core_clock_freq_e core_clock_freq_e);
+
+int timer_switch(core_clock_freq_e core_clock);
+
+void timer_disable(void);
+
+uint32_t millis(void);
+
+uint32_t elapsed_ms(uint32_t start);
 
 #endif
