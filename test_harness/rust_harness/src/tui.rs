@@ -1,4 +1,4 @@
-use crate::{GpioOutputState, TimerStates, TwinState};
+use crate::state::{GpioOutputState, TimerStates, TwinState};
 use std::collections::VecDeque;
 use std::io::{self, Write};
 use std::time::{Duration, Instant};
@@ -237,6 +237,6 @@ fn level(high: bool) -> &'static str {
     }
 }
 
-fn button_bits(state: GpioOutputState) -> u8 {
+pub(crate) fn button_bits(state: GpioOutputState) -> u8 {
     (state.pb_1 as u8) | ((state.pb_2 as u8) << 1) | ((state.pb_3 as u8) << 2)
 }
