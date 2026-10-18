@@ -5,11 +5,12 @@ mod gpio;
 //mod test_runner;
 mod state;
 mod uart;
-
+mod tcp;
 
 
 use std::io::{self};
 
+use crate::tcp::{open_connection,start_test,test_complete};
 use crate::state::{TwinState,TimerStates};
 use crate::gpio::{ControlGpio,TwinGpio};
 use crate::uart::{UartReader};
@@ -48,11 +49,8 @@ fn now_ms() -> u128 {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let gpio = Gpio::new()?;
-
     let mut control_gpio = ControlGpio::new(&gpio)?;
-
     let twin_gpio = TwinGpio::new(&gpio)?;
-
     let shared_twin_state = Arc::new(RwLock::new(TwinState {
         current_state: TimerStates::Idle,
         prev_state: TimerStates::Idle,
@@ -60,9 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }));
 
     let (twin_transition_tx, twin_transition_rx) = mpsc::channel();
-
     let (reset_tx, reset_rx) = mpsc::channel();
-
     let twin_state_writer = Arc::clone(&shared_twin_state);
     thread::spawn(move || {
         dgital_twin::run_digital_twin(twin_gpio, twin_state_writer, twin_transition_tx, reset_rx)
@@ -71,6 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut port = serialport::new(UART_PORT, UART_BAUD)
         .timeout(Duration::from_millis(10))
         .open()?;
+
     let mut uart_reader = UartReader::default();
     let mut uart_state = TwinState::default();
     let mut uart_connected = false;
@@ -80,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut event_log = event_log::EventLogger::new("harness-events.log")?;
     let _raw_mode = RawModeGuard::new()?;
     let mut run_started : u8 = 0;
-
+    let stream = tcp::open_connection()?;
     let initial_twin_state = shared_twin_state
         .read()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
@@ -97,7 +94,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut uart_start_time: Option<u128> = None;
     let mut uart_end_time: Option<u128> = None;
     let mut prev_digital_state = initial_twin_state.current_state;
-    let mut prev_uart_state = uart_state.current_state;
+
 
     loop {
         if event::poll(Duration::ZERO)? {
