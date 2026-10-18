@@ -16,7 +16,7 @@
 typedef enum core_clock_freq {
     FREQ_8_MHZ   = 0b111,
     FREQ_500_KHZ = 0b110,
-    FREQ_32_KHZ  = 0b100,
+    FREQ_32_KHZ  = 0b101,
 } core_clock_freq_e;
 
 /**
