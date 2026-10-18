@@ -593,8 +593,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    live_plot = LivePlot(args.sample_avg) if args.live_view else None
     ppk = create_ppk(args.port, args.voltage_mv)
+    live_plot = LivePlot(args.sample_avg) if args.live_view else None
     controller = CaptureController(
         ppk,
         args.output_dir,
