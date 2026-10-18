@@ -10000,3 +10000,1059 @@ uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: Off,
 twin=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
 gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
 
+[unix=1792298845.438 elapsed=00:00:00.000]
+event=SESSION_START
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298845.517 elapsed=00:00:00.078]
+event=UART_STATE: AlarmEntry -> Alarm
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298846.441 elapsed=00:00:01.002]
+event=TWIN_STATE: Idle -> InitEntry
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: InitEntry, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.441 elapsed=00:00:01.002]
+event=TWIN_STATE: InitEntry -> Init
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: Init, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.441 elapsed=00:00:01.002]
+event=GPIO_RESET: LOW -> HIGH
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: Init, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.442 elapsed=00:00:01.003]
+event=TWIN_STATE: Init -> InitTransition
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.453 elapsed=00:00:01.014]
+event=TWIN_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.453 elapsed=00:00:01.014]
+event=TWIN_STATE: InitToReset -> Reset
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.453 elapsed=00:00:01.014]
+event=TWIN_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.453 elapsed=00:00:01.014]
+event=TWIN_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.453 elapsed=00:00:01.014]
+event=TWIN_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.466 elapsed=00:00:01.028]
+event=UART_STATE: Alarm -> InitTransition
+uart=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.467 elapsed=00:00:01.029]
+event=UART_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.468 elapsed=00:00:01.030]
+event=UART_STATE: InitToReset -> Reset
+uart=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.469 elapsed=00:00:01.031]
+event=UART_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.471 elapsed=00:00:01.032]
+event=UART_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.472 elapsed=00:00:01.033]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298846.540 elapsed=00:00:01.101]
+event=GPIO_RESET: HIGH -> LOW
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298847.439 elapsed=00:00:02.001]
+event=GPIO_BUTTONS: 000 -> 001
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298849.640 elapsed=00:00:04.201]
+event=GPIO_BUTTONS: 001 -> 000
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298849.740 elapsed=00:00:04.301]
+event=GPIO_BUTTONS: 000 -> 011
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298849.741 elapsed=00:00:04.302]
+event=UART_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298849.741 elapsed=00:00:04.302]
+event=TWIN_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298850.140 elapsed=00:00:04.701]
+event=UART_STATE: IdleTransition -> IdleToRun
+uart=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298850.140 elapsed=00:00:04.701]
+event=GPIO_BUTTONS: 011 -> 000
+uart=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298850.141 elapsed=00:00:04.702]
+event=UART_STATE: IdleToRun -> RunEntry
+uart=TwinState { current_state: RunEntry, prev_state: IdleToRun, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298850.142 elapsed=00:00:04.704]
+event=UART_STATE: RunEntry -> Run
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+twin=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298850.142 elapsed=00:00:04.704]
+event=TWIN_STATE: IdleTransition -> IdleToRun
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+twin=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298850.143 elapsed=00:00:04.705]
+event=TWIN_STATE: IdleToRun -> RunEntry
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+twin=TwinState { current_state: RunEntry, prev_state: IdleToRun, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298850.143 elapsed=00:00:04.705]
+event=TWIN_STATE: RunEntry -> Run
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+twin=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 5 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.153 elapsed=00:00:09.714]
+event=TWIN_STATE: Run -> RunTransition
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 1 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.153 elapsed=00:00:09.714]
+event=TWIN_STATE: RunTransition -> RunToAlarm
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 1 }
+twin=TwinState { current_state: RunToAlarm, prev_state: RunTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.153 elapsed=00:00:09.714]
+event=TWIN_STATE: RunToAlarm -> AlarmEntry
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 1 }
+twin=TwinState { current_state: AlarmEntry, prev_state: RunToAlarm, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.153 elapsed=00:00:09.714]
+event=TWIN_STATE: AlarmEntry -> Alarm
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 1 }
+twin=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.654 elapsed=00:00:10.215]
+event=UART_STATE: Run -> RunTransition
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.655 elapsed=00:00:10.217]
+event=UART_STATE: RunTransition -> RunToAlarm
+uart=TwinState { current_state: RunToAlarm, prev_state: RunTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.656 elapsed=00:00:10.218]
+event=UART_STATE: RunToAlarm -> AlarmEntry
+uart=TwinState { current_state: AlarmEntry, prev_state: RunToAlarm, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298855.657 elapsed=00:00:10.219]
+event=UART_STATE: AlarmEntry -> Alarm
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.142 elapsed=00:00:14.703]
+event=TWIN_STATE: Alarm -> AlarmTransition
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: AlarmTransition, prev_state: Alarm, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.142 elapsed=00:00:14.703]
+event=GPIO_BUTTONS: 000 -> 001
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: AlarmTransition, prev_state: Alarm, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.145 elapsed=00:00:14.706]
+event=TWIN_STATE: AlarmTransition -> AlarmToIdle
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: AlarmToIdle, prev_state: AlarmTransition, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.145 elapsed=00:00:14.706]
+event=TWIN_STATE: AlarmToIdle -> IdleEntry
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: IdleEntry, prev_state: AlarmToIdle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.145 elapsed=00:00:14.706]
+event=TWIN_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.166 elapsed=00:00:14.728]
+event=UART_STATE: Alarm -> AlarmTransition
+uart=TwinState { current_state: AlarmTransition, prev_state: Alarm, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.167 elapsed=00:00:14.729]
+event=UART_STATE: AlarmTransition -> AlarmToIdle
+uart=TwinState { current_state: AlarmToIdle, prev_state: AlarmTransition, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.168 elapsed=00:00:14.730]
+event=UART_STATE: AlarmToIdle -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: AlarmToIdle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.169 elapsed=00:00:14.731]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.240 elapsed=00:00:14.801]
+event=GPIO_BUTTONS: 001 -> 000
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298860.340 elapsed=00:00:14.901]
+event=GPIO_BUTTONS: 000 -> 010
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 5, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298861.340 elapsed=00:00:15.901]
+event=GPIO_BUTTONS: 010 -> 000
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298861.440 elapsed=00:00:16.002]
+event=GPIO_BUTTONS: 000 -> 011
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298861.441 elapsed=00:00:16.003]
+event=UART_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298861.441 elapsed=00:00:16.003]
+event=TWIN_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298861.840 elapsed=00:00:16.402]
+event=UART_STATE: IdleTransition -> IdleToRun
+uart=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298861.840 elapsed=00:00:16.402]
+event=GPIO_BUTTONS: 011 -> 000
+uart=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298861.841 elapsed=00:00:16.403]
+event=UART_STATE: IdleToRun -> RunEntry
+uart=TwinState { current_state: RunEntry, prev_state: IdleToRun, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+twin=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298861.841 elapsed=00:00:16.403]
+event=TWIN_STATE: IdleTransition -> IdleToRun
+uart=TwinState { current_state: RunEntry, prev_state: IdleToRun, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+twin=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298861.843 elapsed=00:00:16.404]
+event=UART_STATE: RunEntry -> Run
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+twin=TwinState { current_state: RunEntry, prev_state: IdleToRun, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298861.843 elapsed=00:00:16.404]
+event=TWIN_STATE: IdleToRun -> RunEntry
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+twin=TwinState { current_state: RunEntry, prev_state: IdleToRun, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298861.844 elapsed=00:00:16.405]
+event=TWIN_STATE: RunEntry -> Run
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+twin=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 125 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.544 elapsed=00:00:21.105]
+event=TWIN_STATE: Run -> RunTransition
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298866.544 elapsed=00:00:21.105]
+event=GPIO_BUTTONS: 000 -> 100
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298866.790 elapsed=00:00:21.352]
+event=GPIO_BUTTONS: 100 -> 000
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.795 elapsed=00:00:21.357]
+event=UART_STATE: Run -> RunTransition
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.795 elapsed=00:00:21.357]
+event=TWIN_STATE: RunTransition -> RunToPause
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: RunToPause, prev_state: RunTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.795 elapsed=00:00:21.357]
+event=TWIN_STATE: RunToPause -> PauseEntry
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: PauseEntry, prev_state: RunToPause, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.795 elapsed=00:00:21.357]
+event=TWIN_STATE: PauseEntry -> Pause
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.797 elapsed=00:00:21.358]
+event=UART_STATE: RunTransition -> RunToPause
+uart=TwinState { current_state: RunToPause, prev_state: RunTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.798 elapsed=00:00:21.359]
+event=UART_STATE: RunToPause -> PauseEntry
+uart=TwinState { current_state: PauseEntry, prev_state: RunToPause, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298866.799 elapsed=00:00:21.360]
+event=UART_STATE: PauseEntry -> Pause
+uart=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.490 elapsed=00:00:26.052]
+event=GPIO_BUTTONS: 000 -> 100
+uart=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298871.501 elapsed=00:00:26.063]
+event=TWIN_STATE: Pause -> PauseTransition
+uart=TwinState { current_state: Pause, prev_state: PauseEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: PauseTransition, prev_state: Pause, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298871.740 elapsed=00:00:26.302]
+event=UART_STATE: Pause -> PauseTransition
+uart=TwinState { current_state: PauseTransition, prev_state: Pause, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: PauseTransition, prev_state: Pause, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.740 elapsed=00:00:26.302]
+event=GPIO_BUTTONS: 100 -> 000
+uart=TwinState { current_state: PauseTransition, prev_state: Pause, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: PauseTransition, prev_state: Pause, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.742 elapsed=00:00:26.303]
+event=UART_STATE: PauseTransition -> PauseToRun
+uart=TwinState { current_state: PauseToRun, prev_state: PauseTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: PauseTransition, prev_state: Pause, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.743 elapsed=00:00:26.304]
+event=UART_STATE: PauseToRun -> RunEntry
+uart=TwinState { current_state: RunEntry, prev_state: PauseToRun, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: PauseToRun, prev_state: PauseTransition, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.743 elapsed=00:00:26.304]
+event=TWIN_STATE: PauseTransition -> PauseToRun
+uart=TwinState { current_state: RunEntry, prev_state: PauseToRun, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: PauseToRun, prev_state: PauseTransition, led_1_state: Pause, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.744 elapsed=00:00:26.305]
+event=UART_STATE: RunEntry -> Run
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: RunEntry, prev_state: PauseToRun, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.744 elapsed=00:00:26.305]
+event=TWIN_STATE: PauseToRun -> RunEntry
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: RunEntry, prev_state: PauseToRun, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298871.745 elapsed=00:00:26.306]
+event=TWIN_STATE: RunEntry -> Run
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+twin=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 121 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298876.343 elapsed=00:00:30.905]
+event=TWIN_STATE: Run -> RunTransition
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 117 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 117 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298876.343 elapsed=00:00:30.905]
+event=GPIO_BUTTONS: 000 -> 100
+uart=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 117 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 117 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298876.759 elapsed=00:00:31.320]
+event=UART_STATE: Run -> RunTransition
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 117 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.345 elapsed=00:00:33.907]
+event=TWIN_STATE: RunTransition -> RunToClear
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: RunToClear, prev_state: RunTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 117 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.345 elapsed=00:00:33.907]
+event=TWIN_STATE: RunToClear -> ClearEntry
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: ClearEntry, prev_state: RunToClear, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 117 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.356 elapsed=00:00:33.918]
+event=TWIN_STATE: ClearEntry -> Clear
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: Clear, prev_state: ClearEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.356 elapsed=00:00:33.918]
+event=TWIN_STATE: Clear -> ClearTransition
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: ClearTransition, prev_state: Clear, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.356 elapsed=00:00:33.918]
+event=TWIN_STATE: ClearTransition -> ClearToIdle
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: ClearToIdle, prev_state: ClearTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.356 elapsed=00:00:33.918]
+event=TWIN_STATE: ClearToIdle -> IdleEntry
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: IdleEntry, prev_state: ClearToIdle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.356 elapsed=00:00:33.918]
+event=TWIN_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.737 elapsed=00:00:34.299]
+event=UART_STATE: RunTransition -> RunToClear
+uart=TwinState { current_state: RunToClear, prev_state: RunTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.738 elapsed=00:00:34.300]
+event=UART_STATE: RunToClear -> ClearEntry
+uart=TwinState { current_state: ClearEntry, prev_state: RunToClear, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.740 elapsed=00:00:34.301]
+event=UART_STATE: ClearEntry -> Clear
+uart=TwinState { current_state: Clear, prev_state: ClearEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 116 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.741 elapsed=00:00:34.302]
+event=UART_STATE: Clear -> ClearTransition
+uart=TwinState { current_state: ClearTransition, prev_state: Clear, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.742 elapsed=00:00:34.303]
+event=UART_STATE: ClearTransition -> ClearToIdle
+uart=TwinState { current_state: ClearToIdle, prev_state: ClearTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.743 elapsed=00:00:34.304]
+event=UART_STATE: ClearToIdle -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ClearToIdle, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298879.744 elapsed=00:00:34.305]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: On, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: true, reset: false }
+
+[unix=1792298881.341 elapsed=00:00:35.902]
+event=GPIO_BUTTONS: 100 -> 000
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298881.441 elapsed=00:00:36.002]
+event=UART_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298881.441 elapsed=00:00:36.002]
+event=GPIO_BUTTONS: 000 -> 011
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298881.452 elapsed=00:00:36.013]
+event=TWIN_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.422 elapsed=00:00:38.984]
+event=UART_STATE: IdleTransition -> IdleToReset
+uart=TwinState { current_state: IdleToReset, prev_state: IdleTransition, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.423 elapsed=00:00:38.985]
+event=UART_STATE: IdleToReset -> ResetEntry
+uart=TwinState { current_state: ResetEntry, prev_state: IdleToReset, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.424 elapsed=00:00:38.986]
+event=UART_STATE: ResetEntry -> Reset
+uart=TwinState { current_state: Reset, prev_state: ResetEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.426 elapsed=00:00:38.987]
+event=UART_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.427 elapsed=00:00:38.988]
+event=UART_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.428 elapsed=00:00:38.989]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.429 elapsed=00:00:38.990]
+event=UART_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.452 elapsed=00:00:39.014]
+event=TWIN_STATE: IdleTransition -> IdleToReset
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleToReset, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.452 elapsed=00:00:39.014]
+event=TWIN_STATE: IdleToReset -> ResetEntry
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: ResetEntry, prev_state: IdleToReset, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 125, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.452 elapsed=00:00:39.014]
+event=TWIN_STATE: ResetEntry -> Reset
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Reset, prev_state: ResetEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.452 elapsed=00:00:39.014]
+event=TWIN_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.452 elapsed=00:00:39.014]
+event=TWIN_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.452 elapsed=00:00:39.014]
+event=TWIN_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.452 elapsed=00:00:39.014]
+event=TWIN_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298884.943 elapsed=00:00:39.504]
+event=TWIN_STATE: IdleTransition -> IdleEntry
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleEntry, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298884.943 elapsed=00:00:39.504]
+event=GPIO_BUTTONS: 011 -> 000
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleEntry, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298884.954 elapsed=00:00:39.515]
+event=TWIN_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.143 elapsed=00:00:39.705]
+event=GPIO_BUTTONS: 000 -> 001
+uart=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: On, led_2_state: On, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.232 elapsed=00:00:39.793]
+event=UART_STATE: IdleTransition -> InitTransition
+uart=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.233 elapsed=00:00:39.794]
+event=UART_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.234 elapsed=00:00:39.796]
+event=UART_STATE: InitToReset -> Reset
+uart=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.235 elapsed=00:00:39.797]
+event=UART_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.236 elapsed=00:00:39.798]
+event=UART_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.237 elapsed=00:00:39.799]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.240 elapsed=00:00:39.802]
+event=GPIO_BUTTONS: 001 -> 000
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.441 elapsed=00:00:40.003]
+event=GPIO_BUTTONS: 000 -> 001
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.532 elapsed=00:00:40.093]
+event=UART_STATE: Idle -> InitTransition
+uart=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.533 elapsed=00:00:40.095]
+event=UART_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.534 elapsed=00:00:40.096]
+event=UART_STATE: InitToReset -> Reset
+uart=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.535 elapsed=00:00:40.097]
+event=UART_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.536 elapsed=00:00:40.098]
+event=UART_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298885.537 elapsed=00:00:40.099]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298886.441 elapsed=00:00:41.003]
+event=GPIO_BUTTONS: 001 -> 000
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298886.542 elapsed=00:00:41.103]
+event=GPIO_BUTTONS: 000 -> 011
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.553 elapsed=00:00:41.114]
+event=TWIN_STATE: Idle -> IdleTransition
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.633 elapsed=00:00:41.195]
+event=UART_STATE: Idle -> InitTransition
+uart=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.634 elapsed=00:00:41.196]
+event=UART_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.635 elapsed=00:00:41.197]
+event=UART_STATE: InitToReset -> Reset
+uart=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.637 elapsed=00:00:41.198]
+event=UART_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.638 elapsed=00:00:41.199]
+event=UART_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.639 elapsed=00:00:41.200]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: true, pb_3: false, reset: false }
+
+[unix=1792298886.741 elapsed=00:00:41.302]
+event=GPIO_BUTTONS: 011 -> 000
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleTransition, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: On, pb_2_state: On, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298886.752 elapsed=00:00:41.313]
+event=TWIN_STATE: IdleTransition -> IdleToRun
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleToRun, prev_state: IdleTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 2 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298886.752 elapsed=00:00:41.313]
+event=TWIN_STATE: IdleToRun -> RunEntry
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: RunEntry, prev_state: IdleToRun, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 2 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298886.752 elapsed=00:00:41.313]
+event=TWIN_STATE: RunEntry -> Run
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Run, prev_state: RunEntry, led_1_state: Blink, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 2 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298888.758 elapsed=00:00:43.319]
+event=TWIN_STATE: Run -> RunTransition
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: RunTransition, prev_state: Run, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298888.758 elapsed=00:00:43.319]
+event=TWIN_STATE: RunTransition -> RunToAlarm
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: RunToAlarm, prev_state: RunTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298888.758 elapsed=00:00:43.319]
+event=TWIN_STATE: RunToAlarm -> AlarmEntry
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: AlarmEntry, prev_state: RunToAlarm, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298888.758 elapsed=00:00:43.319]
+event=TWIN_STATE: AlarmEntry -> Alarm
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Alarm, prev_state: AlarmEntry, led_1_state: On, led_2_state: Blink, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 2, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298922.951 elapsed=00:00:00.000]
+event=SESSION_START
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298928.287 elapsed=00:00:05.336]
+event=UART_STATE: Init -> InitTransition
+uart=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298928.288 elapsed=00:00:05.337]
+event=UART_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298928.290 elapsed=00:00:05.338]
+event=UART_STATE: InitToReset -> Reset
+uart=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298928.291 elapsed=00:00:05.339]
+event=UART_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298928.292 elapsed=00:00:05.340]
+event=UART_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298928.293 elapsed=00:00:05.342]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298933.208 elapsed=00:00:10.256]
+event=GPIO_BUTTONS: 000 -> 001
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298934.833 elapsed=00:00:00.000]
+event=SESSION_START
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298935.834 elapsed=00:00:01.001]
+event=GPIO_RESET: LOW -> HIGH
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.835 elapsed=00:00:01.002]
+event=TWIN_STATE: Idle -> InitEntry
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: InitEntry, prev_state: Idle, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.846 elapsed=00:00:01.013]
+event=TWIN_STATE: InitEntry -> Init
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Init, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.846 elapsed=00:00:01.013]
+event=TWIN_STATE: Init -> InitTransition
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.846 elapsed=00:00:01.013]
+event=TWIN_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.846 elapsed=00:00:01.013]
+event=TWIN_STATE: InitToReset -> Reset
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.846 elapsed=00:00:01.013]
+event=TWIN_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.846 elapsed=00:00:01.013]
+event=TWIN_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.846 elapsed=00:00:01.013]
+event=TWIN_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: InitEntry, prev_state: InitEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.859 elapsed=00:00:01.026]
+event=UART_STATE: Init -> InitTransition
+uart=TwinState { current_state: InitTransition, prev_state: Init, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.860 elapsed=00:00:01.027]
+event=UART_STATE: InitTransition -> InitToReset
+uart=TwinState { current_state: InitToReset, prev_state: InitTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.861 elapsed=00:00:01.028]
+event=UART_STATE: InitToReset -> Reset
+uart=TwinState { current_state: Reset, prev_state: InitToReset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.862 elapsed=00:00:01.029]
+event=UART_STATE: Reset -> ResetTransition
+uart=TwinState { current_state: ResetTransition, prev_state: Reset, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.863 elapsed=00:00:01.030]
+event=UART_STATE: ResetTransition -> IdleEntry
+uart=TwinState { current_state: IdleEntry, prev_state: ResetTransition, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.864 elapsed=00:00:01.031]
+event=UART_STATE: IdleEntry -> Idle
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: true }
+
+[unix=1792298935.944 elapsed=00:00:01.111]
+event=GPIO_RESET: HIGH -> LOW
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: false, pb_2: false, pb_3: false, reset: false }
+
+[unix=1792298936.834 elapsed=00:00:02.001]
+event=GPIO_BUTTONS: 000 -> 001
+uart=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: On, led_2_state: On, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+twin=TwinState { current_state: Idle, prev_state: IdleEntry, led_1_state: Off, led_2_state: Off, pb_1_state: Off, pb_2_state: Off, pb_3_state: Off, preset_time: 0, elapsed_time: 0 }
+gpio=GpioOutputState { pb_1: true, pb_2: false, pb_3: false, reset: false }
+

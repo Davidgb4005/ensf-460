@@ -15,7 +15,7 @@ wait 4700
 press 250 3
 wait 4700
 press 250 3
-wait 4600
+wait 4800
 press 5000 3
 wait 100
 press 3500 2 1
