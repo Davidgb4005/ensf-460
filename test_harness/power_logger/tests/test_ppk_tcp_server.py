@@ -102,11 +102,11 @@ class CaptureTests(unittest.TestCase):
     def test_sliding_statistics_and_total_charge(self):
         statistics = SlidingStatistics(window_size=3)
         statistics.add([1.0, 5.0, 3.0, 2.0])
-        average, maximum, charge_ah = statistics.snapshot()
+        average, maximum, charge_uc = statistics.snapshot()
 
         self.assertAlmostEqual(average, 10 / 3)
         self.assertEqual(maximum, 5.0)
-        self.assertAlmostEqual(charge_ah, 11 / (1_000_000 * 100_000 * 3600))
+        self.assertAlmostEqual(charge_uc, 11 / 100_000)
 
     def test_capture_csv_and_power_safety(self):
         ppk = FakePPK()

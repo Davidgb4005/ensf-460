@@ -109,7 +109,7 @@ class SlidingStatistics:
         self._maximums: deque[Tuple[int, float]] = deque()
         self._window_sum = 0.0
         self._sequence = 0
-        self._charge_ah = 0.0
+        self._charge_uc = 0.0
 
     def add(self, currents: Sequence[float]) -> None:
         for raw_current in currents:
@@ -128,13 +128,13 @@ class SlidingStatistics:
                 if self._maximums and self._maximums[0][0] == old_sequence:
                     self._maximums.popleft()
 
-            # current is in uA and the fixed PPK2 sampling period is 1/100000 s.
-            self._charge_ah += current / (1_000_000 * SAMPLE_RATE_HZ * 3600)
+            # uA multiplied by seconds is uC.
+            self._charge_uc += current / SAMPLE_RATE_HZ
 
     def snapshot(self) -> Tuple[float, float, float]:
         average = self._window_sum / len(self._window) if self._window else 0.0
         maximum = self._maximums[0][1] if self._maximums else 0.0
-        return average, maximum, self._charge_ah
+        return average, maximum, self._charge_uc
 
 
 class LivePlot:
@@ -215,11 +215,11 @@ class LivePlot:
             self._axes.relim()
             self._axes.autoscale_view(scalex=False, scaley=True)
         with self._statistics_lock:
-            average, maximum, charge_ah = self._statistics.snapshot()
+            average, maximum, charge_uc = self._statistics.snapshot()
         self._statistics_text.set_text(
             f"Window avg: {average:.3f} uA\n"
             f"Window max: {maximum:.3f} uA\n"
-            f"Total charge: {charge_ah:.9f} Ah"
+            f"Total charge: {charge_uc:.3f} uC"
         )
         return self._line, self._statistics_text
 

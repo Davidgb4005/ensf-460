@@ -29,8 +29,8 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(second["times"], [0.0, 1.0, 2.0])
         self.assertEqual(first["average_uA"], 4.0)
         self.assertEqual(second["average_uA"], 10.0)
-        self.assertAlmostEqual(first["charge_ah"], 8 / 3_600_000_000)
-        self.assertAlmostEqual(second["charge_ah"], 20 / 3_600_000_000)
+        self.assertAlmostEqual(first["charge_uc"], 8)
+        self.assertAlmostEqual(second["charge_uc"], 20)
 
 
 if __name__ == "__main__":

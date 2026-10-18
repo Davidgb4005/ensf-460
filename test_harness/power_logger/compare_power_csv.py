@@ -11,7 +11,6 @@ from typing import Iterator, Optional, Sequence, Tuple
 
 
 TRIM_SECONDS = 2.0
-UA_SECONDS_PER_AH = 1_000_000 * 3600
 
 
 def capture_rows(path: Path) -> Iterator[Tuple[float, float]]:
@@ -45,8 +44,8 @@ def comparison_data(
 
     plot_stride = max(1, math.ceil(matched_count / max_plot_points))
     results = [
-        {"times": [], "currents": [], "sum": 0.0, "charge_ah": 0.0},
-        {"times": [], "currents": [], "sum": 0.0, "charge_ah": 0.0},
+        {"times": [], "currents": [], "sum": 0.0, "charge_uc": 0.0},
+        {"times": [], "currents": [], "sum": 0.0, "charge_uc": 0.0},
     ]
     first_starts: list[Optional[float]] = [None, None]
     previous: list[Optional[Tuple[float, float]]] = [None, None]
@@ -67,9 +66,8 @@ def comparison_data(
                 delta_seconds = elapsed - old_elapsed
                 if delta_seconds < 0:
                     raise ValueError("CSV elapsed_us values must be monotonically increasing")
-                result["charge_ah"] += (
-                    (old_current + current) * 0.5 * delta_seconds / UA_SECONDS_PER_AH
-                )
+                # uA integrated over seconds produces uC.
+                result["charge_uc"] += (old_current + current) * 0.5 * delta_seconds
             previous[capture_index] = (elapsed, current)
 
             if index % plot_stride == 0 or index == matched_count - 1:
@@ -134,7 +132,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             0.02,
             0.96,
             f"Average: {result['average_uA']:.3f} uA\n"
-            f"Charge: {result['charge_ah']:.9f} Ah",
+            f"Charge: {result['charge_uc']:.3f} uC",
             transform=axis.transAxes,
             va="top",
             bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.8},
@@ -157,7 +155,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     overlay.legend()
     summary = "\n".join(
         f"{label}: avg {result['average_uA']:.3f} uA, "
-        f"charge {result['charge_ah']:.9f} Ah"
+        f"charge {result['charge_uc']:.3f} uC"
         for label, result in zip(labels, results)
     )
     overlay.text(

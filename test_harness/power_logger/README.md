@@ -72,7 +72,7 @@ to include `digital_bits` and the eight `digital_0` through `digital_7` columns.
 `--sample-avg SAMPLES` sets the raw-sample sliding window used for the live
 average and maximum current annotation. The default is 100000 samples, or one
 second at the fixed PPK2 acquisition rate. The graph also displays total charge
-in Ah accumulated since the most recent `start`. These statistics are displayed
+in uC accumulated since the most recent `start`. These statistics are displayed
 as text and are not plotted as additional traces.
 
 Every command is terminated by a newline. The server buffers fragmented TCP
