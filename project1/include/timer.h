@@ -41,21 +41,7 @@ typedef enum
 void timer2_init(void);
 void timer3_init(void);
 uint16_t timer_millis(void);
-
-void clock_set_31khz(void);
-void clock_set_500khz(void);
-void clock_set_4mhz(void);
-void clock_set_8mhz(void);
-void clock_set_32mhz(void);
-void clock_idle_31khz(void);
-
-/* The 500 kHz clock disables the 500 kbaud UART; faster setters restore it. */
-#define SET31KHZ() clock_set_31khz()
-#define SET500KHZ() clock_set_500khz()
-#define SET4MHZ() clock_set_4mhz()
-#define SET8MHZ() clock_set_8mhz()
-#define SET32MHZ() clock_set_32mhz()
-/* Sleep at 31 kHz, then restore the clock that was active before sleeping. */
-#define IDLE31KHZ() clock_idle_31khz()
+void timers_prepare_clock_change(void);
+void timers_update_clock(uint16_t clock_khz);
 
 #endif

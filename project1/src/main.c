@@ -7,7 +7,7 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = 0b000
+#pragma config FNOSC = FRC              // Oscillator Select (Fast RC oscillator (FRC))
 #pragma config IESO = OFF               // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
@@ -39,17 +39,14 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = ON             // Deep Sleep Watchdog Timer Enable bit (DSWDT enabled)
 
+#include <xc.h>
+
 #include "superloop.h"
-#include "xc.h"
+#include "system.h"
 
 int main(void)
 {
-    REFOCONbits.ROEN = 0;
-    REFOCONbits.ROSEL = 0;
-    REFOCONbits.RODIV = 0;
-    REFOCONbits.ROEN = 1;
-    _TRISB9 = 0;
-    CLKDIVbits.RCDIV = 0;
+    set_core_clock(FREQ_8_MHZ);
     superloop_setup();
 
     while (1)
