@@ -2,7 +2,7 @@ mod event_log;
 mod tui;
 mod dgital_twin;
 mod gpio;
-//mod test_runner;
+mod test_runner;
 mod state;
 mod uart;
 mod tcp;
@@ -10,7 +10,6 @@ mod tcp;
 
 use std::io::{self};
 
-use crate::tcp::{open_connection,start_test,test_complete};
 use crate::state::{TwinState,TimerStates};
 use crate::gpio::{ControlGpio,TwinGpio};
 use crate::uart::{UartReader};
@@ -18,7 +17,7 @@ use rppal::gpio::{Gpio};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use std::error::Error;
-use std::sync::{Arc, RwLock, mpsc};
+use std::sync::{Arc, Mutex, RwLock, mpsc};
 use std::{thread};
 use std::time::{Duration};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -49,7 +48,7 @@ fn now_ms() -> u128 {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let gpio = Gpio::new()?;
-    let mut control_gpio = ControlGpio::new(&gpio)?;
+    let control_gpio = Arc::new(Mutex::new(ControlGpio::new(&gpio)?));
     let twin_gpio = TwinGpio::new(&gpio)?;
     let shared_twin_state = Arc::new(RwLock::new(TwinState {
         current_state: TimerStates::Idle,
@@ -70,14 +69,27 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut uart_reader = UartReader::default();
     let mut uart_state = TwinState::default();
+    let shared_uart_state = Arc::new(RwLock::new(uart_state.clone()));
     let mut uart_connected = false;
     let mut uart_error = None;
     let mut tui = tui::Tui::new(Duration::from_millis(100));
-    let mut previous_gpio_outputs = control_gpio.output_state();
+    let mut previous_gpio_outputs = control_gpio
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .output_state();
     let mut event_log = event_log::EventLogger::new("harness-events.log")?;
     let _raw_mode = RawModeGuard::new()?;
     let mut run_started : u8 = 0;
-    let stream = tcp::open_connection()?;
+    let test_thread = std::env::args_os()
+        .nth(1)
+        .map(|path| {
+            test_runner::run_test(
+                path,
+                Arc::clone(&control_gpio),
+                Arc::clone(&shared_uart_state),
+            )
+        })
+        .transpose()?;
     let initial_twin_state = shared_twin_state
         .read()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
@@ -107,13 +119,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     if key.code == KeyCode::Char('r') {
                         reset_tx.send(())?;
-                        control_gpio.trigger_hard_reset();
+                        control_gpio
+                            .lock()
+                            .unwrap_or_else(|poisoned| poisoned.into_inner())
+                            .trigger_hard_reset();
                         tui.record_reset();
                         let twin_snapshot = shared_twin_state
                             .read()
                             .unwrap_or_else(|poisoned| poisoned.into_inner())
                             .clone();
-                        let gpio_outputs = control_gpio.output_state();
+                        let gpio_outputs = control_gpio
+                            .lock()
+                            .unwrap_or_else(|poisoned| poisoned.into_inner())
+                            .output_state();
                         event_log.log(
                             "KEY_RESET: BCM 6 LOW -> HIGH",
                             &uart_state,
@@ -123,32 +141,35 @@ fn main() -> Result<(), Box<dyn Error>> {
                         previous_gpio_outputs.reset = true;
                     } else if key.code == KeyCode::Up && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
-                        control_gpio.trigger_incrment_minute();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_incrment_minute();
                     } else if key.code == KeyCode::Up {
-                        control_gpio.trigger_incrment_second();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_incrment_second();
                     } else if key.code == KeyCode::Down
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
-                        control_gpio.trigger_decrement_minute();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_decrement_minute();
                     } else if key.code == KeyCode::Down {
-                        control_gpio.trigger_decrement_second();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_decrement_second();
                     } else if key.code == KeyCode::Char('S')
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
-                        control_gpio.trigger_reset();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_reset();
                     } else if key.code == KeyCode::Char('s') {
-                        control_gpio.trigger_start();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_start();
                     } else if key.code == KeyCode::Char('P')
                         && key.modifiers.contains(KeyModifiers::SHIFT)
                     {
-                        control_gpio.trigger_clear();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_clear();
                     } else if key.code == KeyCode::Char('p') {
-                        control_gpio.trigger_pause();
+                        control_gpio.lock().unwrap_or_else(|p| p.into_inner()).trigger_pause();
                     }
                 } 
             }
         }
-        control_gpio.update();
+        control_gpio
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .update();
         match uart_reader.poll(port.as_mut()) {
             Ok(Some(new_uart_state)) => {
                 let mut transition_event = None;
@@ -185,9 +206,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                         &event,
                         &new_uart_state,
                         &twin_snapshot,
-                        control_gpio.output_state(),
+                        control_gpio
+                            .lock()
+                            .unwrap_or_else(|poisoned| poisoned.into_inner())
+                            .output_state(),
                     )?;
                 }
+                *shared_uart_state
+                    .write()
+                    .unwrap_or_else(|poisoned| poisoned.into_inner()) = new_uart_state.clone();
                 uart_state = new_uart_state;
                 uart_connected = true;
                 uart_error = None;
@@ -206,7 +233,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 &event,
                 &uart_state,
                 &transition,
-                control_gpio.output_state(),
+                control_gpio
+                    .lock()
+                    .unwrap_or_else(|poisoned| poisoned.into_inner())
+                    .output_state(),
             )?;
         }
 
@@ -215,7 +245,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .unwrap_or_else(|poisoned| poisoned.into_inner())
             .clone();
 
-        let gpio_outputs = control_gpio.output_state();
+        let gpio_outputs = control_gpio
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .output_state();
         if gpio_outputs.pb_1 != previous_gpio_outputs.pb_1
             || gpio_outputs.pb_2 != previous_gpio_outputs.pb_2
             || gpio_outputs.pb_3 != previous_gpio_outputs.pb_3
@@ -232,16 +265,26 @@ fn main() -> Result<(), Box<dyn Error>> {
             previous_gpio_outputs.pb_3 = gpio_outputs.pb_3;
         }
 
-        if control_gpio.read_testing() == 1 && run_started == 0{
+        let testing_input = control_gpio
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .read_testing();
+        if testing_input == 1 && run_started == 0{
                     run_started = 1;
                     uart_start_time = Some(now_ms());
                     uart_end_time = None;
-                    control_gpio.trigger_ping_high();
+                    control_gpio
+                        .lock()
+                        .unwrap_or_else(|poisoned| poisoned.into_inner())
+                        .trigger_ping_high();
             }
-        else if control_gpio.read_testing() == 0 && run_started == 1{
+        else if testing_input == 0 && run_started == 1{
                     run_started = 0;
                     uart_end_time = Some(now_ms());
-                    control_gpio.trigger_ping_low();
+                    control_gpio
+                        .lock()
+                        .unwrap_or_else(|poisoned| poisoned.into_inner())
+                        .trigger_ping_low();
         }
         
 
@@ -284,6 +327,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         thread::sleep(Duration::from_millis(1));
     }
 
+    if let Some(test_thread) = test_thread {
+        let _ = test_thread.join();
+    }
     Ok(())
 }
-

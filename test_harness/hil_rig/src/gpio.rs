@@ -46,6 +46,23 @@ impl ControlGpio {
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(PULSE_MS));
     }
 
+    pub(crate) fn set_push_button(
+        &mut self,
+        push_button: u8,
+        pressed: bool,
+    ) -> Result<(), String> {
+        let index = match push_button {
+            1..=3 => usize::from(push_button - 1),
+            _ => return Err(format!("invalid push button {push_button}; expected 1, 2, or 3")),
+        };
+        if pressed {
+            self.push_button_outputs[index].set_high();
+        } else {
+            self.push_button_outputs[index].set_low();
+        }
+        Ok(())
+    }
+
     pub(crate)fn trigger_incrment_second(&mut self) {
         self.push_button_outputs[0].set_high();
         self.reset_deadline = Some(Instant::now() + Duration::from_millis(INCREMENT_PULSE_MS));
