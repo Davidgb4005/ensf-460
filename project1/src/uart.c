@@ -1,18 +1,12 @@
 #include <xc.h>
+#include <stddef.h>
 #include <stdint.h>
 #include "uart.h"
-#include "stdlib.h"
-#include "stdio.h"
 
-#define FCY         4000000UL
-#define BAUD_RATE   500000
-#define ECHO_ENABLE 1
+#define FCY 4000000UL
+#define BAUD_RATE 500000
 
-ring_buffer_s *rx_buffer;
-ring_buffer_s *tx_buffer;
-
-
-const char *messages[] = {
+const char *const messages[] = {
     LINE_CLEAR("CNT %m : %s"),
     LINE_CLEAR("CNT %m : %s {PAUSED}"),
     LINE_CLEAR("FIN 00m : 00s - ALARM"),
@@ -22,7 +16,15 @@ const char *messages[] = {
 };
 
 
-uint16_t uart_init(ring_buffer_s *uart_rx_buffer, ring_buffer_s *uart_tx_buffer)
+static void uart_write_char(uint8_t data)
+{
+    while (U2STAbits.UTXBF)
+    {
+    }
+    U2TXREG = data;
+}
+
+void uart_init(void)
 {
     U2MODE = 0;
     U2STA = 0;
@@ -36,27 +38,9 @@ uint16_t uart_init(ring_buffer_s *uart_rx_buffer, ring_buffer_s *uart_tx_buffer)
 
     U2MODEbits.UARTEN = 1;
     U2STAbits.UTXEN = 1;
-
-    rx_buffer = uart_rx_buffer;
-    tx_buffer = uart_tx_buffer;
-
-    return 0;
 }
 
-error_e uart_int_to_ascii(uint16_t data, uint8_t *buffer)
-{
-    sprintf((char *)buffer, "%u", data);
-    return ERROR_NONE;
-}
-
-error_e uart_write_char(uint8_t data)
-{
-    while (U2STAbits.UTXBF);
-    U2TXREG = data;
-    return ERROR_NONE;
-}
-
-error_e uart_write_string(const char *data)
+void uart_write_string(const char *data)
 {
     while (*data)
     {
@@ -64,25 +48,8 @@ error_e uart_write_string(const char *data)
     }
     uart_write_char('\r');
     uart_write_char('\n');
-    return ERROR_NONE;
 }
 
-uint8_t uart_read_char(void)
-{
-    while (!ring_buffer_data_available(rx_buffer));
-    return ring_buffer_dequeue_char(rx_buffer);
-}
-
-error_e uart_send_buffer(void)
-{
-    while (ring_buffer_data_available(tx_buffer))
-    {
-        uart_write_char(ring_buffer_dequeue_char(tx_buffer));
-    }
-    return ERROR_NONE;
-}
-
-#if 1
 void __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 {
     if (U2STAbits.OERR)
@@ -93,8 +60,6 @@ void __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
     while (U2STAbits.URXDA)
     {
         uint8_t c = U2RXREG;
-        ring_buffer_enqueue_char(rx_buffer, c);
-#if ECHO_ENABLE
         if (!U2STAbits.UTXBF)
         {
             if (c == '\r')
@@ -107,23 +72,20 @@ void __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
                 U2TXREG = c;
             }
         }
-#endif
     }
 
     IFS1bits.U2RXIF = 0;
 }
 
-error_e uart_send_state(const test_rig_data_s *data)
+void uart_send_state(const test_rig_data_s *data)
 {
-    uint8_t gpio_flags =
-          ((data->gpio.led_1_state & 0x03u) << 0)
-        | ((data->gpio.led_2_state & 0x03u) << 2)
-        | ((data->gpio.pb_1        & 0x01u) << 4)
-        | ((data->gpio.pb_2        & 0x01u) << 5)
-        | ((data->gpio.pb_3        & 0x01u) << 6);
-    uint16_t state_flags =
-          ((data->states.state_code      & 0x1fu) << 0)
-        | ((data->states.prev_state_code & 0x1fu) << 5);
+    uint8_t gpio_flags = ((data->gpio.led_1_state & 0x03u) << 0) |
+                         ((data->gpio.led_2_state & 0x03u) << 2) |
+                         ((data->gpio.pb_1 & 0x01u) << 4) |
+                         ((data->gpio.pb_2 & 0x01u) << 5) |
+                         ((data->gpio.pb_3 & 0x01u) << 6);
+    uint16_t state_flags = ((data->states.state_code & 0x1fu) << 0) |
+                           ((data->states.prev_state_code & 0x1fu) << 5);
     uint8_t payload[7] = {
         (uint8_t)data->elapsed_seconds,
         (uint8_t)(data->elapsed_seconds >> 8),
@@ -144,19 +106,20 @@ error_e uart_send_state(const test_rig_data_s *data)
         checksum = (uint8_t)(checksum + payload[i]);
     }
     uart_write_char(checksum);
-    return ERROR_NONE;
 }
 
-
-error_e uart_send_message(const char *msg, uint16_t elapsed_value,uint16_t preset_value)
+void uart_send_message(const char *msg, uint16_t elapsed_value, uint16_t preset_value)
 {
     static uint16_t prev_elapsed;
     static uint16_t prev_preset;
     static const char *prev_cursor;
     if (msg == NULL)
-        return ERROR_NULL_VALUE;
-    if(prev_cursor == msg && prev_elapsed == elapsed_value && prev_preset == preset_value){
-        return ERROR_NONE;
+    {
+        return;
+    }
+    if (prev_cursor == msg && prev_elapsed == elapsed_value && prev_preset == preset_value)
+    {
+        return;
     }
     const char *cursor = msg;
     char tmp_buffer[64];
@@ -193,6 +156,4 @@ error_e uart_send_message(const char *msg, uint16_t elapsed_value,uint16_t prese
     prev_elapsed = elapsed_value;
     prev_preset = preset_value;
     prev_cursor = msg;
-    return ERROR_NONE;
 }
-#endif

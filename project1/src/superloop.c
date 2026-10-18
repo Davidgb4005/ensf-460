@@ -1,9 +1,6 @@
 #include <xc.h>
-#include <p24F16KA101.h>
-
 #include <stdint.h>
 #include <stdio.h>
-#include "xc.h"
 #include "timer.h"
 #include "uart.h"
 
@@ -14,44 +11,17 @@
         uart_write_string(err_msg);                                                                 \
     } while (0)
 
-#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
-#define BUFFER_SIZE 32
-#define DEBOUNCE_DELAY 0
 #define MAX_PRESET_VALUE 3599
 #define MIN_PRESET_VALUE 0
 #define REPEAT_DELAY_MS 400
 #define CLEAR_DELAY_MS 3000
 #define COUNT_DELAY_MS 1000
-#define STATE_SEND_DELAY_MS 125
-#define FAST_BLINK_MS 250;
+#define FAST_BLINK_MS 250
+#define HARDWARE_OUTPUTS_ENABLED 0
 
-static uint8_t rx_data[BUFFER_SIZE];
-static uint8_t tx_data[BUFFER_SIZE];
-static ring_buffer_s rx_buffer = {
-    .buffer = rx_data,
-    .read_ptr = rx_data,
-    .write_ptr = rx_data,
-    .size = BUFFER_SIZE,
-    .data_available = 0,
-    .string_available = 0,
-    .error = ERROR_NONE,
-};
-
-static ring_buffer_s tx_buffer = {
-    .buffer = tx_data,
-    .read_ptr = tx_data,
-    .write_ptr = tx_data,
-    .size = BUFFER_SIZE,
-    .data_available = 0,
-    .string_available = 0,
-    .error = ERROR_NONE,
-};
-
-static const uint16_t input[] = {11, 9, 10, 15, 16};
-static const uint16_t output[] = {13, 14};
 static char err_msg[128];
 
-volatile timer_state_e state = TIMER_INIT;
+static volatile timer_state_e state = TIMER_INIT;
 volatile uint16_t elapsed_value;
 
 static timer_state_e request_state = TIMER_INIT;
@@ -60,13 +30,13 @@ static uint16_t counter;
 static uint16_t prev_buttons = 0;
 static uint16_t start_time;
 static uint16_t delay_ms = REPEAT_DELAY_MS;
-static uint16_t state_send_time;
 static timer_state_e prev_state = TIMER_IDLE;
 static test_rig_data_s test_rig_data;
-static uint16_t send_delay_ms = 250;
-static uint16_t send_start_time;
+static int16_t prev_preset_value;
+static uint16_t prev_elapsed_value;
 
-volatile uint16_t buttons;
+static volatile uint16_t buttons;
+
 static int16_t clamp_preset_value(int16_t value)
 {
     if (value > MAX_PRESET_VALUE)
@@ -80,33 +50,20 @@ static int16_t clamp_preset_value(int16_t value)
     return value;
 }
 
-void sendTestRigData()
+static void send_test_rig_data(void)
 {
-    state_send_time = timer_millis();
     test_rig_data.elapsed_seconds = elapsed_value;
     test_rig_data.preset_seconds = (uint16_t)preset_value;
     test_rig_data.states.state_code = (uint16_t)state;
     test_rig_data.states.prev_state_code = (uint16_t)prev_state;
     test_rig_data.gpio.led_1_state = _RB9;
     test_rig_data.gpio.led_2_state = _RA6;
-    test_rig_data.gpio.pb_1 = (buttons & 0x1) >0;
-    test_rig_data.gpio.pb_2 = (buttons & 0x2) >0;
+    test_rig_data.gpio.pb_1 = (buttons & 0x1) > 0;
+    test_rig_data.gpio.pb_2 = (buttons & 0x2) > 0;
     test_rig_data.gpio.pb_3 = (buttons & 0x4) > 0;
     uart_send_state(&test_rig_data);
 }
-static uint16_t sleep_counter = 0;
-void sleep_after_cycle()
-{
-    if (sleep_counter > 0)
-    {
-        sleep_counter = 0;
-        Sleep();
-    }
-    else
-    {
-        sleep_counter++;
-    }
-}
+
 static uint16_t delay_elapsed(uint16_t now)
 {
     if ((uint16_t)(now - start_time) >= delay_ms)
@@ -116,45 +73,27 @@ static uint16_t delay_elapsed(uint16_t now)
     }
     return 0;
 }
-static uint16_t send_delay_elapsed(uint16_t now)
-{
-    if ((uint16_t)(now - send_start_time) >= send_delay_ms)
-    {
-        send_start_time = now;
-        return 1;
-    }
-    return 0;
-}
-uint16_t dummy;
-#if 1
+
+#if HARDWARE_OUTPUTS_ENABLED
 #define LED_1 _LATB9
 #define LED_2 _LATA6
 #define OUTPUT_CONTROL 1
-#endif
-#if 0
-#define LED_1 dummy
-#define LED_2 dummy
+#else
+static uint16_t dummy_output;
+#define LED_1 dummy_output
+#define LED_2 dummy_output
 #define OUTPUT_CONTROL 0
 #endif
-error_e superloop_setup(void)
+
+void superloop_setup(void)
 {
-    AD1PCFG = 0xffff; //
+    AD1PCFG = 0xffff;
 
     timer3_init();
-
-    if (uart_init(&rx_buffer, &tx_buffer) == 0)
-    {
-        ERROR_PRINT("%s", "UART Setup Complete");
-    }
-
-    if (timer2_init() == 0)
-    {
-        ERROR_PRINT("%s", "Timer 2 Setup Complete");
-    }
-    else
-    {
-        ERROR_PRINT("%s", "Timer 2 Setup Failed");
-    }
+    uart_init();
+    ERROR_PRINT("%s", "UART Setup Complete");
+    timer2_init();
+    ERROR_PRINT("%s", "Timer 2 Setup Complete");
     _TRISB12 = 0;
     _TRISB14 = 1;
     _TRISB9 = 0;
@@ -172,7 +111,7 @@ error_e superloop_setup(void)
     CNPD1bits.CN0PDE = 1;  // RA4
     CNPD1bits.CN1PDE = 1;  // RB4
     CNPD2bits.CN23PDE = 1; // RB7
-    CNPD1bits.CN13PDE = 1; // RB7
+    CNPD1bits.CN13PDE = 1; // RB13
 
     // Configure interrupt
     IPC4bits.CNIP = 2;
@@ -180,24 +119,12 @@ error_e superloop_setup(void)
     IEC1bits.CNIE = 1;
 
     start_time = timer_millis();
-    state_send_time = start_time;
-    return ERROR_NONE;
 }
-static uint16_t prev_preset_value = 0;
-static uint16_t prev_elapsed_value = 0;
-error_e superloop_loop(void)
+
+void superloop_loop(void)
 {
-
-    while (0)
-    {
-        IDLE31KHZ();
-        PORTB ^= 1 << 9;
-    }
-
     const char *selected_message = NULL;
-    uint16_t now;
-
-    now = timer_millis();
+    uint16_t now = timer_millis();
 
     if (buttons != prev_buttons)
     {
@@ -213,13 +140,13 @@ error_e superloop_loop(void)
         state = request_state;
         start_time = now;
         counter = 0;
-        sendTestRigData();
+        send_test_rig_data();
     }
     else if (prev_preset_value != preset_value || elapsed_value != prev_elapsed_value)
     {
         prev_preset_value = preset_value;
         prev_elapsed_value = elapsed_value;
-        sendTestRigData();
+        send_test_rig_data();
     }
 
     switch (state)
@@ -290,7 +217,7 @@ error_e superloop_loop(void)
             selected_message = messages[UART_INFO_FORMAT];
             break;
         default:
-            sendTestRigData();
+            send_test_rig_data();
             Sleep();
             break;
         }
@@ -346,7 +273,7 @@ error_e superloop_loop(void)
     case TIMER_RUN:
         LED_2 = 0;
         _LATB12 = OUTPUT_CONTROL;
-        sendTestRigData();
+        send_test_rig_data();
         if (elapsed_value == 0 || (buttons & 0x4) != 0)
         {
             _LATB12 = 0;
@@ -400,7 +327,7 @@ error_e superloop_loop(void)
         {
             request_state = TIMER_PAUSE_TRANSITION;
         }
-        sendTestRigData();
+        send_test_rig_data();
         Sleep();
         break;
 
@@ -454,17 +381,12 @@ error_e superloop_loop(void)
         }
         if ((buttons & 0x3) != 0)
         {
-            SET8MHZ();
             request_state = TIMER_ALARM_TRANSITION;
         }
-        sendTestRigData();
+        send_test_rig_data();
         if (elapsed_value < 1)
         {
             IDLE31KHZ();
-        }
-        else
-        {
-            SET31KHZ();
         }
         break;
     case TIMER_ALARM_TRANSITION:
@@ -485,7 +407,6 @@ error_e superloop_loop(void)
         uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
     }
     elapsed_value = clamp_preset_value(elapsed_value);
-    return ERROR_NONE;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)

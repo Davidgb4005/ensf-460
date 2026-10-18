@@ -1,6 +1,5 @@
 #ifndef PIC24_TIMER_H
 #define PIC24_TIMER_H
-#include "xc.h"
 #include <stdint.h>
 
 typedef enum
@@ -39,139 +38,24 @@ typedef enum
     TIMER_ALARM_TO_IDLE,
 } timer_state_e;
 
-extern volatile uint16_t ms_ticks;
-uint16_t timer2_init(void);
-uint16_t timer3_init(void);
+void timer2_init(void);
+void timer3_init(void);
 uint16_t timer_millis(void);
-#define CLOCKSPEED 8
 
-#if CLOCKSPEED == 1
-#define IDLE31KHZ()                             \
-    do                                          \
-    {                                           \
-        while (!U2STAbits.TRMT)                 \
-            ;                                   \
-                                                \
-        T3CONbits.TON = 0;                      \
-                                                \
-        __builtin_write_OSCCONH(0b101);         \
-        __builtin_write_OSCCONL(OSCCON | 0x01); \
-        while (OSCCONbits.OSWEN)                \
-            ;                                   \
-                                                \
-        U2MODEbits.BRGH = 1;                    \
-        U2BRG = 12;                             \
-        U2MODEbits.USIDL = 0;                   \
-                                                \
-        T2CONbits.TON = 0;                      \
-        TMR2 = 0;                               \
-        IFS0bits.T2IF = 0;                      \
-        T2CONbits.TON = 1;                      \
-                                                \
-        Idle();                                 \
-    } while (0)
+void clock_set_31khz(void);
+void clock_set_500khz(void);
+void clock_set_4mhz(void);
+void clock_set_8mhz(void);
+void clock_set_32mhz(void);
+void clock_idle_31khz(void);
+
+/* The 500 kHz clock disables the 500 kbaud UART; faster setters restore it. */
+#define SET31KHZ() clock_set_31khz()
+#define SET500KHZ() clock_set_500khz()
+#define SET4MHZ() clock_set_4mhz()
+#define SET8MHZ() clock_set_8mhz()
+#define SET32MHZ() clock_set_32mhz()
+/* Sleep at 31 kHz, then restore the clock that was active before sleeping. */
+#define IDLE31KHZ() clock_idle_31khz()
 
 #endif
-
-#if CLOCKSPEED == 32
-#define ENABLE32MHZ()                           \
-    do                                          \
-    {                                           \
-        if (U2MODEbits.UARTEN)                  \
-            while (!U2STAbits.TRMT)             \
-                ;                               \
-        CLKDIVbits.RCDIV = 0;                   \
-        __builtin_write_OSCCONH(0b001);         \
-        __builtin_write_OSCCONL(OSCCON | 0x01); \
-        while (OSCCONbits.OSWEN)                \
-            ;                                   \
-        while (!OSCCONbits.LOCK)                \
-            ;                                   \
-        U2BRG = 7;                              \
-        TMR3 = 0;                               \
-        PR3 = 15999;                            \
-        IFS0bits.T3IF = 0;                      \
-        T3CONbits.TON = 1;                      \
-    } while (0)
-#define IDLE31KHZ()                             \
-    do                                          \
-    {                                           \
-        while (!U2STAbits.TRMT)                 \
-            ;                                   \
-        T3CONbits.TON = 0;                      \
-        __builtin_write_OSCCONH(0b101);         \
-        __builtin_write_OSCCONL(OSCCON | 0x01); \
-        while (OSCCONbits.OSWEN)                \
-            ;                                   \
-        T2CONbits.TON = 1;                      \
-        Idle();                                 \
-        T2CONbits.TON = 0;                      \
-        ENABLE32MHZ();                          \
-    } while (0)
-#endif
-
-#if CLOCKSPEED == 8
-#define ENABLE8MHZ()                            \
-    do                                          \
-    {                                           \
-        if (U2MODEbits.UARTEN)                  \
-            while (!U2STAbits.TRMT)             \
-                ;                               \
-        __builtin_write_OSCCONH(0b000);         \
-        __builtin_write_OSCCONL(OSCCON | 0x01); \
-        while (OSCCONbits.OSWEN)                \
-            ;                                   \
-        U2BRG = 1;                              \
-        TMR3 = 0;                               \
-        PR3 = 3999;                             \
-        IFS0bits.T3IF = 0;                      \
-        T3CONbits.TON = 1;                      \
-    } while (0)
-#define IDLE31KHZ()                             \
-    do                                          \
-    {                                           \
-        while (!U2STAbits.TRMT)                 \
-            ;                                   \
-        T3CONbits.TON = 0;                      \
-        __builtin_write_OSCCONH(0b101);         \
-        __builtin_write_OSCCONL(OSCCON | 0x01); \
-        while (OSCCONbits.OSWEN)                \
-            ;                                   \
-        T2CONbits.TON = 1;                      \
-        Idle();                                 \
-        T2CONbits.TON = 0;                      \
-        ENABLE8MHZ();                           \
-    } while (0)
-#endif
-#define SET31KHZ()                             \
-    do                                          \
-    {                                           \
-        while (!U2STAbits.TRMT)                 \
-            ;                                   \
-        T3CONbits.TON = 0;                      \
-        __builtin_write_OSCCONH(0b101);         \
-        __builtin_write_OSCCONL(OSCCON | 0x01); \
-        while (OSCCONbits.OSWEN)                \
-            ;                                   \
-        T2CONbits.TON = 1;                      \
-    } while (0)
-#define SET8MHZ()                               \
-    do                                          \
-    {                                           \
-        if (U2MODEbits.UARTEN)                  \
-            while (!U2STAbits.TRMT)             \
-                ;                               \
-        T2CONbits.TON = 0;                      \
-        __builtin_write_OSCCONH(0b000);         \
-        __builtin_write_OSCCONL(OSCCON | 0x01); \
-        while (OSCCONbits.OSWEN)                \
-            ;                                   \
-        U2BRG = 1;                              \
-        TMR3 = 0;                               \
-        PR3 = 3999;                             \
-        IFS0bits.T3IF = 0;                      \
-        T3CONbits.TON = 1;                      \
-    } while (0)
-#endif
-//For 8 mhz TMR2 == 14617
-//for 32mhz u 11800
