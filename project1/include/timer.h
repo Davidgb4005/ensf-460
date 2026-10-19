@@ -1,9 +1,7 @@
 /**
  * Manages a timer for the running program using a common global time counter.
- * When the system core clock frequency changes, timer_switch() should be called
- * to switch the timer that is used. This should be done by:
  *
- * timer_disable() -> set_core_clock() -> timer_switch().
+ * Both time sources provide 125 ms resolution updates.
  */
 
 #ifndef _TIMER_H
@@ -24,9 +22,8 @@ int timer_init(core_clock_freq_e core_clock);
 /**
  * Switch the timer being used to the one for the selected clock frequency.
  *
- * Enables the timer if it is disabled.
- *
- * Returns -EINVAL for invalid clock frequency, or 0 on success.
+ * NOTE: calling this will perform a system clock change during the timer
+ * switch to minimize lost time.
  */
 int timer_switch(core_clock_freq_e core_clock);
 

@@ -27,9 +27,13 @@ extern uint16_t core_clock_khz;
 
 /**
  * Changes the core clock input frequency.
- *
- * Returns a negative errno on failure, or 0 on success.
+ * Updates core_clock_khz.
  */
 void set_core_clock(core_clock_freq_e freq);
+
+/**
+ * Sets the OSCCON NOSC bits, and waits for the clock to successfully switch.
+ */
+void set_core_clock_raw(core_clock_freq_e freq);
 
 #endif
