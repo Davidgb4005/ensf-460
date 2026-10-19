@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Iterator, Optional, Sequence, Tuple
 
 
-TRIM_SECONDS = 2.0
+TRIM_SECONDS = 5; 
 
 
 def capture_rows(path: Path) -> Iterator[Tuple[float, float]]:
