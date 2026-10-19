@@ -1,5 +1,5 @@
 #include "timer.h"
-
+#include "superloop.h"
 #include <xc.h>
 
 #include "system.h"
@@ -12,28 +12,28 @@ static uint16_t timer2_initialized;
 static uint16_t timer3_initialized;
 
 
-
+#define MILLISECOND_SCALER 10
 static void timer3_set_period(uint16_t clock_khz)
 {
     if (clock_khz >= 32000u)
     {
         T3CONbits.TCKPS = 0x01;
-        PR3 = 2008;
+        PR3 = 2008 * MILLISECOND_SCALER;
     }
     else if (clock_khz >= 8000u)
     {
         T3CONbits.TCKPS = 0x01;
-        PR3 = 502; //1 ms at 8 MHz
+        PR3 = 502* MILLISECOND_SCALER; //1 ms at 8 MHz
     }
     else if (clock_khz >= 4000u)
     {
         T3CONbits.TCKPS = 0x00;
-        PR3 = 2008; // This is not the correct number according to data sheet, got it via testing dont change
+        PR3 = 2008*MILLISECOND_SCALER; // This is not the correct number according to data sheet, got it via testing dont change
     }
     else
     {
         T3CONbits.TCKPS = 0x00;
-        PR3 = 251;
+        PR3 = 251 * MILLISECOND_SCALER;
     }
 }
 
@@ -51,17 +51,30 @@ void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void)
 {
     _LATB8 = !_LATB8;
-    ms_ticks++;
+    ms_ticks += MILLISECOND_SCALER*1;
     IFS0bits.T3IF = 0;
 }
 
 void timer2_init(void)
 {
+    float clock_skew = 1;
+    switch (DEFAULT_CLOCK_HZ)
+    {
+    case CLOCK_32KHZ:
+        clock_skew = 1;
+        break;
+    case CLOCK_500KHZ:
+        clock_skew = 0.96318165;
+        break;
+    default:
+        clock_skew = 1;
+        break;
+    }
     T2CONbits.TON = 0;
     T2CONbits.TCS = 0;
     T2CONbits.TGATE = 0;
     T2CONbits.TCKPS = 0x00;
-    PR2 = 3643; // Retuned from a measured 79.873765 s runtime to 80 s
+    PR2 = (uint16_t)(3643 * clock_skew); // Retuned from a measured 79.873765 s runtime to 80 s
     _T2IP = 4;
     _T2IF = 0;
     _T2IE = 1;

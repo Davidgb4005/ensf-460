@@ -6,7 +6,7 @@
 #include "system.h"
 
 #define BAUD_8_MHZ 500000UL
-#define BAUD_500_KHZ 57600UL
+#define BAUD_500_KHZ 62500UL
 #define BAUD_32_KHZ 300UL
 
 const char *const messages[] = {
