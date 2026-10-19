@@ -33,6 +33,11 @@ void set_core_clock(core_clock_freq_e freq)
         oscillator_source = 0b111;
         frc_divider = 0b001;
         break;
+    case FREQ_1_MHZ:
+        next_clock_khz = 1000u;
+        oscillator_source = 0b111;
+        frc_divider = 0b011;
+        break;
     case FREQ_500_KHZ:
         next_clock_khz = 500u;
         oscillator_source = 0b110;

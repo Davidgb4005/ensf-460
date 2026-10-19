@@ -8,7 +8,6 @@
 #include "timer.h"
 #include "uart.h"
 
-
 #if DEFAULT_CLOCK_HZ == CLOCK_32MHZ
 #define DEFAULT_CORE_CLOCK FREQ_32_MHZ
 #define DEFAULT_BAUD BAUD32MHZ
@@ -18,6 +17,9 @@
 #elif DEFAULT_CLOCK_HZ == CLOCK_4MHZ
 #define DEFAULT_CORE_CLOCK FREQ_4_MHZ
 #define DEFAULT_BAUD BAUD4MHZ
+#elif DEFAULT_CLOCK_HZ == CLOCK_1MHZ
+#define DEFAULT_CORE_CLOCK FREQ_1_MHZ
+#define DEFAULT_BAUD BAUD1MHZ
 #elif DEFAULT_CLOCK_HZ == CLOCK_500KHZ
 #define DEFAULT_CORE_CLOCK FREQ_500_KHZ
 #define DEFAULT_BAUD BAUD500KHZ
@@ -25,15 +27,23 @@
 #define DEFAULT_CORE_CLOCK FREQ_32_KHZ
 #define DEFAULT_BAUD BAUD32KHZ
 #else
-#error "DEFAULT_CLOCK_HZ must be 32000000, 8000000, 4000000, 500000, or 32000"
+#error "DEFAULT_CLOCK_HZ must be 32000000, 8000000, 4000000, 1000000, 500000, or 32000"
 #endif
 
 #define IDLE_LOW_POWER()                    \
     do                                      \
     {                                       \
+        uart_shutdown();                    \
         set_core_clock(FREQ_32_KHZ);        \
         Idle();                             \
         set_core_clock(default_core_clock); \
+    } while (0)
+
+#define SLEEP_WHEN_UART_IDLE() \
+    do                         \
+    {                          \
+        uart_shutdown();       \
+        Sleep();               \
     } while (0)
 
 #define ERROR_PRINT(fmt, ...)                                                                       \
@@ -49,7 +59,7 @@
 #define CLEAR_DELAY_MS 3000
 #define COUNT_DELAY_MS 1000
 #define FAST_BLINK_MS 250
-#define HARDWARE_OUTPUTS_ENABLED 1
+#define HARDWARE_OUTPUTS_ENABLED 0
 
 static const core_clock_freq_e default_core_clock = DEFAULT_CORE_CLOCK;
 static char err_msg[128];
@@ -120,14 +130,33 @@ static uint16_t dummy_output;
 
 void superloop_setup(void)
 {
-    AD1PCFG = 0xffff;
+    AD1PCFG = 0u;
+    AD1PCFGbits.PCFG2 = 1;  // AN2/RB0: UART2 TX
+    AD1PCFGbits.PCFG3 = 1;  // AN3/RB1: UART2 RX
+    AD1PCFGbits.PCFG11 = 1; // AN11/RB13: test-rig reset input
+    AD1PCFGbits.PCFG12 = 1; // AN12/RB12: output control
+
+    PMD1bits.ADC1MD = 1;
+    PMD1bits.SPI1MD = 1;
+    PMD1bits.U1MD = 1;
+    PMD1bits.I2C1MD = 1;
+    PMD1bits.T1MD = 1;
+    PMD2bits.OC1MD = 1;
+    PMD2bits.IC1MD = 1;
+    PMD3bits.CRCPMD = 1;
+    PMD3bits.RTCCMD = 1;
+    PMD3bits.CMPMD = 1;
+    PMD4bits.HLVDMD = 1;
+    PMD4bits.CTMUMD = 1;
+    PMD4bits.REFOMD = 1;
+    PMD4bits.EEMD = 1;
 
     set_core_clock(default_core_clock);
     uart_init(DEFAULT_BAUD);
-    ERROR_PRINT("%s", "UART Setup Complete");
+    // ERROR_PRINT("%s", "UART Setup Complete");
     timer2_init();
     timer3_init();
-    ERROR_PRINT("%s", "Timer 2 Setup Complete");
+    // ERROR_PRINT("%s", "Timer 2 Setup Complete");
     _TRISB12 = 0;
     _LATB12 = 0;
     _TRISB8 = 0;
@@ -216,36 +245,28 @@ void superloop_loop(void)
         switch (buttons)
         {
         case 0x1:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value += counter > 20 ? 5 : 1;
-                selected_message = messages[UART_SET_FORMAT];
-            }
+            counter++;
+            preset_value += counter > 20 ? 5 : 1;
+            selected_message = messages[UART_SET_FORMAT];
+            IDLE_LOW_POWER();
             break;
         case 0x2:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value += counter > 20 ? 300 : 60;
-                selected_message = messages[UART_SET_FORMAT];
-            }
+            counter++;
+            preset_value += counter > 20 ? 300 : 60;
+            selected_message = messages[UART_SET_FORMAT];
+            IDLE_LOW_POWER();
             break;
         case 0x5:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value -= counter > 20 ? 5 : 1;
-                selected_message = messages[UART_SET_FORMAT];
-            }
+            counter++;
+            preset_value -= counter > 20 ? 5 : 1;
+            selected_message = messages[UART_SET_FORMAT];
+            IDLE_LOW_POWER();
             break;
         case 0x6:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value -= counter > 20 ? 300 : 60;
-                selected_message = messages[UART_SET_FORMAT];
-            }
+            counter++;
+            preset_value -= counter > 20 ? 300 : 60;
+            selected_message = messages[UART_SET_FORMAT];
+            IDLE_LOW_POWER();
             break;
         case 0x3:
             delay_ms = CLEAR_DELAY_MS;
@@ -255,8 +276,7 @@ void superloop_loop(void)
             selected_message = messages[UART_INFO_FORMAT];
             break;
         default:
-            send_test_rig_data();
-            Sleep();
+            SLEEP_WHEN_UART_IDLE();
             break;
         }
         break;
@@ -312,7 +332,6 @@ void superloop_loop(void)
     case TIMER_RUN:
         LED_2 = 0;
         _LATB12 = OUTPUT_CONTROL;
-        send_test_rig_data();
         if (delay_elapsed(now))
         {
             LED_1 = !LED_1;
@@ -370,8 +389,7 @@ void superloop_loop(void)
         {
             request_state = TIMER_PAUSE_TRANSITION;
         }
-        send_test_rig_data();
-        Sleep();
+        SLEEP_WHEN_UART_IDLE();
         break;
 
     case TIMER_PAUSE_TRANSITION:
@@ -428,7 +446,6 @@ void superloop_loop(void)
         {
             request_state = TIMER_ALARM_TRANSITION;
         }
-        send_test_rig_data();
         IDLE_LOW_POWER();
         break;
     case TIMER_ALARM_TRANSITION:

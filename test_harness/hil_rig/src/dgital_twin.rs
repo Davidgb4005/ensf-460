@@ -4,7 +4,7 @@ use std::sync::{mpsc, Arc, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
-const REPEAT_DELAY_MS: u32 = 400;
+const REPEAT_DELAY_MS: u32 = 200;
 const CLEAR_DELAY_MS: u32 = 3000;
 const COUNT_DELAY_MS: u32 = 1000;
 struct EmulatorState {

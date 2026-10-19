@@ -6,6 +6,7 @@
 #include "system.h"
 
 #define BAUD_8_MHZ 500000UL
+#define BAUD_1_MHZ 125000UL
 #define BAUD_500_KHZ 62500UL
 #define BAUD_32_KHZ 300UL
 
@@ -19,6 +20,8 @@ const char *const messages[] = {
 };
 
 static uint16_t uart_initialized;
+static uint16_t uart_enabled;
+static uint32_t uart_baud;
 
 static uint16_t uart_brg(uint16_t clock_khz, uint32_t baud)
 {
@@ -35,7 +38,7 @@ static uint16_t uart_brg(uint16_t clock_khz, uint32_t baud)
 
 void uart_wait_for_tx(void)
 {
-    if (uart_initialized != 0u)
+    if (uart_enabled != 0u)
     {
         while (U2STAbits.TRMT == 0u)
         {
@@ -47,7 +50,8 @@ void uart_update_baud(uint32_t baud)
 {
     uint16_t was_enabled;
 
-    if (uart_initialized == 0u)
+    uart_baud = baud;
+    if (uart_initialized == 0u || uart_enabled == 0u)
     {
         return;
     }
@@ -74,6 +78,10 @@ void uart_update_clock(uint16_t clock_khz)
     {
         baud = BAUD_8_MHZ;
     }
+    else if (clock_khz >= 1000u)
+    {
+        baud = BAUD_1_MHZ;
+    }
     else if (clock_khz >= 500u)
     {
         baud = BAUD_500_KHZ;
@@ -88,6 +96,7 @@ void uart_update_clock(uint16_t clock_khz)
 
 void uart_init(uint32_t baud)
 {
+    PMD1bits.U2MD = 0;
     U2MODE = 0;
     U2STA = 0;
     U2MODEbits.PDSEL = 0;
@@ -101,11 +110,53 @@ void uart_init(uint32_t baud)
 
     U2MODEbits.UARTEN = 1;
     U2STAbits.UTXEN = 1;
+    uart_baud = baud;
     uart_initialized = 1u;
+    uart_enabled = 1u;
+}
+
+void uart_shutdown(void)
+{
+    if (uart_enabled == 0u)
+    {
+        return;
+    }
+
+    uart_wait_for_tx();
+    IEC1bits.U2RXIE = 0;
+    U2STAbits.UTXEN = 0;
+    U2MODEbits.UARTEN = 0;
+    PMD1bits.U2MD = 1;
+    uart_enabled = 0u;
+}
+
+void uart_wake(void)
+{
+    if (uart_initialized == 0u || uart_enabled != 0u)
+    {
+        return;
+    }
+
+    PMD1bits.U2MD = 0;
+    U2MODE = 0;
+    U2STA = 0;
+    U2MODEbits.PDSEL = 0;
+    U2MODEbits.STSEL = 0;
+    U2MODEbits.BRGH = 1;
+    U2BRG = uart_brg(core_clock_khz, uart_baud);
+
+    U2STAbits.URXISEL = 0;
+    IFS1bits.U2RXIF = 0;
+    IEC1bits.U2RXIE = 1;
+
+    U2MODEbits.UARTEN = 1;
+    U2STAbits.UTXEN = 1;
+    uart_enabled = 1u;
 }
 
 void uart_write_char(uint8_t data)
 {
+    uart_wake();
     while (U2STAbits.UTXBF != 0u)
     {
     }

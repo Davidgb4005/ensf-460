@@ -40,6 +40,8 @@ void uart_init(uint32_t baud);
 void uart_update_baud(uint32_t baud);
 void uart_update_clock(uint16_t clock_khz);
 void uart_wait_for_tx(void);
+void uart_shutdown(void);
+void uart_wake(void);
 void uart_write_char(uint8_t data);
 void uart_write_string(const char *data);
 void uart_send_state(const test_rig_data_s *data);

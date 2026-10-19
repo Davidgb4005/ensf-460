@@ -12,28 +12,33 @@ static uint16_t timer2_initialized;
 static uint16_t timer3_initialized;
 
 
-#define MILLISECOND_SCALER 10
+#define MILLISECOND_SCALER 1000u
 static void timer3_set_period(uint16_t clock_khz)
 {
     if (clock_khz >= 32000u)
     {
-        T3CONbits.TCKPS = 0x01;
-        PR3 = 2008 * MILLISECOND_SCALER;
+        T3CONbits.TCKPS = 0x03;
+        PR3 = (uint16_t)(((uint32_t)2008u * MILLISECOND_SCALER) / 32u);
     }
     else if (clock_khz >= 8000u)
     {
-        T3CONbits.TCKPS = 0x01;
-        PR3 = 502* MILLISECOND_SCALER; //1 ms at 8 MHz
+        T3CONbits.TCKPS = 0x02;
+        PR3 = (uint16_t)(((uint32_t)502u * MILLISECOND_SCALER) / 8u);
     }
     else if (clock_khz >= 4000u)
     {
-        T3CONbits.TCKPS = 0x00;
-        PR3 = 2008*MILLISECOND_SCALER; // This is not the correct number according to data sheet, got it via testing dont change
+        T3CONbits.TCKPS = 0x02;
+        PR3 = (uint16_t)(((uint32_t)2008u * MILLISECOND_SCALER) / 64u);
+    }
+    else if (clock_khz >= 1000u)
+    {
+        T3CONbits.TCKPS = 0x01;
+        PR3 = (uint16_t)(((uint32_t)502u * MILLISECOND_SCALER) / 8u);
     }
     else
     {
-        T3CONbits.TCKPS = 0x00;
-        PR3 = 251 * MILLISECOND_SCALER;
+        T3CONbits.TCKPS = 0x01;
+        PR3 = (uint16_t)(((uint32_t)251u * MILLISECOND_SCALER) / 8u);
     }
 }
 
@@ -45,12 +50,11 @@ uint16_t timer_millis(void)
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 {
     IFS0bits.T2IF = 0;
-    ms_ticks += 250u;
+    ms_ticks += 200u;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void)
 {
-    _LATB8 = !_LATB8;
     ms_ticks += MILLISECOND_SCALER*1;
     IFS0bits.T3IF = 0;
 }
@@ -77,7 +81,7 @@ void timer2_init(void)
     T2CONbits.TCS = 0;
     T2CONbits.TGATE = 0;
     T2CONbits.TCKPS = 0x00;
-    PR2 = (uint16_t)(3643 * clock_skew); // Retuned from a measured 79.873765 s runtime to 80 s
+    PR2 = (uint16_t)(2914 * clock_skew); // Retuned from a measured 79.873765 s runtime to 80 s
     _T2IP = 4;
     _T2IF = 0;
     _T2IE = 1;

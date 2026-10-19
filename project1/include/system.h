@@ -6,6 +6,7 @@
 typedef enum
 {
     FREQ_4_MHZ = 0b000,
+    FREQ_1_MHZ = 0b010,
     FREQ_32_MHZ = 0b001,
     FREQ_8_MHZ = 0b111,
     FREQ_500_KHZ = 0b110,
