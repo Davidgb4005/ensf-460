@@ -59,8 +59,7 @@
 #define CLEAR_DELAY_MS 3000
 #define COUNT_DELAY_MS 1000
 #define FAST_BLINK_MS 250
-#define HARDWARE_OUTPUTS_ENABLED 0
-
+#define HARDWARE_OUTPUTS_ENABLED 1
 static const core_clock_freq_e default_core_clock = DEFAULT_CORE_CLOCK;
 static char err_msg[128];
 
@@ -194,6 +193,7 @@ void superloop_loop(void)
 
     if (buttons != prev_buttons)
     {
+        timer2_reset_phase();
         prev_buttons = buttons;
         counter = 0;
         start_time = now;
