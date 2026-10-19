@@ -13,7 +13,18 @@ void set_core_clock(core_clock_freq_e freq) {
     set_core_clock_raw(freq); 
     SRbits.IPL = 0;
 
-    // Update global frequency field
+    update_core_clock_khz(freq);
+}
+
+void set_core_clock_raw(core_clock_freq_e freq) {
+    CLKDIVbits.RCDIV = 0;
+    OSCTUNbits.TUN = -3;
+    __builtin_write_OSCCONH(freq);
+    __builtin_write_OSCCONL(OSCCONL | 0x01);
+    while (OSCCONbits.OSWEN == 1) (void)0;
+}
+
+void update_core_clock_khz(core_clock_freq_e freq) {
     switch (freq) {
         case FREQ_8_MHZ:
             core_clock_khz = 8000;
@@ -27,12 +38,4 @@ void set_core_clock(core_clock_freq_e freq) {
             core_clock_khz = 32;
             break;
     }
-}
-
-void set_core_clock_raw(core_clock_freq_e freq) {
-    CLKDIVbits.RCDIV = 0;
-    OSCTUNbits.TUN = -3;
-    __builtin_write_OSCCONH(freq);
-    __builtin_write_OSCCONL(OSCCONL | 0x01);
-    while (OSCCONbits.OSWEN == 1) (void)0;
 }

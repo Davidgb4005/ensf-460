@@ -94,7 +94,8 @@ int timer_switch(core_clock_freq_e core_clock) {
 
     // Re-enable interrupts
     SRbits.IPL = 0;
-    
+
+    update_core_clock_khz(core_clock);
     cur_clock = core_clock;
     return 0;
 }

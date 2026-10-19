@@ -36,4 +36,9 @@ void set_core_clock(core_clock_freq_e freq);
  */
 void set_core_clock_raw(core_clock_freq_e freq);
 
+/**
+ * Updates core_clock_khz based on the given frequency.
+ */
+void update_core_clock_khz(core_clock_freq_e freq);
+
 #endif
