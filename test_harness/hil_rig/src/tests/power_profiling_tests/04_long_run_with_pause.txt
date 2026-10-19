@@ -1,0 +1,19 @@
+power_long_run_with_pause
+reset
+wait 2000
+
+# One-minute run with a substantial pause in the middle.
+press 450 2
+wait 500
+press 150 1 2
+wait 20000
+press 150 3
+wait 15000
+press 150 3
+wait 45000
+
+# Remain in alarm, then dismiss and measure the return to idle.
+wait 15000
+press 150 1
+wait 5000
+

@@ -1,0 +1,27 @@
+functional_clear_paths
+reset
+wait 1500
+assert idle
+
+# Holding PB1+PB2 for over three seconds clears an idle preset.
+press 450 2
+wait 200
+press 3200 1 2
+wait 500
+assert idle
+
+# The cleared zero preset must no longer be able to start a run.
+press 150 1 2
+wait 500
+assert idle
+
+# Holding PB3 for over three seconds clears an active run.
+press 450 2
+wait 200
+press 150 1 2
+wait 500
+assert run
+press 3200 3
+wait 500
+assert idle
+

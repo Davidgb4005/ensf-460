@@ -1,0 +1,36 @@
+functional_alarm_edges
+reset
+wait 1500
+assert idle
+
+# A one-second preset should progress from run to alarm.
+press 450 1
+wait 200
+press 150 1 2
+wait 300
+assert run
+wait 1500
+assert alarm
+
+# PB3 is not an alarm-dismiss button.
+press 150 3
+wait 400
+assert alarm
+
+# PB1 dismisses the alarm and returns to idle.
+press 150 1
+wait 500
+assert idle
+
+# Exercise the other valid alarm-dismiss button.
+press 450 1
+wait 200
+press 150 1 2
+wait 300
+assert run
+wait 1500
+assert alarm
+press 150 2
+wait 500
+assert idle
+

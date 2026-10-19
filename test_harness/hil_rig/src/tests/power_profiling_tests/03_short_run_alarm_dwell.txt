@@ -1,0 +1,22 @@
+power_short_run_alarm_dwell
+reset
+wait 2000
+
+# Short run followed by a long alarm dwell.
+press 450 1
+wait 500
+press 150 1 2
+wait 3000
+wait 20000
+
+# Dismiss, idle briefly, then repeat with another alarm dwell.
+press 150 1
+wait 3000
+press 450 1
+wait 500
+press 150 1 2
+wait 3000
+wait 10000
+press 150 2
+wait 3000
+

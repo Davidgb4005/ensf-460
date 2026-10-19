@@ -60,11 +60,14 @@ void timer2_init(void)
     float clock_skew = 1;
     switch (DEFAULT_CLOCK_HZ)
     {
+    case CLOCK_32MHZ:
+        clock_skew = 0.99427129;
+    break;
     case CLOCK_32KHZ:
         clock_skew = 1;
         break;
     case CLOCK_500KHZ:
-        clock_skew = 0.96318165;
+        clock_skew = 0.963182;
         break;
     default:
         clock_skew = 1;

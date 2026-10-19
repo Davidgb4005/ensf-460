@@ -1,0 +1,21 @@
+functional_pause_long_press_edge
+reset
+wait 1500
+assert idle
+
+# Enter pause with enough time remaining to avoid an alarm.
+press 450 2
+wait 200
+press 150 1 2
+wait 500
+assert run
+press 150 3
+wait 500
+assert pause
+
+# The documented long PB3 action should clear from pause as well as run.
+# This assertion intentionally catches implementations that resume instead.
+press 3200 3
+wait 500
+assert idle
+
