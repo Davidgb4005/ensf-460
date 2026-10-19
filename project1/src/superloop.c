@@ -19,9 +19,8 @@
 #define CLOCK_4MHZ 4000000UL
 #define CLOCK_500KHZ 500000UL
 #define CLOCK_32KHZ 32000UL
-
 #ifndef DEFAULT_CLOCK_HZ
-#define DEFAULT_CLOCK_HZ CLOCK_8MHZ
+#define DEFAULT_CLOCK_HZ CLOCK_32MHZ
 #endif
 
 #if DEFAULT_CLOCK_HZ == CLOCK_32MHZ
@@ -64,7 +63,7 @@
 #define CLEAR_DELAY_MS 3000
 #define COUNT_DELAY_MS 1000
 #define FAST_BLINK_MS 250
-#define HARDWARE_OUTPUTS_ENABLED 0
+#define HARDWARE_OUTPUTS_ENABLED 1
 
 static const core_clock_freq_e default_core_clock = DEFAULT_CORE_CLOCK;
 static char err_msg[128];
@@ -145,6 +144,8 @@ void superloop_setup(void)
     ERROR_PRINT("%s", "Timer 2 Setup Complete");
     _TRISB12 = 0;
     _LATB12 = 0;
+    _TRISB8 = 0;
+    _LATB8 = 0;
     _TRISB14 = 1;
     _TRISB9 = 0;
     _TRISB7 = 1;
@@ -184,6 +185,7 @@ void superloop_loop(void)
     }
 
     elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
+
     if (request_state != state)
     {
         prev_state = state;
@@ -319,25 +321,26 @@ void superloop_loop(void)
         delay_ms = COUNT_DELAY_MS;
         request_state = TIMER_RUN;
         selected_message = messages[UART_COUNT_FORMAT];
+        timer2_reset_phase();
         break;
     case TIMER_RUN:
         LED_2 = 0;
         _LATB12 = OUTPUT_CONTROL;
         send_test_rig_data();
+        if (delay_elapsed(now))
+        {
+            LED_1 = !LED_1;
+            if (elapsed_value > 0u)
+            {
+                elapsed_value--;
+            }
+            selected_message = messages[UART_COUNT_FORMAT];
+        }
         if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
             _LATB12 = 0;
             delay_ms = CLEAR_DELAY_MS;
             request_state = TIMER_RUN_TRANSITION;
-        }
-        if (delay_elapsed(now))
-        {
-            LED_1 = !LED_1;
-            if (elapsed_value > 0)
-            {
-                elapsed_value--;
-            }
-            selected_message = messages[UART_COUNT_FORMAT];
         }
         IDLE_LOW_POWER();
         break;

@@ -4,26 +4,36 @@
 
 #include "system.h"
 
+#define TIMER_SCALE_NUMERATOR 60000UL
+#define TIMER_SCALE_DENOMINATOR 66160UL
+
 static volatile uint16_t ms_ticks;
 static uint16_t timer2_initialized;
 static uint16_t timer3_initialized;
 
+
+
 static void timer3_set_period(uint16_t clock_khz)
 {
-    if (clock_khz >= 8000u)
+    if (clock_khz >= 32000u)
     {
         T3CONbits.TCKPS = 0x01;
-        PR3 = (uint16_t)((clock_khz / 16u) - 1u);
+        PR3 = 2008;
+    }
+    else if (clock_khz >= 8000u)
+    {
+        T3CONbits.TCKPS = 0x01;
+        PR3 = 502; //1 ms at 8 MHz
     }
     else if (clock_khz >= 4000u)
     {
         T3CONbits.TCKPS = 0x00;
-        PR3 = 1999;
+        PR3 = 2008; // This is not the correct number according to data sheet, got it via testing dont change
     }
     else
     {
         T3CONbits.TCKPS = 0x00;
-        PR3 = 249;
+        PR3 = 251;
     }
 }
 
@@ -34,12 +44,13 @@ uint16_t timer_millis(void)
 
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 {
-    ms_ticks += 250u;
     IFS0bits.T2IF = 0;
+    ms_ticks += 250u;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void)
 {
+    _LATB8 = !_LATB8;
     ms_ticks++;
     IFS0bits.T3IF = 0;
 }
@@ -50,7 +61,7 @@ void timer2_init(void)
     T2CONbits.TCS = 0;
     T2CONbits.TGATE = 0;
     T2CONbits.TCKPS = 0x00;
-    PR2 = 3999;
+    PR2 = 3643; // Retuned from a measured 79.873765 s runtime to 80 s
     _T2IP = 4;
     _T2IF = 0;
     _T2IE = 1;
@@ -60,6 +71,16 @@ void timer2_init(void)
     {
         T2CONbits.TON = 1;
     }
+}
+
+void timer2_reset_phase(void)
+{
+    uint16_t was_running = T2CONbits.TON;
+
+    T2CONbits.TON = 0;
+    TMR2 = 0;
+    IFS0bits.T2IF = 0;
+    T2CONbits.TON = was_running;
 }
 
 void timer3_init(void)

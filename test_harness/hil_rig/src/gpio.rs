@@ -13,10 +13,10 @@ const PUSHBUTTON_1_OUTPUT: u8 = 4;
 const PUSHBUTTON_2_OUTPUT: u8 = 17;
 const PUSHBUTTON_3_OUTPUT: u8 = 27;
 const RESET_OUTPUT: u8 = 6; //This sends the reset signal to the physical twin
-const RESET_PULSE_MS: u64 = 3125;
-const CLEAR_PULSE_MS: u64 = 3125;
+const RESET_PULSE_MS: u64 = 3500;
+const CLEAR_PULSE_MS: u64 = 3500;
 const INCREMENT_PULSE_MS: u64 = 425;
-const PULSE_MS: u64 = 100;
+const PULSE_MS: u64 = 200;
 
 pub(crate) struct ControlGpio {
     push_button_outputs: [OutputPin; 3],

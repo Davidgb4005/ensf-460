@@ -23,7 +23,7 @@ use std::time::{Duration};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const UART_PORT: &str = "/dev/ttyAMA0";
-const UART_BAUD: u32 = 500000;
+const UART_BAUD: u32 = 57600;
 
 struct RawModeGuard;
 

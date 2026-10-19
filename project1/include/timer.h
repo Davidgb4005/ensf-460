@@ -39,6 +39,7 @@ typedef enum
 } timer_state_e;
 
 void timer2_init(void);
+void timer2_reset_phase(void);
 void timer3_init(void);
 uint16_t timer_millis(void);
 void timers_prepare_clock_change(void);
