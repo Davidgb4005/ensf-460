@@ -118,7 +118,7 @@ write(int file, char *ptr, int len) {
 
     for (int i = 0; i < len; i++) {
         if (ptr[i] == '\n') {
-            uart_writen((uint8_t *)"\r\r", 2);
+            uart_write('\r');
         }
 
         uart_write(ptr[i]);
