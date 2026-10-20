@@ -10,8 +10,8 @@
 #define T2_PERIOD 31250U
 #define T3_PERIOD 62500U
 
-#define COST_SWITCH_TO_8M_US   311
-#define COST_SWITCH_TO_500K_US 1970
+#define COST_SWITCH_TO_8M_US   134
+#define COST_SWITCH_TO_500K_US 1865
 
 static volatile uint32_t ms_global;
 static core_clock_freq_e cur_clock;

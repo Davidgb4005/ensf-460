@@ -17,6 +17,8 @@ typedef struct uart_brg_s {
     uint16_t brgh;
 } uart_brg_s;
 
+char uprintf_buf[UPRINTF_BUF_SIZE];
+
 /**
  * Calculates and returns the BRG value for a given baud rate.
  *
@@ -116,7 +118,7 @@ write(int file, char *ptr, int len) {
 
     for (int i = 0; i < len; i++) {
         if (ptr[i] == '\n') {
-            uart_write('\r');
+            uart_writen((uint8_t *)"\r\r", 2);
         }
 
         uart_write(ptr[i]);

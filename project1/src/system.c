@@ -18,7 +18,7 @@ void set_core_clock(core_clock_freq_e freq) {
 
 void set_core_clock_raw(core_clock_freq_e freq) {
     CLKDIVbits.RCDIV = 0;
-    OSCTUNbits.TUN = -3;
+    OSCTUNbits.TUN = -5;
     __builtin_write_OSCCONH(freq);
     __builtin_write_OSCCONL(OSCCONL | 0x01);
     while (OSCCONbits.OSWEN == 1) (void)0;

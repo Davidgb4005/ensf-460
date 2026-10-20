@@ -13,6 +13,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#define UPRINTF_BUF_SIZE 128
+extern char uprintf_buf[UPRINTF_BUF_SIZE];
 
 /**
  * Intializes the UART2 interface with the given baud rate.
@@ -56,6 +58,15 @@ void uart_writen(const uint8_t *tx, size_t n);
  */
 int uart_get(uint8_t *rx);
 
+#define uprintf(fmt, ...) do {                                      \
+    snprintf(uprintf_buf, UPRINTF_BUF_SIZE, (fmt), ##__VA_ARGS__);  \
+    uart_writen((uint8_t *)uprintf_buf, strlen(uprintf_buf));       \
+} while (0)
+
+#define debug_print(fmt, ...) do {          \
+    printf("%s:%d: ", __FILE__, __LINE__); \
+    printf((fmt), ##__VA_ARGS__);          \
+} while (0)
 
 /**
  * Wrappers
@@ -68,10 +79,5 @@ static inline void uart_write_char(char c) {
 static inline void uart_write_string(const char *str) {
     uart_writen((uint8_t *)str, strlen(str));
 }
-
-#define debug_print(fmt, ...) do {          \
-    printf("%s:%d: ", __FILE__, __LINE__);  \
-    printf((fmt), ##__VA_ARGS__);           \
-} while (0)
 
 #endif
