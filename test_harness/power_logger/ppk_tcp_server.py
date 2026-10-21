@@ -522,7 +522,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     daemon_threads = True
 
 
-def create_ppk(port: Optional[str], voltage_mv: int) -> Any:
+def create_ppk(port: Optional[str], voltage_mv: int, source_voltage_mv: Optional[int] = None) -> Any:
     if PowerSafePPK2 is None or PPK2_API is None:
         raise RuntimeError("ppk2-api is not installed; run: pip install -r requirements.txt")
 
@@ -536,10 +536,13 @@ def create_ppk(port: Optional[str], voltage_mv: int) -> Any:
 
     ppk = PowerSafePPK2(selected_port)
     ppk.get_modifiers()
-    ppk.use_ampere_meter()
-    # In ampere-meter mode this value represents the external input voltage used
-    # by the API's current conversion; the PPK2 does not generate or regulate it.
-    ppk.set_source_voltage(voltage_mv)
+    if source_voltage_mv is None:
+        ppk.use_ampere_meter()
+        # External supply voltage for current measurement calibration.
+        ppk.set_source_voltage(voltage_mv)
+    else:
+        ppk.use_source_meter()
+        ppk.set_source_voltage(source_voltage_mv)
     ppk.toggle_DUT_power("ON")
     return ppk
 
@@ -552,6 +555,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         type=int,
         default=3300,
         help="external DUT supply voltage in mV, used for PPK2 calibration",
+    )
+    parser.add_argument(
+        "--source-voltage-mv",
+        type=int,
+        metavar="MV",
+        help="use PPK2 source mode and supply the DUT at this voltage (mV)",
     )
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--tcp-port", type=int, default=5000)
@@ -593,7 +602,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    ppk = create_ppk(args.port, args.voltage_mv)
+    ppk = create_ppk(args.port, args.voltage_mv, args.source_voltage_mv)
     live_plot = LivePlot(args.sample_avg) if args.live_view else None
     controller = CaptureController(
         ppk,
@@ -618,8 +627,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         signal.signal(signal.SIGINT, request_shutdown)
         signal.signal(signal.SIGTERM, request_shutdown)
         LOG.info(
-            "Ampere Meter mode; external supply %d mV; DUT path ON; listening on %s:%d",
-            args.voltage_mv,
+            "%s mode; %s supply %d mV; DUT path ON; listening on %s:%d",
+            "Source Meter" if args.source_voltage_mv is not None else "Ampere Meter",
+            "PPK2" if args.source_voltage_mv is not None else "external",
+            args.source_voltage_mv if args.source_voltage_mv is not None else args.voltage_mv,
             args.host,
             args.tcp_port,
         )
