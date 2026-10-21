@@ -229,7 +229,7 @@ void superloop_loop(void)
         break;
 
     case TIMER_IDLE_TRANSITION:
-        if (buttons & 0x3)
+        if ((buttons & 0x3) < 3)
         {
             if (delay_elapsed(&delay))
             {
