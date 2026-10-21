@@ -145,6 +145,7 @@ void superloop_loop(void)
     }
 
     elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
+    preset_value = (uint16_t)clamp_preset_value((int16_t)preset_value);
     if (request_state != state)
     {
         prev_state = state;
@@ -188,42 +189,42 @@ void superloop_loop(void)
         case 0x1:
             if (delay_elapsed(&delay))
             {
+        selected_message = UART_SET_FORMAT;
                 counter++;
                 preset_value += counter > 20 ? 5 : 1;
-                selected_message = UART_SET_FORMAT;
             }
             break;
         case 0x2:
             if (delay_elapsed(&delay))
             {
+        selected_message = UART_SET_FORMAT;
                 counter++;
                 preset_value += counter > 20 ? 300 : 60;
-                selected_message = UART_SET_FORMAT;
             }
             break;
         case 0x5:
             if (delay_elapsed(&delay))
             {
+        selected_message = UART_SET_FORMAT;
                 counter++;
                 preset_value -= counter > 20 ? 5 : 1;
-                selected_message = UART_SET_FORMAT;
             }
             break;
         case 0x6:
             if (delay_elapsed(&delay))
             {
+        selected_message = UART_SET_FORMAT;
                 counter++;
                 preset_value -= counter > 20 ? 300 : 60;
-                selected_message = UART_SET_FORMAT;
             }
             break;
         case 0x3:
-            elapsed_value = preset_value;
             delay_start(CLEAR_DELAY_MS);
             request_state = TIMER_IDLE_TRANSITION;
             break;
         case 0x7:
             selected_message = UART_INFO_FORMAT;
+            delay_start(REPEAT_DELAY_MS);
             break;
         default:
             counter = 0;
@@ -240,7 +241,7 @@ void superloop_loop(void)
                 request_state = TIMER_IDLE_TO_RESET;
             }
         }
-        else if (elapsed_value > 0)
+        else if (preset_value > 0)
         {
             request_state = TIMER_IDLE_TO_RUN;
         }
@@ -254,7 +255,9 @@ void superloop_loop(void)
         request_state = TIMER_RUN_ENTRY;
         break;
     case TIMER_IDLE_TO_RESET:
+        preset_value = 0;
         request_state = TIMER_RESET_ENTRY;
+            selected_message = UART_SET_FORMAT;
         break;
 
     case TIMER_RESET_ENTRY:
@@ -356,9 +359,14 @@ void superloop_loop(void)
     case TIMER_CLEAR_ENTRY:
         LED_1 = 0;
         LED_2 = 0;
+        elapsed_value = 0;
         request_state = TIMER_CLEAR;
         break;
     case TIMER_CLEAR:
+        if (buttons){
+            request_state = TIMER_CLEAR_TRANSITION;
+        }
+        selected_message = UART_CLEAR_FORMAT;
         break;
     case TIMER_CLEAR_TRANSITION:
         request_state = TIMER_CLEAR_TO_IDLE;
@@ -400,6 +408,8 @@ void superloop_loop(void)
         break;
     }
 
+    elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
+    preset_value = (uint16_t)clamp_preset_value((int16_t)preset_value);
     switch (selected_message)
     {
     case UART_COUNT_FORMAT:
@@ -417,12 +427,13 @@ void superloop_loop(void)
     case UART_SET_FORMAT:
         print("SET %02dm : %02ds\n", preset_value / 60, preset_value % 60);
         break;
+    case UART_CLEAR_FORMAT:
+        print("CLR 00m : 00s\n");
+        break;
     default:
         break;
     }
 
-            preset_value = clamp_preset_value(preset_value);
-    elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
 }
 
 void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)
