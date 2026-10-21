@@ -59,6 +59,8 @@ void uart_disable(void) {
     // Flush stdout first in case printf() is used.
     fflush(stdout);
 
+    while (!U2STAbits.TRMT) (void)0;
+
     // Disable transmission
     U2STAbits.UTXEN = 0;
 
@@ -79,9 +81,6 @@ void uart_write(uint8_t tx) {
     while (U2STAbits.UTXBF) (void)0;
 
     U2TXREG = tx;
-
-    // Wait until transmission is complete
-    while (!U2STAbits.TRMT) (void)0;
 }
 
 int uart_get(uint8_t *rx) {

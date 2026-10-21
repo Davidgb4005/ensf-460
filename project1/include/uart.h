@@ -64,8 +64,8 @@ int uart_get(uint8_t *rx);
 } while (0)
 
 #define debug_print(fmt, ...) do {          \
-    printf("%s:%d: ", __FILE__, __LINE__); \
-    printf((fmt), ##__VA_ARGS__);          \
+    uprintf("%s:%d: ", __FILE__, __LINE__);  \
+    uprintf((fmt), ##__VA_ARGS__);           \
 } while (0)
 
 /**
