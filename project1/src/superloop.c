@@ -47,6 +47,8 @@ static timer_state_e prev_state = TIMER_IDLE;
 static int16_t prev_preset_value;
 static uint16_t prev_elapsed_value;
 
+static uart_message_e selected_message;
+
 static volatile uint16_t buttons;
 
 static delay_s delay;
@@ -147,7 +149,6 @@ void superloop_loop(void)
         state = request_state;
         start_time = now;
         counter = 0;
-        print("%d\n", state);
     }
     else if (prev_preset_value != preset_value || prev_elapsed_value != elapsed_value)
     {
@@ -183,7 +184,7 @@ void superloop_loop(void)
         switch (buttons)
         {
         case 0x1:
-            if (delay_elapsed(now))
+            if (delay_elapsed(&delay))
             {
                 counter++;
                 preset_value += counter > 20 ? 5 : 1;
@@ -191,7 +192,7 @@ void superloop_loop(void)
             }
             break;
         case 0x2:
-            if (delay_elapsed(now))
+            if (delay_elapsed(&delay))
             {
                 counter++;
                 preset_value += counter > 20 ? 300 : 60;
@@ -199,7 +200,7 @@ void superloop_loop(void)
             }
             break;
         case 0x5:
-            if (delay_elapsed(now))
+            if (delay_elapsed(&delay))
             {
                 counter++;
                 preset_value -= counter > 20 ? 5 : 1;
@@ -207,7 +208,7 @@ void superloop_loop(void)
             }
             break;
         case 0x6:
-            if (delay_elapsed(now))
+            if (delay_elapsed(&delay))
             {
                 counter++;
                 preset_value -= counter > 20 ? 300 : 60;
@@ -398,19 +399,19 @@ void superloop_loop(void)
     switch (selected_message)
     {
     case UART_COUNT_FORMAT:
-        print("CNT %d : %d", elapsed_value / 60, elapsed_value % 60);
+        print("CNT %d : %d\n", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_ALARM_FORMAT:
-        print("FIN 00m : 00s - ALARM");
+        print("FIN 00m : 00s - ALARM\n");
         break;
-    case UART_COUNT_FORMAT:
-        print("CNT %d : %d {PAUSED}", elapsed_value / 60, elapsed_value % 60);
+    case UART_COUNT_PAUSED_FORMAT:
+        print("CNT %d : %d {PAUSED}\n", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_INFO_FORMAT:
-        print("2026 ENSF 460 L01 - Group 06");
+        print("2026 ENSF 460 L01 - Group 06\n");
         break;
     case UART_SET_FORMAT:
-        print("SET %d : %d", preset_value / 60, preset_value % 60);
+        print("SET %d : %d\n", preset_value / 60, preset_value % 60);
         break;
     default:
         break;
