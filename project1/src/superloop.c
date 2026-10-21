@@ -82,6 +82,14 @@ static int16_t clamp_preset_value(int16_t value)
         uart_disable();               \
     } while (0)
 
+#define print_debug(fmt, ...)               \
+    do                                \
+    {                                 \
+        uart_enable();                \
+        debug_print((fmt), ##__VA_ARGS__); \
+        uart_disable();               \
+    } while (0)
+
 void superloop_setup(void)
 {
     set_core_clock(FREQ_8_MHZ);
@@ -90,10 +98,10 @@ void superloop_setup(void)
 
     uart_init(500000);
     uart_disable();
-    debug_print("%s\n", "UART Setup Complete");
+    print_debug("%s\n", "UART Setup Complete");
 
     timer_init(FREQ_8_MHZ);
-    debug_print("%s\n", "Timer Setup Complete");
+    print_debug("%s\n", "Timer Setup Complete");
 
     _TRISB12 = 0;
     _LATB12 = 0;
@@ -409,19 +417,19 @@ void superloop_loop(void)
     switch (selected_message)
     {
     case UART_COUNT_FORMAT:
-        LINE_CLEAR("CNT %m : %s"),
+        print("CNT %d : %d", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_ALARM_FORMAT:
-        LINE_CLEAR("FIN 00m : 00s - ALARM"),
+        print("FIN 00m : 00s - ALARM");
         break;
     case UART_COUNT_FORMAT:
-        LINE_CLEAR("CNT %m : %s {PAUSED}"),
+        print("CNT %d : %d {PAUSED}", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_INFO_FORMAT:
-        LINE_CLEAR("2026 ENSF 460 L01 - Group 06"),
+        print("2026 ENSF 460 L01 - Group 06");
         break;
     case UART_SET_FORMAT:
-        LINE_CLEAR("SET %m : %s"),
+        print("SET %d : %d", preset_value / 60, preset_value % 60);
         break;
     default:
         break;
