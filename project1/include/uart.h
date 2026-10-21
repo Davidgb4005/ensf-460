@@ -1,50 +1,83 @@
-#ifndef UART_H
-#define UART_H
+/**
+ * This module enables the usage of the UART2 interface.
+ *
+ * Along with the following functions, this module also enables the use of stdio
+ * functions, like printf(). Note that uart_init() must be called prior to the
+ * first call of printf().
+ */
+
+#ifndef _UART_H
+#define _UART_H
+
 #include <stdint.h>
-#include "error.h"
-#include "ring_buffer.h"
+#include <stddef.h>
+#include <string.h>
 
-typedef enum
-{
-    TEST_LED_ON = 0,
-    TEST_LED_OFF = 1,
-    TEST_LED_BLINK = 2,
-    TEST_LED_PAUSE = 3,
-} test_led_state_e;
+#define UPRINTF_BUF_SIZE 128
+extern char uprintf_buf[UPRINTF_BUF_SIZE];
 
-typedef struct
-{
-    uint16_t elapsed_seconds;
-    uint16_t preset_seconds;
-    struct
-    {
-        uint16_t led_1_state : 2;
-        uint16_t led_2_state : 2;
-        uint16_t pb_1 : 1;
-        uint16_t pb_2 : 1;
-        uint16_t pb_3 : 1;
-        uint16_t reserved : 9;
-    } gpio;
-    struct
-    {
-        uint16_t state_code : 5;
-        uint16_t prev_state_code : 5;
-        uint16_t reserved : 6;
-    } states;
-} test_rig_data_s;
-typedef enum
-{
-    UART_COUNT_FORMAT,
-    UART_COUNT_PAUSED_FORMAT,
-    UART_ALARM_FORMAT,
-    UART_SET_FORMAT,
-    UART_INFO_FORMAT,
-    UART_CLEAR_FORMAT,
-} uart_message_e;
+/**
+ * Intializes the UART2 interface with the given baud rate.
+ *
+ * The interface is configured for synchronous, blocking transmission, and
+ * interrupt based receiving.
+ */
+void uart_init(uint32_t baud);
 
-#define LINE_CLEAR(x) "\r\033[2K" x
+/**
+ * Used to update the baud rate while the UART2 interface is already running.
+ *
+ * Must be called if the system core clock is ever changed.
+ */
+void uart_update_baud(uint32_t baud);
 
-extern const char *messages[];
+/**
+ * Disables the UART2 interface.
+ */
+void uart_disable(void);
 
-error_e uart_send_state(const test_rig_data_s *data);
+/**
+ * Enables the UART2 interface.
+ */
+void uart_enable(void);
+
+/**
+ * Transmits a single byte over the UART2 interface.
+ */
+void uart_write(uint8_t tx);
+
+/**
+ * Transmits n bytes over the UART2 interface.
+ */
+void uart_writen(const uint8_t *tx, size_t n);
+
+/**
+ * Receives one byte from the internal RX buffer.
+ *
+ * Returns a negative errno on failure, or 0 on success.
+ */
+int uart_get(uint8_t *rx);
+
+#define uprintf(fmt, ...) do {                                      \
+    snprintf(uprintf_buf, UPRINTF_BUF_SIZE, (fmt), ##__VA_ARGS__);  \
+    uart_writen((uint8_t *)uprintf_buf, strlen(uprintf_buf));       \
+} while (0)
+
+#define debug_print(fmt, ...) do {          \
+    uprintf("%s:%d: ", __FILE__, __LINE__);  \
+    uprintf((fmt), ##__VA_ARGS__);           \
+} while (0)
+
+/**
+ * Wrappers
+ */
+
+static inline void uart_write_char(char c) {
+    uart_write((uint8_t)c);
+}
+
+static inline void uart_write_string(const char *str) {
+    uart_writen((uint8_t *)str, strlen(str));
+}
+
 #endif

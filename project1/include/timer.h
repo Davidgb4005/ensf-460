@@ -1,45 +1,56 @@
-#ifndef PIC24_TIMER_H
-#define PIC24_TIMER_H
+/**
+ * Manages a timer for the running program using a common global time counter.
+ *
+ * Both time sources provide 125 ms resolution updates.
+ */
+
+#ifndef _TIMER_H
+#define _TIMER_H
+
+#include "system.h"
 
 #include <stdint.h>
 
-typedef enum
-{
-    TIMER_INIT_ENTRY,
-    TIMER_INIT,
-    TIMER_INIT_TRANSITION,
-    TIMER_INIT_TO_RESET,
-    TIMER_IDLE_ENTRY,
-    TIMER_IDLE,
-    TIMER_IDLE_TRANSITION,
-    TIMER_IDLE_TO_RUN,
-    TIMER_IDLE_TO_RESET,
-    TIMER_RESET_ENTRY,
-    TIMER_RESET,
-    TIMER_RESET_TRANSITION,
-    TIMER_RESET_TO_IDLE,
-    TIMER_RUN_ENTRY,
-    TIMER_RUN,
-    TIMER_RUN_TRANSITION,
-    TIMER_RUN_TO_ALARM,
-    TIMER_RUN_TO_PAUSE,
-    TIMER_RUN_TO_CLEAR,
-    TIMER_PAUSE_ENTRY,
-    TIMER_PAUSE,
-    TIMER_PAUSE_TRANSITION,
-    TIMER_PAUSE_TO_RUN,
-    TIMER_PAUSE_TO_CLEAR,
-    TIMER_CLEAR_ENTRY,
-    TIMER_CLEAR,
-    TIMER_CLEAR_TRANSITION,
-    TIMER_CLEAR_TO_IDLE,
-    TIMER_ALARM_ENTRY,
-    TIMER_ALARM,
-    TIMER_ALARM_TRANSITION,
-    TIMER_ALARM_TO_IDLE,
-} timer_state_e;
+/**
+ * Intialize both timers for and enable the one for the selected clock
+ * frequency.
+ *
+ * Returns -EINVAL for invalid clock frequency, or 0 on success.
+ */
+int timer_init(core_clock_freq_e core_clock);
 
-uint16_t timer2_init(void);
-uint16_t timer_millis(void);
+/**
+ * Switch the timer being used to the one for the selected clock frequency.
+ *
+ * NOTE: calling this will perform a system clock change during the timer
+ * switch to minimize lost time.
+ */
+int timer_switch(core_clock_freq_e core_clock);
+
+/**
+ * Disables both timer sources.
+ */
+void timer_disable(void);
+
+/**
+ * Resets both timer values, as well as the global time counter.
+ */
+void timer_reset(void);
+
+/**
+ * Returns the current global time counter, in milliseconds.
+ */
+uint32_t millis(void);
+
+/**
+ * Returns the time elapsed from a start time (received by millis()), in milliseconds.
+ */
+uint32_t elapsed_ms(uint32_t start);
+
+#define idle_low_power() do {   \
+    timer_switch(FREQ_500_KHZ); \
+    Idle();                     \
+    timer_switch(FREQ_8_MHZ);   \
+} while(0)
 
 #endif
