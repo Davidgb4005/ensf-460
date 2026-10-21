@@ -66,6 +66,12 @@ static int16_t clamp_preset_value(int16_t value)
     delay_enable(&delay, millis());     \
 } while(0)
 
+#define print(fmt, ...) do {        \
+    uart_enable();                  \
+    printf((fmt), ##__VA_ARGS__);   \
+    uart_disable();                 \
+} while(0)
+
 void superloop_setup(void)
 {
     set_core_clock(FREQ_8_MHZ); 
@@ -73,6 +79,7 @@ void superloop_setup(void)
     AD1PCFG = 0xffff;
 
     uart_init(500000);
+    uart_disable();
     debug_print("%s\n", "UART Setup Complete");
 
     timer_init(FREQ_8_MHZ);
@@ -122,6 +129,7 @@ void superloop_loop(void)
         state = request_state;
         start_time = now;
         counter = 0;
+        print("%d\n", state);
     }
     else if (prev_preset_value != preset_value || prev_elapsed_value != elapsed_value)
     {
