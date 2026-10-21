@@ -17,6 +17,7 @@ typedef enum
     UART_SET_FORMAT,
     UART_INFO_FORMAT,
     UART_CLEAR_FORMAT,
+    UART_NONE
 } uart_message_e;
 
 #define MAX_PRESET_VALUE 3599 // 59:99 max time as assigment
@@ -133,6 +134,7 @@ void superloop_setup(void)
 
 void superloop_loop(void)
 {
+    selected_message = UART_NONE;
     uint32_t now = millis();
 
     if (buttons != prev_buttons)
@@ -216,10 +218,12 @@ void superloop_loop(void)
             }
             break;
         case 0x3:
+            elapsed_value = preset_value;
             delay_start(CLEAR_DELAY_MS);
             request_state = TIMER_IDLE_TRANSITION;
             break;
         case 0x7:
+            selected_message = UART_INFO_FORMAT;
             break;
         default:
             counter = 0;
@@ -229,7 +233,7 @@ void superloop_loop(void)
         break;
 
     case TIMER_IDLE_TRANSITION:
-        if ((buttons & 0x3) < 3)
+        if (buttons == 3)
         {
             if (delay_elapsed(&delay))
             {
@@ -367,7 +371,7 @@ void superloop_loop(void)
         LED_1 = 1;
         LED_2 = 0;
         delay_start(FAST_BLINK_MS);
-        // selected_message = messages[UART_ALARM_FORMAT];
+        selected_message = UART_ALARM_FORMAT;
         request_state = TIMER_ALARM;
         break;
     case TIMER_ALARM:
@@ -399,19 +403,19 @@ void superloop_loop(void)
     switch (selected_message)
     {
     case UART_COUNT_FORMAT:
-        print("CNT %d : %d\n", elapsed_value / 60, elapsed_value % 60);
+        print("CNT %02dm : %02ds\n", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_ALARM_FORMAT:
         print("FIN 00m : 00s - ALARM\n");
         break;
     case UART_COUNT_PAUSED_FORMAT:
-        print("CNT %d : %d {PAUSED}\n", elapsed_value / 60, elapsed_value % 60);
+        print("CNT %02dm : %02ds {PAUSED}\n", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_INFO_FORMAT:
         print("2026 ENSF 460 L01 - Group 06\n");
         break;
     case UART_SET_FORMAT:
-        print("SET %d : %d\n", preset_value / 60, preset_value % 60);
+        print("SET %02dm : %02ds\n", preset_value / 60, preset_value % 60);
         break;
     default:
         break;
