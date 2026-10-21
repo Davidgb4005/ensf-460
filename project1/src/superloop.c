@@ -183,57 +183,37 @@ void superloop_loop(void)
         switch (buttons)
         {
         case 0x1:
-            if (delay_elapsed(&delay))
+            if (delay_elapsed(now))
             {
                 counter++;
-                if (counter > 20)
-                {
-                    preset_value += 5;
-                }
-                else
-                {
-                    preset_value += 1;
-                }
+                preset_value += counter > 20 ? 5 : 1;
+                selected_message = UART_SET_FORMAT;
             }
+            break;
         case 0x2:
-            if (delay_elapsed(&delay))
+            if (delay_elapsed(now))
             {
                 counter++;
-                if (counter > 20)
-                {
-                    preset_value += 300;
-                }
-                else
-                {
-                    preset_value += 60;
-                }
+                preset_value += counter > 20 ? 300 : 60;
+                selected_message = UART_SET_FORMAT;
             }
+            break;
         case 0x5:
-            if (delay_elapsed(&delay))
+            if (delay_elapsed(now))
             {
                 counter++;
-                if (counter > 20)
-                {
-                    preset_value -= 5;
-                }
-                else
-                {
-                    preset_value -= 1;
-                }
+                preset_value -= counter > 20 ? 5 : 1;
+                selected_message = UART_SET_FORMAT;
             }
+            break;
         case 0x6:
-            if (delay_elapsed(&delay))
+            if (delay_elapsed(now))
             {
                 counter++;
-                if (counter > 20)
-                {
-                    preset_value -= 300;
-                }
-                else
-                {
-                    preset_value -= 60;
-                }
+                preset_value -= counter > 20 ? 300 : 60;
+                selected_message = UART_SET_FORMAT;
             }
+            break;
         case 0x3:
             delay_start(CLEAR_DELAY_MS);
             request_state = TIMER_IDLE_TRANSITION;
@@ -303,7 +283,7 @@ void superloop_loop(void)
             {
                 elapsed_value--;
             }
-            // selected_message = messages[UART_COUNT_FORMAT];
+            selected_message = UART_COUNT_FORMAT;
         }
         idle_low_power();
         break;
@@ -338,6 +318,7 @@ void superloop_loop(void)
     case TIMER_PAUSE_ENTRY:
         delay_start(CLEAR_DELAY_MS);
         request_state = TIMER_PAUSE;
+        selected_message = UART_COUNT_PAUSED_FORMAT;
 
         break;
     case TIMER_PAUSE:
