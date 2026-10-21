@@ -18,7 +18,7 @@
 #define CLOCK_500KHZ 500000UL
 #define CLOCK_32KHZ 32000UL
 #ifndef DEFAULT_CLOCK_HZ
-#define DEFAULT_CLOCK_HZ CLOCK_500KHZ
+#define DEFAULT_CLOCK_HZ CLOCK_32MHZ
 #endif
 
 extern volatile uint16_t elapsed_value;
