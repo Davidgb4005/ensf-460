@@ -7,6 +7,7 @@
 #include "system.h"
 #include "timer.h"
 #include "uart.h"
+#include "delay.h"
 
 
 
@@ -25,7 +26,6 @@ void uart_write_string(const char);
 void uart_send_message(const char, uint16_t, uint16_t);
 */
 
-static const core_clock_freq_e default_core_clock = DEFAULT_CORE_CLOCK;
 static char err_msg[128];
 
 volatile timer_state_e state = TIMER_INIT;
@@ -43,6 +43,8 @@ static uint16_t prev_elapsed_value;
 
 static volatile uint16_t buttons;
 
+static delay_s delay;
+
 static int16_t clamp_preset_value(int16_t value)
 {
     if (value > MAX_PRESET_VALUE)
@@ -55,75 +57,26 @@ static int16_t clamp_preset_value(int16_t value)
     }
     return value;
 }
-typedef enum
-{
-    TIMER_INIT_ENTRY,
-    TIMER_INIT,
-    TIMER_INIT_TRANSITION,
-    TIMER_INIT_TO_RESET,
-    TIMER_IDLE_ENTRY,
-    TIMER_IDLE,
-    TIMER_IDLE_TRANSITION,
-    TIMER_IDLE_TO_RUN,
-    TIMER_IDLE_TO_RESET,
-    TIMER_RESET_ENTRY,
-    TIMER_RESET,
-    TIMER_RESET_TRANSITION,
-    TIMER_RESET_TO_IDLE,
-    TIMER_RUN_ENTRY,
-    TIMER_RUN,
-    TIMER_RUN_TRANSITION,
-    TIMER_RUN_TO_ALARM,
-    TIMER_RUN_TO_PAUSE,
-    TIMER_RUN_TO_CLEAR,
-    TIMER_PAUSE_ENTRY,
-    TIMER_PAUSE,
-    TIMER_PAUSE_TRANSITION,
-    TIMER_PAUSE_TO_RUN,
-    TIMER_PAUSE_TO_CLEAR,
-    TIMER_CLEAR_ENTRY,
-    TIMER_CLEAR,
-    TIMER_CLEAR_TRANSITION,
-    TIMER_CLEAR_TO_IDLE,
-    TIMER_ALARM_ENTRY,
-    TIMER_ALARM,
-    TIMER_ALARM_TRANSITION,
-    TIMER_ALARM_TO_IDLE,
-} timer_state_e;
 
-static uint16_t delay_elapsed(uint16_t now)
-{
-    if ((uint16_t)(now - start_time) >= delay_ms)
-    {
-        start_time = now;
-        return 1;
-    }
-    return 0;
-}
-
-#if HARDWARE_OUTPUTS_ENABLED
 #define LED_1 _LATB9
 #define LED_2 _LATA6
-#define OUTPUT_CONTROL 1
-#else
-static uint16_t dummy_output;
-#define LED_1 dummy_output
-#define LED_2 dummy_output
-#define OUTPUT_CONTROL 0
-#endif
+
+#define delay_start(elapse_time) do {   \
+    delay_init(&delay, (elapse_time));  \
+    delay_enable(&delay, millis());     \
+} while(0)
 
 void superloop_setup(void)
 {
+    set_core_clock(FREQ_8_MHZ); 
+
     AD1PCFG = 0xffff;
 
-    set_core_clock(default_core_clock);
-    uart_init();
-    U2MODEbits.BRGH = 1;
-    U2BRG = (uint16_t)UART_BRG_VALUE(DEFAULT_CLOCK_HZ, DEFAULT_BAUD);
-    ERROR_PRINT("%s", "UART Setup Complete");
+    uart_init(500000);
+    debug_print("%s\n", "UART Setup Complete");
 
-    timer2_init();
-    ERROR_PRINT("%s", "Timer 2 Setup Complete");
+    timer_init(FREQ_8_MHZ);
+    debug_print("%s\n", "Timer Setup Complete");
 
     _TRISB12 = 0;
     _LATB12 = 0;
@@ -210,6 +163,7 @@ void superloop_loop(void)
         case 0x6:
         case 0x3:
             delay_ms = CLEAR_DELAY_MS;
+            delay_start(CLEAR_DELAY_MS);
             request_state = TIMER_IDLE_TRANSITION;
             break;
         case 0x7:
@@ -223,7 +177,7 @@ void superloop_loop(void)
     case TIMER_IDLE_TRANSITION:
         if (buttons & 0x3)
         {
-            if (delay_elapsed//delay 3000)
+            if (delay_elapsed(&delay))
             {
                 request_state = TIMER_IDLE_TO_RESET;
             }
@@ -259,20 +213,19 @@ void superloop_loop(void)
     case TIMER_RUN_ENTRY:
         LED_1 = 0;
         LED_2 = 0;
-        _LATB12 = OUTPUT_CONTROL;
         delay_ms = COUNT_DELAY_MS;
+        delay_start(COUNT_DELAY_MS);
         request_state = TIMER_RUN;
         break;
     case TIMER_RUN:
         LED_2 = 0;
-        _LATB12 = OUTPUT_CONTROL;
         if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
-            _LATB12 = 0;
             delay_ms = CLEAR_DELAY_MS;
             request_state = TIMER_RUN_TRANSITION;
+            delay_start(CLEAR_DELAY_MS);
         }
-        if (delay_elapsed(now))
+        if (delay_elapsed(&delay))
         {
             LED_1 = !LED_1;
             if (elapsed_value > 0)
@@ -281,7 +234,7 @@ void superloop_loop(void)
             }
             selected_message = messages[UART_COUNT_FORMAT];
         }
-        IDLE_LOW_POWER();
+        idle_low_power();
         break;
 
     case TIMER_RUN_TRANSITION:
@@ -291,7 +244,7 @@ void superloop_loop(void)
         }
         else if ((buttons & 0x4u) != 0u)
         {
-            if (delay_elapsed(now))
+            if (delay_elapsed(&delay))
             {
                 request_state = TIMER_RUN_TO_CLEAR;
             }
@@ -313,7 +266,9 @@ void superloop_loop(void)
 
     case TIMER_PAUSE_ENTRY:
         delay_ms = CLEAR_DELAY_MS;
+        delay_start(CLEAR_DELAY_MS);
         request_state = TIMER_PAUSE;
+
         break;
     case TIMER_PAUSE:
         if ((buttons & 0x4u) != 0u)
@@ -325,7 +280,7 @@ void superloop_loop(void)
     case TIMER_PAUSE_TRANSITION:
         if ((buttons & 0x4u) != 0u)
         {
-            if (delay_elapsed(now))
+            if (delay_elapsed(&delay))
             {
                 request_state = TIMER_PAUSE_TO_CLEAR;
             }
@@ -360,12 +315,13 @@ void superloop_loop(void)
         LED_1 = 1;
         LED_2 = 0;
         delay_ms = FAST_BLINK_MS;
+        delay_start(FAST_BLINK_MS);
         selected_message = messages[UART_ALARM_FORMAT];
         request_state = TIMER_ALARM;
         break;
     case TIMER_ALARM:
         LED_1 = 1;
-        if (delay_elapsed(now))
+        if (delay_elapsed(&delay))
         {
             LED_2 = !LED_2;
         }
@@ -373,7 +329,7 @@ void superloop_loop(void)
         {
             request_state = TIMER_ALARM_TRANSITION;
         }
-        IDLE_LOW_POWER();
+        idle_low_power();
         break;
     case TIMER_ALARM_TRANSITION:
         LED_1 = 0;
@@ -403,11 +359,6 @@ void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)
 {
     volatile uint16_t dummy_a = PORTA;
     volatile uint16_t dummy_b = PORTB;
-
-    if (PORTBbits.RB13)
-    {
-        __asm__ volatile("reset");
-    }
 
     buttons = (uint16_t)_RB7 | ((uint16_t)_RB4 << 1) | ((uint16_t)_RA4 << 2);
 
