@@ -71,7 +71,7 @@ void timer2_init(void)
         clock_skew = 1;
         break;
     case CLOCK_500KHZ:
-        clock_skew = 0.999135049376;
+        clock_skew = 1.0133348606;
         break;
     default:
         clock_skew = 1;
