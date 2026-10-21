@@ -47,4 +47,10 @@ uint32_t millis(void);
  */
 uint32_t elapsed_ms(uint32_t start);
 
+#define idle_low_power() do {   \
+    timer_switch(FREQ_500_KHZ); \
+    Idle();                     \
+    timer_switch(FREQ_8_MHZ);   \
+} while(0)
+
 #endif
