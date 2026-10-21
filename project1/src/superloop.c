@@ -9,16 +9,22 @@
 #include "uart.h"
 #include "delay.h"
 
-
-
-
+typedef enum
+{
+    UART_COUNT_FORMAT,
+    UART_COUNT_PAUSED_FORMAT,
+    UART_ALARM_FORMAT,
+    UART_SET_FORMAT,
+    UART_INFO_FORMAT,
+    UART_CLEAR_FORMAT,
+} uart_message_e;
 
 #define MAX_PRESET_VALUE 3599 // 59:99 max time as assigment
 #define MIN_PRESET_VALUE 0
 #define REPEAT_DELAY_MS 400 // set time will incmreent every 400 ms pb 1/2 or pb 1/3 2/3 are held
 #define CLEAR_DELAY_MS 3000 // how long PB 1 and PB2 need to be held in idle to reset or PB 3 in pause to clear
 #define COUNT_DELAY_MS 1000 // how fast led 1 blinks in run
-#define FAST_BLINK_MS 250 // how fast led 2 blinks in ALARM
+#define FAST_BLINK_MS 250   // how fast led 2 blinks in ALARM
 
 /*Waiting on these function from the UART module
 void uart_init();
@@ -61,20 +67,24 @@ static int16_t clamp_preset_value(int16_t value)
 #define LED_1 _LATB9
 #define LED_2 _LATA6
 
-#define delay_start(elapse_time) do {   \
-    delay_init(&delay, (elapse_time));  \
-    delay_enable(&delay, millis());     \
-} while(0)
+#define delay_start(elapse_time)           \
+    do                                     \
+    {                                      \
+        delay_init(&delay, (elapse_time)); \
+        delay_enable(&delay, millis());    \
+    } while (0)
 
-#define print(fmt, ...) do {        \
-    uart_enable();                  \
-    printf((fmt), ##__VA_ARGS__);   \
-    uart_disable();                 \
-} while(0)
+#define print(fmt, ...)               \
+    do                                \
+    {                                 \
+        uart_enable();                \
+        printf((fmt), ##__VA_ARGS__); \
+        uart_disable();               \
+    } while (0)
 
 void superloop_setup(void)
 {
-    set_core_clock(FREQ_8_MHZ); 
+    set_core_clock(FREQ_8_MHZ);
 
     AD1PCFG = 0xffff;
 
@@ -165,42 +175,54 @@ void superloop_loop(void)
         switch (buttons)
         {
         case 0x1:
-            if (delay_elapsed(&delay)){
+            if (delay_elapsed(&delay))
+            {
                 counter++;
-                if (counter > 20){
+                if (counter > 20)
+                {
                     preset_value += 5;
                 }
-                else{
+                else
+                {
                     preset_value += 1;
                 }
             }
         case 0x2:
-            if (delay_elapsed(&delay)){
+            if (delay_elapsed(&delay))
+            {
                 counter++;
-                if (counter > 20){
+                if (counter > 20)
+                {
                     preset_value += 300;
                 }
-                else{
+                else
+                {
                     preset_value += 60;
                 }
             }
         case 0x5:
-            if (delay_elapsed(&delay)){
+            if (delay_elapsed(&delay))
+            {
                 counter++;
-                if (counter > 20){
+                if (counter > 20)
+                {
                     preset_value -= 5;
                 }
-                else{
+                else
+                {
                     preset_value -= 1;
                 }
             }
         case 0x6:
-            if (delay_elapsed(&delay)){
+            if (delay_elapsed(&delay))
+            {
                 counter++;
-                if (counter > 20){
+                if (counter > 20)
+                {
                     preset_value -= 300;
                 }
-                else{
+                else
+                {
                     preset_value -= 60;
                 }
             }
@@ -273,7 +295,7 @@ void superloop_loop(void)
             {
                 elapsed_value--;
             }
-            //selected_message = messages[UART_COUNT_FORMAT];
+            // selected_message = messages[UART_COUNT_FORMAT];
         }
         idle_low_power();
         break;
@@ -355,7 +377,7 @@ void superloop_loop(void)
         LED_1 = 1;
         LED_2 = 0;
         delay_start(FAST_BLINK_MS);
-        //selected_message = messages[UART_ALARM_FORMAT];
+        // selected_message = messages[UART_ALARM_FORMAT];
         request_state = TIMER_ALARM;
         break;
     case TIMER_ALARM:
@@ -384,13 +406,28 @@ void superloop_loop(void)
         break;
     }
 
-    //if (selected_message != NULL)
-    //{
-    //    //uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
-    //    //Transmission needs to be fixed
-    //}
+    switch (selected_message)
+    {
+    case UART_COUNT_FORMAT:
+        LINE_CLEAR("CNT %m : %s"),
+        break;
+    case UART_ALARM_FORMAT:
+        LINE_CLEAR("FIN 00m : 00s - ALARM"),
+        break;
+    case UART_COUNT_FORMAT:
+        LINE_CLEAR("CNT %m : %s {PAUSED}"),
+        break;
+    case UART_INFO_FORMAT:
+        LINE_CLEAR("2026 ENSF 460 L01 - Group 06"),
+        break;
+    case UART_SET_FORMAT:
+        LINE_CLEAR("SET %m : %s"),
+        break;
+    default:
+        break;
+    }
 
-    preset_value = clamp_preset_value(preset_value);
+            preset_value = clamp_preset_value(preset_value);
     elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
 }
 
