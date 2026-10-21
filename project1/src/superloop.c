@@ -222,7 +222,6 @@ void superloop_loop(void)
     case TIMER_IDLE_ENTRY:
         delay_ms = REPEAT_DELAY_MS;
         request_state = TIMER_IDLE;
-        selected_message = messages[UART_SET_FORMAT];
         break;
 
     case TIMER_IDLE:
@@ -231,43 +230,14 @@ void superloop_loop(void)
         switch (buttons)
         {
         case 0x1:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value += counter > 20 ? 5 : 1;
-                selected_message = messages[UART_SET_FORMAT];
-            }
-            break;
         case 0x2:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value += counter > 20 ? 300 : 60;
-                selected_message = messages[UART_SET_FORMAT];
-            }
-            break;
         case 0x5:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value -= counter > 20 ? 5 : 1;
-                selected_message = messages[UART_SET_FORMAT];
-            }
-            break;
         case 0x6:
-            if (delay_elapsed(now))
-            {
-                counter++;
-                preset_value -= counter > 20 ? 300 : 60;
-                selected_message = messages[UART_SET_FORMAT];
-            }
-            break;
         case 0x3:
             delay_ms = CLEAR_DELAY_MS;
             request_state = TIMER_IDLE_TRANSITION;
             break;
         case 0x7:
-            selected_message = messages[UART_INFO_FORMAT];
             break;
         default:
             send_test_rig_data();
@@ -277,18 +247,18 @@ void superloop_loop(void)
         break;
 
     case TIMER_IDLE_TRANSITION:
-        if (buttons == 0x3)
+        if (//if pb 1 and 2 are pressed wait for elapsed delay then reset)
         {
-            if (delay_elapsed(now))
+            if (//delay 3000)
             {
                 request_state = TIMER_IDLE_TO_RESET;
             }
         }
-        else if (preset_value > 0)
+        else if (// if the preset value is not 0 run)
         {
             request_state = TIMER_IDLE_TO_RUN;
         }
-        else
+        else //  if the preset is 0 go to idle
         {
             request_state = TIMER_IDLE_ENTRY;
         }
@@ -305,9 +275,7 @@ void superloop_loop(void)
         request_state = TIMER_RESET;
         break;
     case TIMER_RESET:
-        preset_value = 0;
         request_state = TIMER_RESET_TRANSITION;
-        selected_message = messages[UART_CLEAR_FORMAT];
         break;
     case TIMER_RESET_TRANSITION:
     case TIMER_RESET_TO_IDLE:
@@ -320,7 +288,6 @@ void superloop_loop(void)
         _LATB12 = OUTPUT_CONTROL;
         delay_ms = COUNT_DELAY_MS;
         request_state = TIMER_RUN;
-        selected_message = messages[UART_COUNT_FORMAT];
         break;
     case TIMER_RUN:
         LED_2 = 0;
@@ -374,7 +341,6 @@ void superloop_loop(void)
     case TIMER_PAUSE_ENTRY:
         delay_ms = CLEAR_DELAY_MS;
         request_state = TIMER_PAUSE;
-        selected_message = messages[UART_COUNT_PAUSED_FORMAT];
         break;
     case TIMER_PAUSE:
         if ((buttons & 0x4u) != 0u)
@@ -410,9 +376,6 @@ void superloop_loop(void)
         request_state = TIMER_CLEAR;
         break;
     case TIMER_CLEAR:
-        elapsed_value = 0;
-        request_state = TIMER_CLEAR_TRANSITION;
-        selected_message = messages[UART_CLEAR_FORMAT];
         break;
     case TIMER_CLEAR_TRANSITION:
         request_state = TIMER_CLEAR_TO_IDLE;

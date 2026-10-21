@@ -16,7 +16,7 @@
 typedef enum core_clock_freq {
     FREQ_8_MHZ   = 0b111,
     FREQ_500_KHZ = 0b110,
-    FREQ_32_KHZ  = 0b100,
+    FREQ_32_KHZ  = 0b101,
 } core_clock_freq_e;
 
 /**
@@ -27,9 +27,18 @@ extern uint16_t core_clock_khz;
 
 /**
  * Changes the core clock input frequency.
- *
- * Returns a negative errno on failure, or 0 on success.
+ * Updates core_clock_khz.
  */
 void set_core_clock(core_clock_freq_e freq);
+
+/**
+ * Sets the OSCCON NOSC bits, and waits for the clock to successfully switch.
+ */
+void set_core_clock_raw(core_clock_freq_e freq);
+
+/**
+ * Updates core_clock_khz based on the given frequency.
+ */
+void update_core_clock_khz(core_clock_freq_e freq);
 
 #endif
