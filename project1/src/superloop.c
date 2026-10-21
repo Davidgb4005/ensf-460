@@ -47,6 +47,7 @@ static uint16_t delay_ms = REPEAT_DELAY_MS;
 static timer_state_e prev_state = TIMER_IDLE;
 static int16_t prev_preset_value;
 static uint16_t prev_elapsed_value;
+static uint32_t pause_elapsed;
 
 static uart_message_e selected_message;
 
@@ -128,6 +129,7 @@ void superloop_setup(void)
     IPC4bits.CNIP = 2;
     IFS1bits.CNIF = 0;
     IEC1bits.CNIE = 1;
+
 
     start_time = millis();
 }
@@ -274,7 +276,10 @@ void superloop_loop(void)
     case TIMER_RUN_ENTRY:
         LED_1 = 0;
         LED_2 = 0;
-        delay_start(COUNT_DELAY_MS);
+        //delay_start(COUNT_DELAY_MS);
+        delay_init(&delay, COUNT_DELAY_MS);
+        delay_enable(&delay, millis() - pause_elapsed);
+        pause_elapsed = 0;
         request_state = TIMER_RUN;
         break;
     case TIMER_RUN:
@@ -282,7 +287,7 @@ void superloop_loop(void)
         if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
             request_state = TIMER_RUN_TRANSITION;
-            delay_start(CLEAR_DELAY_MS);
+            //delay_start(CLEAR_DELAY_MS);
         }
         if (delay_elapsed(&delay))
         {
@@ -324,6 +329,7 @@ void superloop_loop(void)
         break;
 
     case TIMER_PAUSE_ENTRY:
+        pause_elapsed = millis() - delay.start_ms;
         delay_start(CLEAR_DELAY_MS);
         request_state = TIMER_PAUSE;
         selected_message = UART_COUNT_PAUSED_FORMAT;
