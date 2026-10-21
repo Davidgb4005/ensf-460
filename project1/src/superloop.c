@@ -106,7 +106,6 @@ void superloop_setup(void)
 
 void superloop_loop(void)
 {
-    const char *selected_message = NULL;
     uint32_t now = millis();
 
     if (buttons != prev_buttons)
@@ -148,7 +147,7 @@ void superloop_loop(void)
         break;
 
     case TIMER_IDLE_ENTRY:
-        delay_ms = REPEAT_DELAY_MS;
+        delay_start(REPEAT_DELAY_MS);
         request_state = TIMER_IDLE;
         break;
 
@@ -158,17 +157,53 @@ void superloop_loop(void)
         switch (buttons)
         {
         case 0x1:
+            if (delay_elapsed(&delay)){
+                counter++;
+                if (counter > 20){
+                    preset_value += 5;
+                }
+                else{
+                    preset_value += 1;
+                }
+            }
         case 0x2:
+            if (delay_elapsed(&delay)){
+                counter++;
+                if (counter > 20){
+                    preset_value += 300;
+                }
+                else{
+                    preset_value += 60;
+                }
+            }
         case 0x5:
+            if (delay_elapsed(&delay)){
+                counter++;
+                if (counter > 20){
+                    preset_value -= 5;
+                }
+                else{
+                    preset_value -= 1;
+                }
+            }
         case 0x6:
+            if (delay_elapsed(&delay)){
+                counter++;
+                if (counter > 20){
+                    preset_value -= 300;
+                }
+                else{
+                    preset_value -= 60;
+                }
+            }
         case 0x3:
-            delay_ms = CLEAR_DELAY_MS;
             delay_start(CLEAR_DELAY_MS);
             request_state = TIMER_IDLE_TRANSITION;
             break;
         case 0x7:
             break;
         default:
+            counter = 0;
             Sleep();
             break;
         }
@@ -213,7 +248,6 @@ void superloop_loop(void)
     case TIMER_RUN_ENTRY:
         LED_1 = 0;
         LED_2 = 0;
-        delay_ms = COUNT_DELAY_MS;
         delay_start(COUNT_DELAY_MS);
         request_state = TIMER_RUN;
         break;
@@ -221,7 +255,6 @@ void superloop_loop(void)
         LED_2 = 0;
         if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
-            delay_ms = CLEAR_DELAY_MS;
             request_state = TIMER_RUN_TRANSITION;
             delay_start(CLEAR_DELAY_MS);
         }
@@ -232,7 +265,7 @@ void superloop_loop(void)
             {
                 elapsed_value--;
             }
-            selected_message = messages[UART_COUNT_FORMAT];
+            //selected_message = messages[UART_COUNT_FORMAT];
         }
         idle_low_power();
         break;
@@ -265,7 +298,6 @@ void superloop_loop(void)
         break;
 
     case TIMER_PAUSE_ENTRY:
-        delay_ms = CLEAR_DELAY_MS;
         delay_start(CLEAR_DELAY_MS);
         request_state = TIMER_PAUSE;
 
@@ -314,9 +346,8 @@ void superloop_loop(void)
     case TIMER_ALARM_ENTRY:
         LED_1 = 1;
         LED_2 = 0;
-        delay_ms = FAST_BLINK_MS;
         delay_start(FAST_BLINK_MS);
-        selected_message = messages[UART_ALARM_FORMAT];
+        //selected_message = messages[UART_ALARM_FORMAT];
         request_state = TIMER_ALARM;
         break;
     case TIMER_ALARM:
