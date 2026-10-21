@@ -376,11 +376,11 @@ void superloop_loop(void)
         break;
     }
 
-    if (selected_message != NULL)
-    {
-        //uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
-        //Transmission needs to be fixed
-    }
+    //if (selected_message != NULL)
+    //{
+    //    //uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
+    //    //Transmission needs to be fixed
+    //}
 
     preset_value = clamp_preset_value(preset_value);
     elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
