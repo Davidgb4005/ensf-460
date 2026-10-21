@@ -9,49 +9,7 @@
 #include "uart.h"
 
 
-//Default Bauds For UART
-#define BAUD8MHZ 500000UL
-#define BAUD500KHZ 57600UL
-#define BAUD32KHZ 300UL
 
-#define CLOCK_8MHZ 8000000UL
-#define CLOCK_500KHZ 500000UL
-#define CLOCK_32KHZ 32000UL
-
-#ifndef DEFAULT_CLOCK_HZ
-#define DEFAULT_CLOCK_HZ CLOCK_8MHZ
-#endif
-
-#if DEFAULT_CLOCK_HZ >= CLOCK_8MHZ
-#define DEFAULT_CORE_CLOCK FREQ_8_MHZ
-#define DEFAULT_BAUD BAUD8MHZ
-#elif DEFAULT_CLOCK_HZ == CLOCK_500KHZ
-#define DEFAULT_CORE_CLOCK FREQ_500_KHZ
-#define DEFAULT_BAUD BAUD500KHZ
-#elif DEFAULT_CLOCK_HZ == CLOCK_32KHZ
-#define DEFAULT_CORE_CLOCK FREQ_32_KHZ
-#define DEFAULT_BAUD BAUD32KHZ
-#else
-#error "DEFAULT_CLOCK_HZ must be 8000000, 500000, or 32000"
-#endif
-
-#define UART_BRG_VALUE(clock_hz, baud) \
-    (((clock_hz) / 2UL / (4UL * (baud))) - 1UL)
-
-#define IDLE_LOW_POWER()                    \
-    do                                      \
-    {                                       \
-        set_core_clock(FREQ_32_KHZ);        \
-        Idle();                             \
-        set_core_clock(default_core_clock); \
-    } while (0)
-
-#define ERROR_PRINT(fmt, ...)                                                                       \
-    do                                                                                              \
-    {                                                                                               \
-        snprintf(err_msg, sizeof(err_msg), " %s,Line %d: " fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
-        uart_write_string(err_msg);                                                                 \
-    } while (0)
 
 
 #define MAX_PRESET_VALUE 3599 // 59:99 max time as assigment
@@ -60,7 +18,6 @@
 #define CLEAR_DELAY_MS 3000 // how long PB 1 and PB2 need to be held in idle to reset or PB 3 in pause to clear
 #define COUNT_DELAY_MS 1000 // how fast led 1 blinks in run
 #define FAST_BLINK_MS 250 // how fast led 2 blinks in ALARM
-#define HARDWARE_OUTPUTS_ENABLED 0 //Set to 0 To Ttest lower power mode disables LED and sync bits
 
 /*Waiting on these function from the UART module
 void uart_init();
@@ -81,7 +38,6 @@ static uint16_t prev_buttons;
 static uint16_t start_time;
 static uint16_t delay_ms = REPEAT_DELAY_MS;
 static timer_state_e prev_state = TIMER_IDLE;
-static test_rig_data_s test_rig_data;
 static int16_t prev_preset_value;
 static uint16_t prev_elapsed_value;
 
@@ -134,20 +90,6 @@ typedef enum
     TIMER_ALARM_TRANSITION,
     TIMER_ALARM_TO_IDLE,
 } timer_state_e;
-
-static void send_test_rig_data(void)
-{
-    test_rig_data.elapsed_seconds = elapsed_value;
-    test_rig_data.preset_seconds = (uint16_t)preset_value;
-    test_rig_data.states.state_code = (uint16_t)state;
-    test_rig_data.states.prev_state_code = (uint16_t)prev_state;
-    test_rig_data.gpio.led_1_state = _RB9;
-    test_rig_data.gpio.led_2_state = _RA6;
-    test_rig_data.gpio.pb_1 = (buttons & 0x1u) != 0u;
-    test_rig_data.gpio.pb_2 = (buttons & 0x2u) != 0u;
-    test_rig_data.gpio.pb_3 = (buttons & 0x4u) != 0u;
-    uart_send_state(&test_rig_data);
-}
 
 static uint16_t delay_elapsed(uint16_t now)
 {
@@ -206,13 +148,13 @@ void superloop_setup(void)
     IFS1bits.CNIF = 0;
     IEC1bits.CNIE = 1;
 
-    start_time = timer_millis();
+    start_time = millis();
 }
 
 void superloop_loop(void)
 {
     const char *selected_message = NULL;
-    uint16_t now = timer_millis();
+    uint32_t now = millis();
 
     if (buttons != prev_buttons)
     {
@@ -228,13 +170,11 @@ void superloop_loop(void)
         state = request_state;
         start_time = now;
         counter = 0;
-        send_test_rig_data();
     }
     else if (prev_preset_value != preset_value || prev_elapsed_value != elapsed_value)
     {
         prev_preset_value = preset_value;
         prev_elapsed_value = elapsed_value;
-        send_test_rig_data();
     }
 
     switch (state)
@@ -275,21 +215,20 @@ void superloop_loop(void)
         case 0x7:
             break;
         default:
-            send_test_rig_data();
             Sleep();
             break;
         }
         break;
 
     case TIMER_IDLE_TRANSITION:
-        if (//if pb 1 and 2 are pressed wait for elapsed delay then reset)
+        if (buttons & 0x3)
         {
-            if (//delay 3000)
+            if (delay_elapsed//delay 3000)
             {
                 request_state = TIMER_IDLE_TO_RESET;
             }
         }
-        else if (// if the preset value is not 0 run)
+        else if (elapsed_value > 0)
         {
             request_state = TIMER_IDLE_TO_RUN;
         }
@@ -327,7 +266,6 @@ void superloop_loop(void)
     case TIMER_RUN:
         LED_2 = 0;
         _LATB12 = OUTPUT_CONTROL;
-        send_test_rig_data();
         if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
             _LATB12 = 0;
@@ -382,7 +320,6 @@ void superloop_loop(void)
         {
             request_state = TIMER_PAUSE_TRANSITION;
         }
-        send_test_rig_data();
         Sleep();
         break;
     case TIMER_PAUSE_TRANSITION:
@@ -436,7 +373,6 @@ void superloop_loop(void)
         {
             request_state = TIMER_ALARM_TRANSITION;
         }
-        send_test_rig_data();
         IDLE_LOW_POWER();
         break;
     case TIMER_ALARM_TRANSITION:
@@ -455,7 +391,8 @@ void superloop_loop(void)
 
     if (selected_message != NULL)
     {
-        uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
+        //uart_send_message(selected_message, elapsed_value, (uint16_t)preset_value);
+        //Transmission needs to be fixed
     }
 
     preset_value = clamp_preset_value(preset_value);
