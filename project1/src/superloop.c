@@ -22,7 +22,7 @@ typedef enum
 
 #define MAX_PRESET_VALUE 3599 // 59:99 max time as assigment
 #define MIN_PRESET_VALUE 0
-#define REPEAT_DELAY_MS 400 // set time will incmreent every 400 ms pb 1/2 or pb 1/3 2/3 are held
+#define REPEAT_DELAY_MS 200 // set time will incmreent every 400 ms pb 1/2 or pb 1/3 2/3 are held
 #define CLEAR_DELAY_MS 3000 // how long PB 1 and PB2 need to be held in idle to reset or PB 3 in pause to clear
 #define COUNT_DELAY_MS 1000 // how fast led 1 blinks in run
 #define FAST_BLINK_MS 250   // how fast led 2 blinks in ALARM
@@ -46,6 +46,8 @@ static uint16_t start_time;
 static uint16_t delay_ms = REPEAT_DELAY_MS;
 static timer_state_e prev_state = TIMER_IDLE;
 static int16_t prev_preset_value;
+static int16_t preset_mins;
+static int16_t preset_secs;
 static uint16_t prev_elapsed_value;
 static uint32_t pause_elapsed;
 
@@ -86,12 +88,12 @@ static int16_t clamp_preset_value(int16_t value)
         uart_disable();               \
     } while (0)
 
-#define print_debug(fmt, ...)               \
-    do                                \
-    {                                 \
-        uart_enable();                \
+#define print_debug(fmt, ...)              \
+    do                                     \
+    {                                      \
+        uart_enable();                     \
         debug_print((fmt), ##__VA_ARGS__); \
-        uart_disable();               \
+        uart_disable();                    \
     } while (0)
 
 void superloop_setup(void)
@@ -130,35 +132,37 @@ void superloop_setup(void)
     IFS1bits.CNIF = 0;
     IEC1bits.CNIE = 1;
 
-
     start_time = millis();
 }
 
 void superloop_loop(void)
 {
     selected_message = UART_NONE;
-    uint32_t now = millis();
 
     if (buttons != prev_buttons)
     {
         prev_buttons = buttons;
         counter = 0;
-        start_time = now;
     }
 
     elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
-    preset_value = (uint16_t)clamp_preset_value((int16_t)preset_value);
     if (request_state != state)
     {
         prev_state = state;
         state = request_state;
-        start_time = now;
         counter = 0;
     }
-    else if (prev_preset_value != preset_value || prev_elapsed_value != elapsed_value)
+    preset_value = preset_mins * 60 + preset_secs;
+    if (prev_elapsed_value != elapsed_value)
     {
-        prev_preset_value = preset_value;
+        selected_message = UART_COUNT_FORMAT;
         prev_elapsed_value = elapsed_value;
+    }
+    else if (prev_preset_value != preset_value)
+    {
+        delay_start(REPEAT_DELAY_MS);
+        selected_message = UART_SET_FORMAT;
+        prev_preset_value = preset_value;
     }
 
     switch (state)
@@ -191,33 +195,33 @@ void superloop_loop(void)
         case 0x1:
             if (delay_elapsed(&delay))
             {
-        selected_message = UART_SET_FORMAT;
                 counter++;
-                preset_value += counter > 20 ? 5 : 1;
+                preset_secs += counter > 20 ? 5 : 1;
+                preset_secs = preset_secs > 59 ? 0 : preset_secs;
             }
             break;
         case 0x2:
             if (delay_elapsed(&delay))
             {
-        selected_message = UART_SET_FORMAT;
                 counter++;
-                preset_value += counter > 20 ? 300 : 60;
+                preset_mins += counter > 20 ? 5 : 1;
+                preset_mins = preset_mins > 59 ? 59 : preset_mins;
             }
             break;
         case 0x5:
             if (delay_elapsed(&delay))
             {
-        selected_message = UART_SET_FORMAT;
                 counter++;
-                preset_value -= counter > 20 ? 5 : 1;
+                preset_secs -= counter > 20 ? 5 : 1;
+                preset_secs = preset_secs < 0 ? 0 : preset_secs;
             }
             break;
         case 0x6:
             if (delay_elapsed(&delay))
             {
-        selected_message = UART_SET_FORMAT;
                 counter++;
-                preset_value -= counter > 20 ? 300 : 60;
+                preset_mins -= counter > 20 ? 5 : 1;
+                preset_mins = preset_mins < 0 ? 0 : preset_mins;
             }
             break;
         case 0x3:
@@ -253,13 +257,13 @@ void superloop_loop(void)
         }
         break;
     case TIMER_IDLE_TO_RUN:
-        elapsed_value = (uint16_t)preset_value;
+        elapsed_value = (uint16_t)(preset_mins * 60 + preset_secs);
         request_state = TIMER_RUN_ENTRY;
         break;
     case TIMER_IDLE_TO_RESET:
         preset_value = 0;
         request_state = TIMER_RESET_ENTRY;
-            selected_message = UART_SET_FORMAT;
+        selected_message = UART_SET_FORMAT;
         break;
 
     case TIMER_RESET_ENTRY:
@@ -276,7 +280,6 @@ void superloop_loop(void)
     case TIMER_RUN_ENTRY:
         LED_1 = 0;
         LED_2 = 0;
-        //delay_start(COUNT_DELAY_MS);
         delay_init(&delay, COUNT_DELAY_MS);
         delay_enable(&delay, millis() - pause_elapsed);
         pause_elapsed = 0;
@@ -287,7 +290,8 @@ void superloop_loop(void)
         if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
             request_state = TIMER_RUN_TRANSITION;
-            //delay_start(CLEAR_DELAY_MS);
+            pause_elapsed = millis() - delay.start_ms;
+            delay_start(CLEAR_DELAY_MS);
         }
         if (delay_elapsed(&delay))
         {
@@ -296,7 +300,6 @@ void superloop_loop(void)
             {
                 elapsed_value--;
             }
-            selected_message = UART_COUNT_FORMAT;
         }
         idle_low_power();
         break;
@@ -329,21 +332,23 @@ void superloop_loop(void)
         break;
 
     case TIMER_PAUSE_ENTRY:
-        pause_elapsed = millis() - delay.start_ms;
-        delay_start(CLEAR_DELAY_MS);
         request_state = TIMER_PAUSE;
         selected_message = UART_COUNT_PAUSED_FORMAT;
 
         break;
     case TIMER_PAUSE:
-        if ((buttons & 0x4u) != 0u)
+        if ((buttons & 0x4u) > 0)
         {
             request_state = TIMER_PAUSE_TRANSITION;
+            delay_start(CLEAR_DELAY_MS);
         }
-        Sleep();
+        else
+        {
+            Sleep();
+        }
         break;
     case TIMER_PAUSE_TRANSITION:
-        if ((buttons & 0x4u) != 0u)
+        if ((buttons & 0x4) != 0)
         {
             if (delay_elapsed(&delay))
             {
@@ -352,6 +357,7 @@ void superloop_loop(void)
         }
         else
         {
+            selected_message = UART_COUNT_FORMAT;
             request_state = TIMER_PAUSE_TO_RUN;
         }
         break;
@@ -369,7 +375,8 @@ void superloop_loop(void)
         request_state = TIMER_CLEAR;
         break;
     case TIMER_CLEAR:
-        if (buttons){
+        if (buttons)
+        {
             request_state = TIMER_CLEAR_TRANSITION;
         }
         selected_message = UART_CLEAR_FORMAT;
@@ -397,6 +404,7 @@ void superloop_loop(void)
         if ((buttons & 0x3u) != 0u)
         {
             request_state = TIMER_ALARM_TRANSITION;
+            selected_message = UART_SET_FORMAT;
         }
         idle_low_power();
         break;
@@ -415,31 +423,29 @@ void superloop_loop(void)
     }
 
     elapsed_value = (uint16_t)clamp_preset_value((int16_t)elapsed_value);
-    preset_value = (uint16_t)clamp_preset_value((int16_t)preset_value);
     switch (selected_message)
     {
     case UART_COUNT_FORMAT:
-        print("CNT %02dm : %02ds\n", elapsed_value / 60, elapsed_value % 60);
+        print("\r\033[K CNT %02dm : %02ds", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_ALARM_FORMAT:
-        print("FIN 00m : 00s - ALARM\n");
+        print("\r\033[K FIN 00m : 00s - ALARM");
         break;
     case UART_COUNT_PAUSED_FORMAT:
-        print("CNT %02dm : %02ds {PAUSED}\n", elapsed_value / 60, elapsed_value % 60);
+        print("\r\033[K CNT %02dm : %02ds {PAUSED}", elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_INFO_FORMAT:
-        print("2026 ENSF 460 L01 - Group 06\n");
+        print("\r\033[K 2026 ENSF 460 L01 - Group 06");
         break;
     case UART_SET_FORMAT:
-        print("SET %02dm : %02ds\n", preset_value / 60, preset_value % 60);
+        print("\r\033[K SET %02dm : %02ds", preset_mins, preset_secs);
         break;
     case UART_CLEAR_FORMAT:
-        print("CLR 00m : 00s\n");
+        print("\r\033[K CLR 00m : 00s");
         break;
     default:
         break;
     }
-
 }
 
 void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void)
