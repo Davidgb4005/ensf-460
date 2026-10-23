@@ -9,7 +9,7 @@
 #include "uart.h"
 #include "delay.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 typedef enum
 {
@@ -38,29 +38,17 @@ typedef enum
 
 #define INCREASE_INCREMENT_THRESHOLD 10
 
-/*Waiting on these function from the UART module
-void uart_init();
-void uart_write_string(const char);
-void uart_send_message(const char, uint16_t, uint16_t);
-*/
-
-static char err_msg[128];
-
-volatile timer_state_e state = TIMER_INIT;
-volatile uint16_t elapsed_value;
+static timer_state_e state = TIMER_INIT;
+static uint16_t elapsed_value;
 
 static timer_state_e request_state = TIMER_INIT;
-static int16_t preset_value;
 static uint16_t counter;
 static uint16_t prev_buttons;
-static uint16_t start_time;
-static uint16_t delay_ms = REPEAT_DELAY_MS;
 static timer_state_e prev_state = TIMER_IDLE;
-static int16_t prev_preset_value;
 static int16_t preset_mins;
 static int16_t preset_secs;
 static uint16_t prev_elapsed_value;
-static uint32_t pause_elapsed;
+static uint32_t elapsed_before_pause;
 
 static uart_message_e selected_message;
 
@@ -147,8 +135,6 @@ void superloop_setup(void)
     IFS1bits.CNIF = 0;
     IEC1bits.CNIE = 1;
 
-    start_time = millis();
-
     print("SET %02dm : %02ds", preset_mins, preset_secs);
 }
 
@@ -169,18 +155,11 @@ void superloop_loop(void)
         state = request_state;
         counter = 0;
     }
-    preset_value = preset_mins * 60 + preset_secs;
     if (prev_elapsed_value != elapsed_value)
     {
         selected_message = UART_COUNT_FORMAT;
         prev_elapsed_value = elapsed_value;
     }
-    //else if (prev_preset_value != preset_value)
-    //{
-    //    //delay_start(REPEAT_DELAY_MS);
-    //    selected_message = UART_SET_FORMAT;
-    //    prev_preset_value = preset_value;
-    //}
 
     switch (state)
     {
@@ -282,7 +261,6 @@ void superloop_loop(void)
         request_state = TIMER_RUN_ENTRY;
         break;
     case TIMER_IDLE_TO_RESET:
-        preset_value = 0;
         preset_mins = 0;
         preset_secs = 0;
         request_state = TIMER_RESET_ENTRY;
@@ -304,8 +282,8 @@ void superloop_loop(void)
         LED_1 = 0;
         LED_2 = 0;
         delay_init(&delay, COUNT_DELAY_MS);
-        delay_enable(&delay, millis() - pause_elapsed);
-        pause_elapsed = 0;
+        delay_enable(&delay, millis() - elapsed_before_pause);
+        elapsed_before_pause = 0;
         request_state = TIMER_RUN;
         break;
     case TIMER_RUN:
@@ -313,7 +291,7 @@ void superloop_loop(void)
         if (elapsed_value == 0 || (buttons & 0x4u) != 0u)
         {
             request_state = TIMER_RUN_TRANSITION;
-            pause_elapsed = millis() - delay.start_ms;
+            elapsed_before_pause = millis() - delay.start_ms;
             delay_start(CLEAR_DELAY_MS);
         }
         if (delay_elapsed(&delay))
@@ -397,7 +375,6 @@ void superloop_loop(void)
         elapsed_value = 0;
         preset_secs = 0;
         preset_mins = 0;
-        preset_value = 0;
         request_state = TIMER_CLEAR;
         break;
     case TIMER_CLEAR:
