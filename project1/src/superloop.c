@@ -22,10 +22,13 @@ typedef enum
 
 #define MAX_PRESET_VALUE 3599 // 59:99 max time as assigment
 #define MIN_PRESET_VALUE 0
-#define REPEAT_DELAY_MS 200 // set time will incmreent every 400 ms pb 1/2 or pb 1/3 2/3 are held
+#define REPEAT_DELAY_MS 500 // set time will incmreent every 400 ms pb 1/2 or pb 1/3 2/3 are held
 #define CLEAR_DELAY_MS 3000 // how long PB 1 and PB2 need to be held in idle to reset or PB 3 in pause to clear
 #define COUNT_DELAY_MS 1000 // how fast led 1 blinks in run
 #define FAST_BLINK_MS 250   // how fast led 2 blinks in ALARM
+#define LINE_CLEAR "\r\033[K"
+
+#define INCREASE_INCREMENT_THRESHOLD 10
 
 /*Waiting on these function from the UART module
 void uart_init();
@@ -133,6 +136,8 @@ void superloop_setup(void)
     IEC1bits.CNIE = 1;
 
     start_time = millis();
+
+    print("SET %02dm : %02ds", preset_mins, preset_secs);
 }
 
 void superloop_loop(void)
@@ -196,7 +201,7 @@ void superloop_loop(void)
             if (delay_elapsed(&delay))
             {
                 counter++;
-                preset_secs += counter > 20 ? 5 : 1;
+                preset_secs += counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_secs = preset_secs > 59 ? 0 : preset_secs;
             }
             break;
@@ -204,7 +209,7 @@ void superloop_loop(void)
             if (delay_elapsed(&delay))
             {
                 counter++;
-                preset_mins += counter > 20 ? 5 : 1;
+                preset_mins += counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_mins = preset_mins > 59 ? 59 : preset_mins;
             }
             break;
@@ -212,7 +217,7 @@ void superloop_loop(void)
             if (delay_elapsed(&delay))
             {
                 counter++;
-                preset_secs -= counter > 20 ? 5 : 1;
+                preset_secs -= counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_secs = preset_secs < 0 ? 0 : preset_secs;
             }
             break;
@@ -220,7 +225,7 @@ void superloop_loop(void)
             if (delay_elapsed(&delay))
             {
                 counter++;
-                preset_mins -= counter > 20 ? 5 : 1;
+                preset_mins -= counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_mins = preset_mins < 0 ? 0 : preset_mins;
             }
             break;
@@ -426,22 +431,23 @@ void superloop_loop(void)
     switch (selected_message)
     {
     case UART_COUNT_FORMAT:
-        print("\r\033[K CNT %02dm : %02ds", elapsed_value / 60, elapsed_value % 60);
+        print("%sCNT %02dm : %02ds", LINE_CLEAR, elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_ALARM_FORMAT:
-        print("\r\033[K FIN 00m : 00s - ALARM");
+        print("%sFIN 00m : 00s - ALARM", LINE_CLEAR);
         break;
     case UART_COUNT_PAUSED_FORMAT:
-        print("\r\033[K CNT %02dm : %02ds {PAUSED}", elapsed_value / 60, elapsed_value % 60);
+        print("%sCNT %02dm : %02ds {PAUSED}", LINE_CLEAR, elapsed_value / 60, elapsed_value % 60);
         break;
     case UART_INFO_FORMAT:
-        print("\r\033[K 2026 ENSF 460 L01 - Group 06");
+        print("%s2026 ENSF 460 L01 - Group 06", LINE_CLEAR);
+        Sleep();
         break;
     case UART_SET_FORMAT:
-        print("\r\033[K SET %02dm : %02ds", preset_mins, preset_secs);
+        print("%sSET %02dm : %02ds", LINE_CLEAR, preset_mins, preset_secs);
         break;
     case UART_CLEAR_FORMAT:
-        print("\r\033[K CLR 00m : 00s");
+        print("%sCLR 00m : 00s", LINE_CLEAR);
         break;
     default:
         break;
