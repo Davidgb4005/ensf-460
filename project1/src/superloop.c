@@ -55,11 +55,11 @@
 
 #define MAX_PRESET_VALUE 3599
 #define MIN_PRESET_VALUE 0
-#define REPEAT_DELAY_MS 400
+#define REPEAT_DELAY_MS 200
 #define CLEAR_DELAY_MS 3000
 #define COUNT_DELAY_MS 1000
 #define FAST_BLINK_MS 250
-#define HARDWARE_OUTPUTS_ENABLED 0 
+#define HARDWARE_OUTPUTS_ENABLED 1
 static const core_clock_freq_e default_core_clock = DEFAULT_CORE_CLOCK;
 static char err_msg[128];
 
@@ -245,27 +245,39 @@ void superloop_loop(void)
         switch (buttons)
         {
         case 0x1:
-            counter++;
-            preset_value += counter > 20 ? 5 : 1;
-            selected_message = messages[UART_SET_FORMAT];
+            if (delay_elapsed(now))
+            {
+                counter++;
+                preset_value += counter > 20 ? 5 : 1;
+                selected_message = messages[UART_SET_FORMAT];
+            }
             IDLE_LOW_POWER();
             break;
         case 0x2:
-            counter++;
-            preset_value += counter > 20 ? 300 : 60;
-            selected_message = messages[UART_SET_FORMAT];
+            if (delay_elapsed(now))
+            {
+                counter++;
+                preset_value += counter > 20 ? 300 : 60;
+                selected_message = messages[UART_SET_FORMAT];
+            }
             IDLE_LOW_POWER();
             break;
         case 0x5:
-            counter++;
-            preset_value -= counter > 20 ? 5 : 1;
-            selected_message = messages[UART_SET_FORMAT];
+            if (delay_elapsed(now))
+            {
+                counter++;
+                preset_value -= counter > 20 ? 5 : 1;
+                selected_message = messages[UART_SET_FORMAT];
+            }
             IDLE_LOW_POWER();
             break;
         case 0x6:
-            counter++;
-            preset_value -= counter > 20 ? 300 : 60;
-            selected_message = messages[UART_SET_FORMAT];
+            if (delay_elapsed(now))
+            {
+                counter++;
+                preset_value -= counter > 20 ? 300 : 60;
+                selected_message = messages[UART_SET_FORMAT];
+            }
             IDLE_LOW_POWER();
             break;
         case 0x3:
