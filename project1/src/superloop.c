@@ -9,6 +9,8 @@
 #include "uart.h"
 #include "delay.h"
 
+#define DEBUG 1
+
 typedef enum
 {
     UART_COUNT_FORMAT,
@@ -26,7 +28,13 @@ typedef enum
 #define CLEAR_DELAY_MS 3000 // how long PB 1 and PB2 need to be held in idle to reset or PB 3 in pause to clear
 #define COUNT_DELAY_MS 1000 // how fast led 1 blinks in run
 #define FAST_BLINK_MS 250   // how fast led 2 blinks in ALARM
+
+#if DEBUG
+#define LINE_CLEAR "\n"
+#else
+
 #define LINE_CLEAR "\r\033[K"
+#endif
 
 #define INCREASE_INCREMENT_THRESHOLD 10
 
@@ -107,10 +115,14 @@ void superloop_setup(void)
 
     uart_init(500000);
     uart_disable();
+#if DEBUG
     print_debug("%s\n", "UART Setup Complete");
+#endif
 
     timer_init(FREQ_8_MHZ);
+#if DEBUG
     print_debug("%s\n", "Timer Setup Complete");
+#endif
 
     _TRISB12 = 0;
     _LATB12 = 0;
@@ -163,12 +175,12 @@ void superloop_loop(void)
         selected_message = UART_COUNT_FORMAT;
         prev_elapsed_value = elapsed_value;
     }
-    else if (prev_preset_value != preset_value)
-    {
-        delay_start(REPEAT_DELAY_MS);
-        selected_message = UART_SET_FORMAT;
-        prev_preset_value = preset_value;
-    }
+    //else if (prev_preset_value != preset_value)
+    //{
+    //    //delay_start(REPEAT_DELAY_MS);
+    //    selected_message = UART_SET_FORMAT;
+    //    prev_preset_value = preset_value;
+    //}
 
     switch (state)
     {
@@ -203,6 +215,7 @@ void superloop_loop(void)
                 counter++;
                 preset_secs += counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_secs = preset_secs > 59 ? 0 : preset_secs;
+                selected_message = UART_SET_FORMAT;
             }
             break;
         case 0x2:
@@ -211,6 +224,7 @@ void superloop_loop(void)
                 counter++;
                 preset_mins += counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_mins = preset_mins > 59 ? 59 : preset_mins;
+                selected_message = UART_SET_FORMAT;
             }
             break;
         case 0x5:
@@ -219,6 +233,7 @@ void superloop_loop(void)
                 counter++;
                 preset_secs -= counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_secs = preset_secs < 0 ? 0 : preset_secs;
+                selected_message = UART_SET_FORMAT;
             }
             break;
         case 0x6:
@@ -227,6 +242,7 @@ void superloop_loop(void)
                 counter++;
                 preset_mins -= counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1;
                 preset_mins = preset_mins < 0 ? 0 : preset_mins;
+                selected_message = UART_SET_FORMAT; 
             }
             break;
         case 0x3:
@@ -252,7 +268,7 @@ void superloop_loop(void)
                 request_state = TIMER_IDLE_TO_RESET;
             }
         }
-        else if (preset_value > 0)
+        else if (preset_mins > 0 || preset_secs > 0)
         {
             request_state = TIMER_IDLE_TO_RUN;
         }
@@ -267,6 +283,8 @@ void superloop_loop(void)
         break;
     case TIMER_IDLE_TO_RESET:
         preset_value = 0;
+        preset_mins = 0;
+        preset_secs = 0;
         request_state = TIMER_RESET_ENTRY;
         selected_message = UART_SET_FORMAT;
         break;
@@ -377,6 +395,9 @@ void superloop_loop(void)
         LED_1 = 0;
         LED_2 = 0;
         elapsed_value = 0;
+        preset_secs = 0;
+        preset_mins = 0;
+        preset_value = 0;
         request_state = TIMER_CLEAR;
         break;
     case TIMER_CLEAR:
