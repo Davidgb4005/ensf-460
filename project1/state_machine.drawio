@@ -1,0 +1,177 @@
+<mxfile host="app.diagrams.net" agent="Codex">
+  <diagram id="countdown-timer-fsm" name="Countdown Timer FSM">
+    <mxGraphModel dx="5735" dy="3415" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-35" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="1860" width="2450" x="-550" y="-290" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=24;fontStyle=1;" value="ENSF 460 Project 1 — Countdown Timer State Machine" vertex="1">
+          <mxGeometry height="40" width="950" x="-385" y="-255" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;fontColor=#ffffff;strokeColor=#000000;" value="Power on" vertex="1">
+          <mxGeometry height="70" width="70" x="660" y="-270" as="geometry" />
+        </mxCell>
+        <mxCell id="init_entry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="TIMER_INIT_ENTRY&#xa;LED_1 = 0&#xa;LED_2 = 0" vertex="1">
+          <mxGeometry height="90" width="210" x="590" y="-150" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-5" edge="1" parent="1" source="idle_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="idle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="idle_entry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="TIMER_IDLE_ENTRY&#xa;delay_start(REPEAT_DELAY_MS)" vertex="1">
+          <mxGeometry height="90" width="260" x="565" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="idle" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;align=left;spacingLeft=8;" value="TIMER_IDLE&#xa;LED_1 = 0; LED_2 = 0&#xa;&#xa;PB1: seconds +1/+5, modulo 60&#xa;PB2: minutes +1/+5, clamp 59&#xa;PB1+PB3: seconds -1/-5, clamp 0&#xa;PB2+PB3: minutes -1/-5, clamp 0&#xa;All PBs: select UART_INFO_FORMAT&#xa;Otherwise: Sleep()" vertex="1">
+          <mxGeometry height="230" width="310" x="540" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-3" edge="1" parent="1" source="idle_transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="idle_to_reset">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-8" edge="1" parent="1" source="idle_transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="idle_to_run">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="idle_transition" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="TIMER_IDLE_TRANSITION&#xa;Distinguish start from clear" vertex="1">
+          <mxGeometry height="160" width="240" x="1080" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-9" edge="1" parent="1" source="idle_to_run" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="run_entry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="idle_to_run" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="TIMER_IDLE_TO_RUN&#xa;elapsed_value =&#xa;preset_mins × 60 + preset_secs" vertex="1">
+          <mxGeometry height="110" width="260" x="1430" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-4" edge="1" parent="1" source="idle_to_reset" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="idle_entry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="idle_to_reset" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="TIMER_IDLE_TO_RESET&#xa;preset_mins = 0&#xa;preset_secs = 0&#xa;UART_SET_FORMAT" vertex="1">
+          <mxGeometry height="120" width="240" x="1080" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-11" edge="1" parent="1" source="run_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="run">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="run_entry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="TIMER_RUN_ENTRY&#xa;LEDs off&#xa;delay_init(COUNT_DELAY_MS)&#xa;Restore elapsed_before_pause" vertex="1">
+          <mxGeometry height="120" width="260" x="1430" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-12" edge="1" parent="1" source="run" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="run_transition">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="run" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;align=left;spacingLeft=8;" value="TIMER_RUN&#xa;LED_2 = 0&#xa;&#xa;Each delay_elapsed():&#xa;LED_1 = !LED_1&#xa;elapsed_value--&#xa;&#xa;idle_low_power()" vertex="1">
+          <mxGeometry height="190" width="280" x="1420" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-13" edge="1" parent="1" source="run_transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="pause_entry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-24" edge="1" parent="1" source="run_transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="alarm_entry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="run_transition" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="TIMER_RUN_TRANSITION&lt;br&gt;Alarm or pause?" vertex="1">
+          <mxGeometry height="170" width="250" x="1010" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-14" edge="1" parent="1" source="pause_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="pause">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pause_entry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="TIMER_PAUSE_ENTRY&#xa;UART_COUNT_PAUSED_FORMAT" vertex="1">
+          <mxGeometry height="90" width="270" x="670" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-19" edge="1" parent="1" source="pause" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="pause_transition">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pause" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="TIMER_PAUSE&#xa;No PB3: Sleep()&#xa;PB3: delay_start(CLEAR_DELAY_MS)" vertex="1">
+          <mxGeometry height="110" width="270" x="330" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-20" edge="1" parent="1" source="pause_transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="run_entry">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="155" y="600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-22" edge="1" parent="1" source="pause_transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="clear_entry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pause_transition" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="TIMER_PAUSE_TRANSITION&#xa;Resume or clear?" vertex="1">
+          <mxGeometry height="150" width="230" x="40" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-23" edge="1" parent="1" source="clear_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="idle_entry">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-225" y="135" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="clear_entry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="TIMER_CLEAR_ENTRY&#xa;LEDs off&#xa;elapsed_value = 0&#xa;preset_mins = preset_secs = 0" vertex="1">
+          <mxGeometry height="130" width="270" x="-360" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-27" edge="1" parent="1" source="alarm_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="alarm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="alarm_entry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" value="TIMER_ALARM_ENTRY&#xa;LED_1 = 1; LED_2 = 0&#xa;delay_start(FAST_BLINK_MS)&#xa;UART_ALARM_FORMAT" vertex="1">
+          <mxGeometry height="125" width="280" x="995" y="1030" as="geometry" />
+        </mxCell>
+        <mxCell id="alarm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" value="TIMER_ALARM&#xa;LED_1 = 1&#xa;delay_elapsed(): toggle LED_2&#xa;idle_low_power()" vertex="1">
+          <mxGeometry height="120" width="280" x="995" y="1235" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-25" edge="1" parent="1" source="alarm_transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="idle_entry">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-440" y="1505" />
+              <mxPoint x="-440" y="135" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="alarm_transition" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" value="TIMER_ALARM_TRANSITION&#xa;LED_1 = 0; LED_2 = 0" vertex="1">
+          <mxGeometry height="90" width="300" x="985" y="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-18" edge="1" parent="1" source="cn_note" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="idle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cn_note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=8;size=0;" value="CN interrupt input&#xa;_CNInterrupt()&#xa;Read PORTA and PORTB&#xa;buttons = _RB7 | (_RB4 &lt;&lt; 1) | (_RA4 &lt;&lt; 2)&#xa;IFS1bits.CNIF = 0" vertex="1">
+          <mxGeometry height="160" width="200" x="290" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=2;" value="Green: setting | Blue: running | Purple: paused | Red: clear | Orange: alarm | Diamond: decision" vertex="1">
+          <mxGeometry height="50" width="850" x="-340" y="-215" as="geometry" />
+        </mxCell>
+        <mxCell id="e_start_init" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" target="init_entry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_init_idle_entry" edge="1" parent="1" source="init_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" target="idle_entry" value="automatic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_idle_transition" edge="1" parent="1" source="idle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" target="idle_transition" value="PB1 + PB2 pressed">
+          <mxGeometry relative="1" x="-0.0435" y="30" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_alarm_transition" edge="1" parent="1" source="alarm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" target="alarm_transition" value="PB1 or PB2">
+          <mxGeometry relative="1" x="0.0476" y="45" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-26" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Go back to idle" vertex="1">
+          <mxGeometry height="30" width="105" x="870" y="1470" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-28" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Elapsed value == 0" vertex="1">
+          <mxGeometry height="30" width="105" x="1140" y="965" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-29" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="PB3 == 1" vertex="1">
+          <mxGeometry height="30" width="60" x="950" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-30" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hold &amp;gt; 3000" vertex="1">
+          <mxGeometry height="30" width="105" x="-70" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-31" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hold &amp;lt; 3000" vertex="1">
+          <mxGeometry height="30" width="105" x="160" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-32" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hold &amp;gt; 3000" vertex="1">
+          <mxGeometry height="30" width="120" x="1200" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-33" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hold &amp;lt; 3000" vertex="1">
+          <mxGeometry height="30" width="120" x="1310" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="8xCK2h5xGaXlY_aLUyxK-34" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Go back to idle" vertex="1">
+          <mxGeometry height="30" width="105" x="-220" y="740" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
