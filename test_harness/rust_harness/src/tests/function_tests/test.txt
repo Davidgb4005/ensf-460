@@ -1,0 +1,27 @@
+test_script_1
+wait 1000
+reset
+wait 1000
+press 2200 1
+wait 100
+press 400 2 1
+wait 10000
+press 100 1
+wait 100
+press 1000 2
+wait 100
+press 400 2 1
+wait 4700
+press 250 3
+wait 4700
+press 250 3
+wait 4600
+press 5000 3
+wait 100
+press 3500 2 1
+wait 200
+press 100 1
+wait 200 
+press 1000 1
+wait 100
+press 200 1 2

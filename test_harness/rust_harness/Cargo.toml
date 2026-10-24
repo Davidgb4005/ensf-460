@@ -1,0 +1,10 @@
+[package]
+name = "rust_harness"
+version = "0.1.0"
+edition = "2024"
+default-run = "rust_harness"
+
+[dependencies]
+crossterm = "0.29"
+serialport = "4.10.1"
+rppal = "0.22"
