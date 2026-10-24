@@ -24,17 +24,17 @@ void set_core_clock_raw(core_clock_freq_e freq) {
     while (OSCCONbits.OSWEN == 1) (void)0;
 }
 
-void update_core_clock_khz(core_clock_freq_e freq) {
+void update_core_clock_khz(core_clock_freq_e freq){ //Update Core to new freq
     switch (freq) {
-        case FREQ_8_MHZ:
+        case FREQ_8_MHZ: // if 8Mhz is selected set core to 8 Mhz
             core_clock_khz = 8000;
             break;
 
-        case FREQ_500_KHZ:
+        case FREQ_500_KHZ:// If 500 khjz is seleceted set core to 500 khz
             core_clock_khz = 500;
             break;
 
-        case FREQ_32_KHZ:
+        case FREQ_32_KHZ: // if 32 khz seleected set core to 32 khz
             core_clock_khz = 32;
             break;
     }
