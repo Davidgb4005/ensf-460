@@ -7,7 +7,6 @@
 *.ko
 *.obj
 *.elf
-*.zip
 # Linker output
 *.ilk
 *.map
