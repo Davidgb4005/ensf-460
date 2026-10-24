@@ -218,7 +218,7 @@ void superloop_loop(void) // Executes one iteration of the timer state machine.
 
                 preset_secs -= counter > INCREASE_INCREMENT_THRESHOLD ? 5 : 1; // Accelerate after the threshold.
 
-                preset_secs = preset_secs < 0 ? 0 : preset_secs; // Clamp seconds at zero.
+                preset_secs = preset_secs < 0 ? 59 : preset_secs; // Clamp seconds at zero.
 
                 selected_message = UART_SET_FORMAT; // Request a preset update.
             }
